@@ -6,6 +6,7 @@ import  Navbar  from "@/components/Navbar";  // คอมโพเนนต์ N
 //import { Footer } from "@/components/Footer";  // คอมโพเนนต์ Footer
 //import { Banner } from "@/components/Banner";  // คอมโพเนนต์ Banner (ถ้ามี)
 import Productcard from "@/components/Productcard";
+import Banner from "@/components/Banner";
 
 const HomePage = () => {
   return (
@@ -14,7 +15,7 @@ const HomePage = () => {
       <Navbar />
 
       {/* Hero Section หรือ Banner */}
-      {/* <Banner /> */}
+      <Banner />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto p-6">
@@ -35,7 +36,7 @@ const HomePage = () => {
 
         {/* Call to Action (เช่น โปรโมชั่นหรือข้อเสนอพิเศษ) */}
         <section className="mt-16 text-center">
-          <Link href="/shop">
+          <Link href="/product">
             <Button variant="outline" size="lg" className="w-full sm:w-auto">
               Browse All Products
             </Button>
