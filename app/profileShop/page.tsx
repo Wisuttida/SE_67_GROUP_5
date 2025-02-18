@@ -1,18 +1,19 @@
 import React from 'react'
 import Navbar from '@/components/Navbar'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+
 import { User, Package, Settings, Plus, Droplets, Truck, ClipboardList } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 const profileShop = () => {
     const menuItems = [
-        { name: "My Profile", icon: <User size={32} /> },
-        { name: "My Product", icon: <Package size={32} /> },
-        { name: "Order Customize", icon: <Settings size={32} /> },
-        { name: "Add Product", icon: <Plus size={32} /> },
+        { name: "My Profile", icon: <User size={32} />, },
+        { name: "My Product", icon: <Package size={32} />, path: "/shopToShip" },
+        { name: "Order Customize", icon: <Settings size={32} />, path: "/shopToShip" },
+        { name: "Add Product", icon: <Plus size={32} />, path: "/shopToShip" },
         { name: "Buy Ingredient", icon: <Droplets size={32} /> },
-        { name: "To Ship", icon: <Truck size={32} /> },
-        { name: "To Receive", icon: <ClipboardList size={32} /> },
+        { name: "To Ship", icon: <Truck size={32} />, path: "/shopToShip"},
+        { name: "To Receive", icon: <ClipboardList size={32} />, path: "/shopToShip" },
       ];
   return (
     <div>
@@ -44,10 +45,12 @@ const profileShop = () => {
             </div>
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mt-4 bg-white p-4 rounded-lg shadow-md">
                 {menuItems.map((item, index) => (
-                    <div key={index} className="flex flex-col items-center p-4 hover:bg-gray-200 rounded-lg cursor-pointer">
+                    <Link key={index} href={item.path|| "#"} className='block'>
+                    <div  className="flex flex-col items-center p-4 hover:bg-gray-200 rounded-lg cursor-pointer">
                         {item.icon}
-                        <p className="mt-2 text-sm font-semibold">{item.name}</p>
+                        <p className="mt-2 text-sm font-semibold"> {item.name} </p>
                     </div>
+                    </Link>
                 ))}
             </div>
         
@@ -70,10 +73,12 @@ const profileShop = () => {
             "รหัสไปรสณีย์",
             
           ].map((field, index) => (
-            <div key={index} className="border-b pb-1">{field}</div>
+            <div key={index} className="border-b pb-1"> {field} </div>
           ))}
         </div>
         <button className="text-blue-500 mt-2">✏️ Edit Address</button>
+        
+       
       </div>
 
       {/* Description Section */}
