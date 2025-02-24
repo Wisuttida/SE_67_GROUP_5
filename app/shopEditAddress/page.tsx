@@ -24,7 +24,7 @@ const ShopEditAddress = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Saved Address:', address);
-    router.push('/profileShop'); // กลับไปหน้า Dashboard
+    router.push('/'); // กลับไปหน้า Dashboard
   };
 
   return (
