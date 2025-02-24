@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from 'react';
-import Navbar from '@/components/Navbar';
 import { User, Package, Settings, Plus, Droplets, Truck, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 
