@@ -3,6 +3,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
+import ProfileShopMenu from '@/components/ProfileShopMenu';
 
 const ShopToShip = () => {
   const orders = [
@@ -16,6 +17,7 @@ const ShopToShip = () => {
   return (
     <div>
         <Navbar />
+        <ProfileShopMenu />
         <div className="p-6 bg-gray-100 min-h-screen">
             <h2 className="text-2xl font-semibold mb-4 text-center">To Ship</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
