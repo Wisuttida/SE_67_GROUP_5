@@ -2,7 +2,7 @@
 import Navbar from '@/components/Navbar';
 import ProfileShopMenu from '@/components/ProfileShopMenu';
 import Image from 'next/image';
-import { SetStateAction, useState } from 'react';
+import { useState } from 'react';
 
 const initialProducts = [
   {
@@ -63,7 +63,7 @@ export default function shopProducts() {
     );
   };
 
-  const handleEdit = (id: number | SetStateAction<null>) => {
+  const handleEdit = (id) => {
     setEditingId(id);
   };
 
