@@ -2,7 +2,7 @@
 import Navbar from '@/components/Navbar';
 import ProfileShopMenu from '@/components/ProfileShopMenu';
 import Image from 'next/image';
-import { useState } from 'react';
+import { SetStateAction, useState } from 'react';
 
 const initialProducts = [
   {
@@ -50,10 +50,12 @@ const initialProducts = [
 ];
 
 export default function shopProducts() {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [products, setProducts] = useState(initialProducts);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [editingId, setEditingId] = useState(null);
 
-  const handleUpdate = (id, key, value) => {
+  const handleUpdate = (id: number, key: string, value: string | number) => {
     setProducts((prev) =>
       prev.map((product) =>
         product.id === id ? { ...product, [key]: value } : product
@@ -61,7 +63,7 @@ export default function shopProducts() {
     );
   };
 
-  const handleEdit = (id) => {
+  const handleEdit = (id: number | SetStateAction<null>) => {
     setEditingId(id);
   };
 
@@ -69,12 +71,12 @@ export default function shopProducts() {
     setEditingId(null);
   };
 
-  const handleImageUpload = (id, file) => {
+  const handleImageUpload = (id: number, file: Blob | MediaSource) => {
     const imageUrl = URL.createObjectURL(file);
     handleUpdate(id, 'image', imageUrl);
   };
 
-  const handleRemove = (id) => {
+  const handleRemove = (id: number) => {
     setProducts((prev) => prev.filter((product) => product.id !== id));
   };
 
