@@ -14,12 +14,12 @@ const ProfileShopMenu = () => {
 
     const menuItems = [
         { name: 'My Profile', icon: <User size={32} />, path: '/profileShop' },
-        { name: 'My Product', icon: <Package size={32} />, path: '/shopProduct' },
-        { name: 'Order Customize', icon: <Settings size={32} />, path: '/shopToShip' },
-        { name: 'Add Product', icon: <Plus size={32} />, path: '/shopToShip' },
-        { name: 'Buy Ingredient', icon: <Droplets size={32} /> },
+        { name: 'My Product', icon: <Package size={32} />, path: '/myProductShop' },
+        { name: 'Order Customize', icon: <Settings size={32} />, path: '/profileShop' },
+        { name: 'Add Product', icon: <Plus size={32} />, path: '/addProduct' },
+        { name: 'Buy Ingredient', icon: <Droplets size={32} /> , path: '/profileShop'},
         { name: 'To Ship', icon: <Truck size={32} />, path: '/shopToShip' },
-        { name: 'To Receive', icon: <ClipboardList size={32} />, path: '/shopToShip' },
+        { name: 'To Receive', icon: <ClipboardList size={32} />, path: '/profileShop'},
     ];
 
     const handleProfileChange = (e) => {

@@ -49,7 +49,7 @@ const initialProducts = [
   },
 ];
 
-export default function shopProducts() {
+export default function myProductShop() {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [products, setProducts] = useState(initialProducts);
   // eslint-disable-next-line react-hooks/rules-of-hooks
