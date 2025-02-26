@@ -8,7 +8,11 @@ import  Navbar  from "@/components/Navbar";  // คอมโพเนนต์ N
 import Productcard from "@/components/Productcard";
 import Banner from "@/components/Banner";
 
+import { testDatabase } from "@/components/testDatabase";
+
 const HomePage = () => {
+  const products = testDatabase;
+
   return (
     <div>
       {/* Navbar */}
@@ -26,12 +30,11 @@ const HomePage = () => {
 
         {/* Product Showcase (รายการสินค้าตัวอย่าง) */}
         <section className="grid grid-cols-3 gap-8">
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
+          {products.map((product) => (
+            <div key={product.productId}>
+              <Productcard key={product.productId} product={product}/>
+            </div>
+          ))}
         </section>
 
         {/* Call to Action (เช่น โปรโมชั่นหรือข้อเสนอพิเศษ) */}
