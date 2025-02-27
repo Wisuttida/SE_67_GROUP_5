@@ -34,7 +34,7 @@ const ProfileShop = () => {
 
             {/* Description Section */}
             <div className="bg-white p-4 rounded-lg shadow-md mt-4">
-              <h3 className="text-lg font-semibold">Description</h3>
+              <h3 className="text-lg font-semibold">คำอธิบายร้าน</h3>
               <textarea className="w-full p-2 border rounded-lg mt-2" placeholder="Text"></textarea>
             </div>
           </div>
