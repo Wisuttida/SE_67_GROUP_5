@@ -31,10 +31,12 @@ const Navbar = () => {
 
         <div className="flex items-center gap-6"> {/* เพิ่ม gap ที่นี่ */}
         {/* Cart Button */}
-        <Button variant="outline" className="flex items-center space-x-2">
-          <ShoppingCart size={20} />
-          <span>Cart</span>
-        </Button>
+          <Link href="/cart">
+            <Button variant="outline" className="flex items-center space-x-2">
+              <ShoppingCart size={20} />
+              <span>Cart</span>
+            </Button>
+          </Link>
 
           {/* ปุ่ม Account */}
           <DropdownMenu>

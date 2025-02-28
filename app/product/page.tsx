@@ -1,54 +1,42 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";  // ปุ่มจาก UI Library ของคุณ
-import  Navbar  from "@/components/Navbar";  // คอมโพเนนต์ Navbar
-//import { Footer } from "@/components/Footer";  // คอมโพเนนต์ Footer
-//import { Banner } from "@/components/Banner";  // คอมโพเนนต์ Banner (ถ้ามี)
+import { useState } from "react";
+import Navbar from "@/components/Navbar";
 import Productcard from "@/components/Productcard";
+import FilterSidebar from "@/components/FilterSidebar";
+import { testDatabase } from "@/components/testDatabase";
 
 const ProductPage = () => {
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+
+  // ฟังก์ชันกรองสินค้าตามราคาที่เลือก
+  const filteredProducts = testDatabase.filter((product) => {
+    if (selectedFilters.length === 0) return true; // ถ้าไม่เลือก filter ให้แสดงสินค้าทั้งหมด
+    return selectedFilters.some((price) => product.price >= Number(price));
+  });
+
   return (
     <div>
-      {/* Navbar */}
       <Navbar />
 
-      {/* Hero Section หรือ Banner */}
-      {/* <Banner /> */}
+      <main className="max-w-7xl mx-auto p-6 flex gap-8">
+        {/* Sidebar Filter */}
+        <aside className="w-1/4">
+          <FilterSidebar 
+            selectedFilters={selectedFilters} 
+            setSelectedFilters={setSelectedFilters} 
+          />
+        </aside>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto p-6">
-
-        {/* Product Showcase (รายการสินค้าตัวอย่าง) */}
-        <section className="grid grid-cols-3 gap-8">
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
-          <Productcard/>
-        </section>
-
-        {/* Call to Action (เช่น โปรโมชั่นหรือข้อเสนอพิเศษ) */}
-        <section className="mt-16 text-center">
-          <Link href="/shop">
-            <Button variant="outline" size="lg" className="w-full sm:w-auto">
-              Browse All Products
-            </Button>
-          </Link>
+        {/* Product Showcase */}
+        <section className="grid grid-cols-3 gap-8 w-3/4">
+          {filteredProducts.map((product) => (
+            <Productcard key={product.productId} product={product} />
+          ))}
         </section>
       </main>
-
-      {/* Footer */}
-      {/* <Footer /> */}
     </div>
   );
 };
 
 export default ProductPage;
-
-
