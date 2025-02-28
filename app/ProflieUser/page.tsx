@@ -52,7 +52,7 @@ export default function ProfileUser() {
     { icon: <Tractor className="w-6 h-6" />, label: "My Farm", href: "/farm" },
     { icon: <Grid className="w-6 h-6" />, label: "Order Customize", href: "/customize" },
     { icon: <ShoppingCart className="w-6 h-6" />, label: "Cart", href: "/cart" },
-    { icon: <Clipboard className="w-6 h-6" />, label: "Order", href: "/orders" },
+    { icon: <Clipboard className="w-6 h-6" />, label: "Order", href: "/userOrder" },
     { icon: <DollarSign className="w-6 h-6" />, label: "To Pay", href: "/to-pay" },
     { icon: <Upload className="w-6 h-6" />, label: "To Ship", href: "/userToShip" },
     { icon: <Truck className="w-6 h-6" />, label: "To Receive", href: "/to-receive" }
