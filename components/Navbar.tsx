@@ -29,7 +29,6 @@ const Navbar = () => {
           </NavigationMenuList>
         </NavigationMenu>
 
-
         <div className="flex items-center gap-6"> {/* เพิ่ม gap ที่นี่ */}
         {/* Cart Button */}
         <Button variant="outline" className="flex items-center space-x-2">
@@ -51,6 +50,9 @@ const Navbar = () => {
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/profileShop">Shop Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/ProflieUser">Profile</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

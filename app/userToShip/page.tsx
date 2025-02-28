@@ -50,26 +50,12 @@ export default function ProfileUser() {
     { icon: <ShoppingCart className="w-6 h-6" />, label: "Cart", href: "/cart" },
     { icon: <Clipboard className="w-6 h-6" />, label: "Order", href: "/orders" },
     { icon: <DollarSign className="w-6 h-6" />, label: "To Pay", href: "/to-pay" },
-    { icon: <Upload className="w-6 h-6" />, label: "To Ship", href: "/userToShip" },
+    { icon: <Upload className="w-6 h-6" />, label: "To Ship", href: "/to-ship" },
     { icon: <Truck className="w-6 h-6" />, label: "To Receive", href: "/to-receive" }
   ];
 
   return (
     <div className="max-w-screen-xl mx-auto px-4">
-      {/* Top Bar */}
-      <div className="flex justify-between items-center py-4 border-b border-gray-300">
-        <div className="text-xl font-bold">To Ship</div>
-        <div className="flex gap-4">
-          <Input placeholder="Search Product" className="w-64" />
-          <Button variant="outline"><Search className="w-5 h-5" /></Button>
-        </div>
-        <div className="flex gap-4">
-          <Link href="/profile" passHref>
-            <Button variant="outline">Profile</Button>
-          </Link>
-          <Button variant="destructive">Log out</Button>
-        </div>
-      </div>
       <div className="flex justify-center py-4">
         <h2 className="text-2xl font-bold">To Ship</h2>
       </div>
