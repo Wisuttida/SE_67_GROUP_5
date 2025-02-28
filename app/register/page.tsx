@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,10 +12,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 const RegisterPage = () => {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+
+  const togglePassword = () => setShowPassword((prev) => !prev);
+
+  const handleEmailChange = (e) => {
+    const emailInput = e.target.value;
+    setEmail(emailInput);
+    // ตรวจสอบรูปแบบอีเมลด้วย regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailInput)) {
+      setEmailError("Email ไม่ถูกต้อง");
+    } else {
+      setEmailError("");
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -30,7 +48,6 @@ const RegisterPage = () => {
             >
               <ArrowLeft size={24} />
             </Button>
-            {/* หัวข้อ Register อยู่ตรงกลาง */}
             <CardTitle className="text-xl">Register</CardTitle>
           </div>
         </CardHeader>
@@ -54,7 +71,23 @@ const RegisterPage = () => {
 
           <div>
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" placeholder="Password" />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                className="pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={togglePassword}
+                className="absolute inset-y-0 right-0 flex items-center"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </Button>
+            </div>
           </div>
 
           <div>
@@ -64,7 +97,17 @@ const RegisterPage = () => {
 
           <div>
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="Email" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={handleEmailChange}
+              className={`${emailError ? "border-red-500" : ""}`}
+            />
+            {emailError && (
+              <p className="text-red-500 text-xs mt-1">{emailError}</p>
+            )}
           </div>
         </CardContent>
 
