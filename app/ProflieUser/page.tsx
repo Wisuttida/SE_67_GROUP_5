@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
+import Navbar from "@/components/Navbar";
 
 interface AddressData {
   firstname: string;
@@ -47,7 +48,7 @@ export default function ProfileUser() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const profileMenuItems: ProfileMenuItem[] = [
-    { icon: <Store className="w-6 h-6" />, label: "My Shop", href: "/shop" },
+    { icon: <Store className="w-6 h-6" />, label: "My Shop", href: "/profileShop" },
     { icon: <Tractor className="w-6 h-6" />, label: "My Farm", href: "/farm" },
     { icon: <Grid className="w-6 h-6" />, label: "Order Customize", href: "/customize" },
     { icon: <ShoppingCart className="w-6 h-6" />, label: "Cart", href: "/cart" },
@@ -89,47 +90,8 @@ export default function ProfileUser() {
 
   return (
     <div className="max-w-screen-xl mx-auto px-4">
-      {/* Header */}
-      <header className="flex justify-between items-center py-4 border-b">
-        <div className="text-2xl font-bold">฿</div>
-        <nav className="hidden md:flex space-x-6">
-          <Link href="/" className="font-medium hover:text-blue-600 transition-colors">Home</Link>
-          <Link href="/products" className="font-medium hover:text-blue-600 transition-colors">Products</Link>
-          <Link href="/custom" className="font-medium hover:text-blue-600 transition-colors">Custom</Link>
-        </nav>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm">Profile</Button>
-          <Button variant="default" size="sm">Log out</Button>
-        </div>
-      </header>
-
-      {/* Search Bar */}
-      <div className="flex justify-between items-center mt-6">
-        <div className="relative w-full max-w-md mx-auto">
-          <Input
-            type="text"
-            placeholder="Search Product"
-            className="w-full px-4 py-2 rounded-full bg-gray-50"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
-          >
-            <Search className="w-5 h-5 text-gray-500" />
-          </Button>
-        </div>
-        <div className="flex space-x-6 ml-4">
-          <Button variant="ghost" size="sm" className="p-1">
-            <ShoppingCart className="w-6 h-6" />
-          </Button>
-          <Button variant="ghost" size="sm" className="p-1">
-            <Bell className="w-6 h-6" />
-          </Button>
-        </div>
-      </div>
+      {/* Header with Navbar component */}
+      <Navbar />
 
       {/* Profile Section */}
       <Card className="mt-6">
