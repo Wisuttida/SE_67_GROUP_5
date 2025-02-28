@@ -1,78 +1,79 @@
 "use client";
 
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-  } from "@/components/ui/card"
-
-import React from 'react'
-import { useRouter } from "next/navigation";
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
-function RegisterPage() {
-    const router = useRouter();
+const RegisterPage = () => {
+  const router = useRouter();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-
-    <Card className="bg-white p-5 rounded-lg shadow-lg w-full sm:w-96">
-    <CardHeader>
-        <CardTitle className="flex justify-between items-center mb-6">
-            Register
-
-          <Button variant="outline" size="sm" onClick={() => router.back()}>
-            Go Back
-          </Button>
-        </CardTitle>
-    </CardHeader>
-    <CardContent >
-      <div className="space-y-5">
-        <div className="flex items-center gap-4">
-          <div>
-            <Label>Name</Label>
-            <Input type="name" placeholder="Name"/>
+      <Card className="w-full sm:w-96 p-5 shadow-lg">
+        <CardHeader>
+          <div className="relative flex items-center justify-center">
+            {/* ปุ่มย้อนกลับ */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.back()}
+              className="absolute left-0"
+            >
+              <ArrowLeft size={24} />
+            </Button>
+            {/* หัวข้อ Register อยู่ตรงกลาง */}
+            <CardTitle className="text-xl">Register</CardTitle>
           </div>
-          
-          <div>
-            <Label>Surname</Label>
-            <Input type="surname" placeholder="Surname"/>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" type="text" placeholder="Name" />
+            </div>
+            <div>
+              <Label htmlFor="surname">Surname</Label>
+              <Input id="surname" type="text" placeholder="Surname" />
+            </div>
           </div>
-        </div>
-        
-        <div>
-          <Label>Username</Label>
-          <Input type="username" placeholder="Username"/>
-        </div>
 
-        <div>
-          <Label>Password</Label>
-          <Input type="password" placeholder="Password" />
-        </div>
+          <div>
+            <Label htmlFor="username">Username</Label>
+            <Input id="username" type="text" placeholder="Username" />
+          </div>
 
-        <div>
-          <Label>Phone Number</Label>
-          <Input type="phonenumber" placeholder="Phone Number"/>
-        </div>
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" type="password" placeholder="Password" />
+          </div>
 
-        <div>
-          <Label>Email</Label>
-          <Input type="email" placeholder="Email"/>
-        </div>
+          <div>
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input id="phone" type="tel" placeholder="Phone Number" />
+          </div>
 
-      </div>
-    </CardContent>
-    <CardFooter className="flex justify-center">
-        <Button>Register</Button>
-    </CardFooter>
-    </Card>
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" placeholder="Email" />
+          </div>
+        </CardContent>
 
+        <CardFooter className="flex justify-center">
+          <Button className="w-full">Register</Button>
+        </CardFooter>
+      </Card>
     </div>
-  )
-}
+  );
+};
 
 export default RegisterPage;
