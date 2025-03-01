@@ -1,50 +1,62 @@
 "use client";
 
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
+import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
 const LoginPage = () => {
   const router = useRouter();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full sm:w-96">
-        
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold">Login</h2>
-          <Button variant="outline" size="sm" onClick={() => router.back()}>
-            Go Back
-          </Button>
-        </div>
+      <Card className="w-full sm:w-96 p-5 shadow-lg">
+        <CardHeader>
+          <div className="relative flex items-center justify-center">
+            {/* ปุ่มย้อนกลับ */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.back()}
+              className="absolute left-0"
+            >
+              <ArrowLeft size={24} />
+            </Button>
+            {/* หัวข้อ Login อยู่ตรงกลาง */}
+            <CardTitle className="text-xl">Login</CardTitle>
+          </div>
+        </CardHeader>
 
-        <form className="space-y-4">
+        <CardContent className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-600">Email Address</label>
-            <Input id="email" type="email" placeholder="Enter your email" className="mt-2" />
+            <Label htmlFor="email">Email Address</Label>
+            <Input id="email" type="email" placeholder="Enter your email" />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-600">Password</label>
-            <Input id="password" type="password" placeholder="Enter your password" className="mt-2" />
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" type="password" placeholder="Enter your password" />
           </div>
+        </CardContent>
 
-          <Button variant="default" type="submit" className="w-full mt-4">
-            Login
-          </Button>
-        </form>
-
-        <div className="mt-4 text-center">
-          <p className="text-sm text-gray-600">
+        <CardFooter className="flex flex-col space-y-2">
+          <Button className="w-full">Login</Button>
+          <p className="text-sm text-center text-gray-600">
             Don't have an account?{" "}
-            <Link href="/register" className="text-blue-600 hover:underline">
+            <a href="/register" className="text-blue-600 hover:underline">
               Register
-            </Link>
+            </a>
           </p>
-        </div>
-
-        
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };

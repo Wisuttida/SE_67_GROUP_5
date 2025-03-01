@@ -1,14 +1,15 @@
-"use client"; // ใช้ Client Component
+"use client";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { ShoppingCart, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import CartButton from "@/components/CartButton"; // Import CartButton
 
 const Navbar = () => {
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50"> {/* ใช้ sticky ที่นี่ */}
+    <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between p-4">
         {/* Logo */}
         <Link href="/" className="text-2xl font-bold text-gray-800">
@@ -29,15 +30,9 @@ const Navbar = () => {
           </NavigationMenuList>
         </NavigationMenu>
 
-
-        <div className="flex items-center gap-6"> {/* เพิ่ม gap ที่นี่ */}
-        {/* Cart Button */}
-          <Link href="/cart">
-            <Button variant="outline" className="flex items-center space-x-2">
-              <ShoppingCart size={20} />
-              <span>Cart</span>
-            </Button>
-          </Link>
+        <div className="flex items-center gap-6">
+          {/* Cart Button (ใช้ Component ใหม่) */}
+          <CartButton />
 
           {/* ปุ่ม Account */}
           <DropdownMenu>
@@ -53,9 +48,6 @@ const Navbar = () => {
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/profileShop">Shop Profile</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/registerShop">Register Shop</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
