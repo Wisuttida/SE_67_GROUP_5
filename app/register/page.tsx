@@ -16,7 +16,7 @@ const RegisterPage = () => {
 
   const togglePassword = () => setShowPassword((prev) => !prev);
 
-  const handleEmailChange = (e) => {
+  const handleEmailChange = (e: { target: { value: any; }; }) => {
     const emailInput = e.target.value;
     setEmail(emailInput);
     // ตรวจสอบรูปแบบอีเมลด้วย regex
@@ -50,7 +50,7 @@ const RegisterPage = () => {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label htmlFor="name">Name</Label>
-              <Input id="name" type="text" placeholder="Name" />
+              <Input id="name" type="text" placeholder="Name"/>
             </div>
             <div>
               <Label htmlFor="surname">Surname</Label>

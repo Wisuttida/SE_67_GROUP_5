@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Product {
   productId: number;
@@ -42,14 +48,18 @@ const CartPage = () => {
   };
 
   const removeFromCart = (productId: number) => {
-    const updatedCart = cartItems.filter((item) => item.productId !== productId);
+    const updatedCart = cartItems.filter(
+      (item) => item.productId !== productId
+    );
     updateCart(updatedCart);
     setSelectedItems(selectedItems.filter((id) => id !== productId)); // เอาออกจากการเลือก
   };
 
   const increaseQuantity = (productId: number) => {
     const updatedCart = cartItems.map((item) =>
-      item.productId === productId ? { ...item, quantity: item.quantity + 1 } : item
+      item.productId === productId
+        ? { ...item, quantity: item.quantity + 1 }
+        : item
     );
     updateCart(updatedCart);
   };
@@ -76,12 +86,14 @@ const CartPage = () => {
   return (
     <>
       <Navbar />
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-6 pb-24">
         <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
 
         {/* ตัวกรองร้านค้า */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-semibold mb-2">Filter by Shop</label>
+          <label className="block text-gray-700 font-semibold mb-2">
+            Filter by Shop
+          </label>
           <Select value={selectedShop} onValueChange={setSelectedShop}>
             <SelectTrigger className="w-64">
               <SelectValue placeholder="Select a shop" />
@@ -102,9 +114,14 @@ const CartPage = () => {
             <p>Your cart is empty</p>
           ) : (
             cartItems
-              .filter((item) => selectedShop === "all" || item.shopName === selectedShop) // กรองตามร้านค้า
+              .filter(
+                (item) => selectedShop === "all" || item.shopName === selectedShop
+              ) // กรองตามร้านค้า
               .map((item) => (
-                <div key={item.productId} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={item.productId}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center">
                     {/* Checkbox เลือกสินค้า */}
                     <input
@@ -114,39 +131,62 @@ const CartPage = () => {
                       onChange={() => toggleSelectItem(item.productId)}
                     />
 
-                    <img src={item.shopImage} alt={item.shopName} className="w-10 h-10 rounded-full mr-3" />
+                    <img
+                      src={item.shopImage}
+                      alt={item.shopName}
+                      className="w-10 h-10 rounded-full mr-3"
+                    />
 
                     <div>
                       <h2 className="font-semibold">{item.name}</h2>
                       <p className="text-gray-500">Price: ${item.price}</p>
-                      <p className="text-sm text-gray-600">Shop: {item.shopName}</p>
+                      <p className="text-sm text-gray-600">
+                        Shop: {item.shopName}
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-4">
-                    <Button variant="outline" onClick={() => decreaseQuantity(item.productId)}>-</Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => decreaseQuantity(item.productId)}
+                    >
+                      -
+                    </Button>
                     <span>{item.quantity}</span>
-                    <Button variant="outline" onClick={() => increaseQuantity(item.productId)}>+</Button>
-                    <Button variant="outline" onClick={() => removeFromCart(item.productId)}>Remove</Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => increaseQuantity(item.productId)}
+                    >
+                      +
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => removeFromCart(item.productId)}
+                    >
+                      Remove
+                    </Button>
                   </div>
                 </div>
               ))
           )}
         </div>
+      </div>
 
-        {/* แสดงปุ่ม Checkout เฉพาะเมื่อมีสินค้าที่ถูกเลือก */}
-        {selectedItems.length > 0 && (
-          <div className="mt-6 flex justify-between items-center">
+      {/* แสดงปุ่ม Checkout เฉพาะเมื่อมีสินค้าที่ถูกเลือก */}
+      {selectedItems.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-t z-50">
+          <div className="container mx-auto flex justify-between items-center">
             <h2 className="text-xl font-bold">Total: ${calculateTotal()}</h2>
-            <Link href={`/checkout?items=${selectedItems.join(",")}`}> {/* ส่งเฉพาะสินค้าที่เลือกไปที่ checkout */}
+            <Link href={`/checkout?items=${selectedItems.join(",")}`}>
               <Button variant="outline" className="flex items-center gap-2">
                 <ShoppingCart size={20} />
                 Checkout
               </Button>
             </Link>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 };
