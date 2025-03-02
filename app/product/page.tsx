@@ -1,29 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Productcard from "@/components/Productcard";
 import FilterSidebar from "@/components/FilterSidebar";
-import { testDatabase } from "@/components/testDatabase";
+import axios from "axios";
+
+interface Product {
+  product_id: number;
+  name: string;
+  price: string; // or number, depending on how you want to handle prices
+  image_url: string | null; // assuming image_url can be null
+}
 
 const ProductPage = () => {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-
-  // ฟังก์ชันกรองสินค้าตาม filter ที่เลือก
-  const filteredProducts = testDatabase.filter((product) => {
-    if (selectedFilters.length === 0) return true; // ถ้าไม่มีการเลือก filter ให้แสดงสินค้าทั้งหมด
-
+  const [products, setProducts] = useState<Product[]>([]);
+  // โหลด cart จาก localStorage ตอนโหลดหน้า
+  useEffect(() => {
+    axios.get("http://127.0.0.1:8000/api/products").then(response => {
+      setProducts(response.data);
+      //console.log('geeee', response.data);
+    })
+    .catch(error => {
+      console.error("Error fetching products:", error);
+    });
+  }, []);
+  // Filter products based on selected filters
+  const filteredProducts = products.filter((product) => {
+    if (selectedFilters.length === 0) return true;
+    
+    // For now, we'll just filter by price since that's the only field we have
     return selectedFilters.every((filter) => {
-      return (
-        product.gender?.includes(filter) || // กรองตาม Gender
-        product.ageRange?.includes(filter) || // กรองตาม Age
-        product.fragranceTone?.includes(filter) || // กรองตาม Fragrance Tone
-        product.fragranceStrength?.includes(filter) || // กรองตาม Fragrance Strength
-        (filter.match(/^\d+$/) ? product.price >= Number(filter) : false) // กรองตาม Price
-      );
+      // If the filter is a number (price filter)
+      if (filter.match(/^\d+$/)) {
+        return parseFloat(product.price) >= Number(filter);
+      }
+      return true; // Skip other filters for now
     });
   });
-
   return (
     <div>
       <Navbar />
@@ -40,7 +55,7 @@ const ProductPage = () => {
         {/* Product Showcase */}
         <section className="grid grid-cols-3 gap-8 w-3/4">
           {filteredProducts.map((product) => (
-            <Productcard key={product.productId} product={product} />
+            <Productcard key={product.product_id} productEach={product} />
           ))}
         </section>
       </main>
