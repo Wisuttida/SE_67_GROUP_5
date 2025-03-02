@@ -8,9 +8,12 @@ interface Product {
   productId: number;
   name: string;
   price: number;
-  quantity?: number;
-  shopName: string; // เพิ่มชื่อร้านค้า
-  shopImage: string; // เพิ่มรูปโปรไฟล์ร้านค้า
+  quantity: number;
+  gender: string,
+  age: number,
+  fragranceTone: string,
+  fragranceStrength: string,
+
 }
 
 const Productcard = ({ product }: { product: Product }) => {
@@ -42,20 +45,7 @@ const Productcard = ({ product }: { product: Product }) => {
 
   return (
     <div className="bg-gray-100 p-4 rounded-lg shadow-lg">
-      {/* ข้อมูลร้านค้าอยู่ด้านบน */}
-      <div className="flex items-center mb-3">
-        <img
-          src={product.shopImage}
-          alt={product.shopName}
-          className="w-10 h-10 rounded-full mr-2"
-        />
-        {/* ทำให้ชื่อร้านค้ากดได้ */}
-        <Link href={`/shop/${product.shopName}`}>
-          <span className="text-sm font-semibold text-black-500">
-            {product.shopName}
-          </span>
-        </Link>
-      </div>
+      
 
       <Link href={`/product/${product.productId}`}>
         <img
