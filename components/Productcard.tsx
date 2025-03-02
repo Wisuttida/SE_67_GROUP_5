@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import axios from "axios";
 
 interface Product {
   productId: number;
@@ -18,9 +19,15 @@ interface Product {
 
 const Productcard = ({ product }: { product: Product }) => {
   const [cart, setCart] = useState<Product[]>([]);
-
+  const [products, setProducts] = useState([]);
   // โหลด cart จาก localStorage ตอนโหลดหน้า
   useEffect(() => {
+    axios.get("http://127.0.0.1:8000/api/products").then(response => {
+      setProducts(response.data);
+    })
+    .catch(error => {
+      console.error("Error fetching products:", error);
+    });
     const storedCart = localStorage.getItem("cart");
     if (storedCart) {
       setCart(JSON.parse(storedCart));
@@ -45,7 +52,6 @@ const Productcard = ({ product }: { product: Product }) => {
 
   return (
     <div className="bg-gray-100 p-4 rounded-lg shadow-lg">
-      
 
       <Link href={`/product/${product.productId}`}>
         <img
