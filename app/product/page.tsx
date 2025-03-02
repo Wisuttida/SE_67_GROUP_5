@@ -9,10 +9,19 @@ import { testDatabase } from "@/components/testDatabase";
 const ProductPage = () => {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
-  // ฟังก์ชันกรองสินค้าตามราคาที่เลือก
+  // ฟังก์ชันกรองสินค้าตาม filter ที่เลือก
   const filteredProducts = testDatabase.filter((product) => {
-    if (selectedFilters.length === 0) return true; // ถ้าไม่เลือก filter ให้แสดงสินค้าทั้งหมด
-    return selectedFilters.some((price) => product.price >= Number(price));
+    if (selectedFilters.length === 0) return true; // ถ้าไม่มีการเลือก filter ให้แสดงสินค้าทั้งหมด
+
+    return selectedFilters.every((filter) => {
+      return (
+        product.gender?.includes(filter) || // กรองตาม Gender
+        product.ageRange?.includes(filter) || // กรองตาม Age
+        product.fragranceTone?.includes(filter) || // กรองตาม Fragrance Tone
+        product.fragranceStrength?.includes(filter) || // กรองตาม Fragrance Strength
+        (filter.match(/^\d+$/) ? product.price >= Number(filter) : false) // กรองตาม Price
+      );
+    });
   });
 
   return (
