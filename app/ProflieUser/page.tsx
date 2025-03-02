@@ -34,6 +34,8 @@ interface ProfileMenuItem {
 }
 
 export default function ProfileUser() {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [addresses, setAddresses] = useState<AddressData[]>([
     {
       id: "addr-1",
@@ -62,12 +64,16 @@ export default function ProfileUser() {
     { icon: <Grid className="w-6 h-6" />, label: "Order Customize", href: "/customize" },
     { icon: <ShoppingCart className="w-6 h-6" />, label: "Cart", href: "/cart" },
     { icon: <Clipboard className="w-6 h-6" />, label: "Order", href: "/userOrder" },
-    { icon: <DollarSign className="w-6 h-6" />, label: "To Pay", href: "/to-pay" },
+    { icon: <DollarSign className="w-6 h-6" />, label: "To Pay", href: "/userToPay" },
     { icon: <Upload className="w-6 h-6" />, label: "To Ship", href: "/userToShip" },
-    { icon: <Truck className="w-6 h-6" />, label: "To Receive", href: "/to-receive" }
+    { icon: <Truck className="w-6 h-6" />, label: "To Receive", href: "/userToReceive" }
   ];
 
-  // กำหนดรูปแบบข้อมูลสำหรับที่อยู่ใหม่
+  const validatePhoneNumber = (phone: string) => {
+    const phoneRegex = /^[0-9]{3}-[0-9]{3}-[0-9]{4}$/;
+    return phoneRegex.test(phone);
+  };
+
   const getEmptyAddress = (): AddressData => ({
     id: `addr-${Date.now()}`,
     firstname: '',
@@ -82,75 +88,109 @@ export default function ProfileUser() {
     houseNumber: ''
   });
 
-  // เปิด Dialog สำหรับเพิ่มที่อยู่ใหม่
   const handleAddAddress = () => {
     setCurrentAddress(getEmptyAddress());
     setIsEditing(false);
     setIsAddressDialogOpen(true);
   };
 
-  // เปิด Dialog สำหรับแก้ไขที่อยู่
   const handleEditAddress = (address: AddressData) => {
     setCurrentAddress({...address});
     setIsEditing(true);
     setIsAddressDialogOpen(true);
   };
 
-  // ลบที่อยู่
-  const handleDeleteAddress = (id: string) => {
-    if (confirm("คุณต้องการลบที่อยู่นี้ใช่หรือไม่?")) {
-      const updatedAddresses = addresses.filter(addr => addr.id !== id);
-      setAddresses(updatedAddresses);
+  const handleDeleteAddress = async (id: string) => {
+    try {
+      if (confirm("คุณต้องการลบที่อยู่นี้ใช่หรือไม่?")) {
+        setIsLoading(true);
+        const updatedAddresses = addresses.filter(addr => addr.id !== id);
+        setAddresses(updatedAddresses);
+        toast({
+          title: "ลบที่อยู่เรียบร้อยแล้ว",
+          variant: "default",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "ลบที่อยู่เรียบร้อยแล้ว",
-        variant: "default",
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถลบที่อยู่ได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // กำหนดที่อยู่เป็นค่าเริ่มต้น
-  const handleSetDefaultAddress = (id: string) => {
-    const updatedAddresses = addresses.map(address => ({
-      ...address,
-      isDefault: address.id === id
-    }));
-    setAddresses(updatedAddresses);
-    toast({
-      title: "ตั้งเป็นที่อยู่หลักเรียบร้อยแล้ว",
-      variant: "default",
-    });
+  const handleSetDefaultAddress = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const updatedAddresses = addresses.map(address => ({
+        ...address,
+        isDefault: address.id === id
+      }));
+      setAddresses(updatedAddresses);
+      toast({
+        title: "ตั้งเป็นที่อยู่หลักเรียบร้อยแล้ว",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถตั้งค่าที่อยู่หลักได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // บันทึกข้อมูลที่อยู่
-  const handleSaveAddress = (event: React.FormEvent) => {
+  const handleSaveAddress = async (event: React.FormEvent) => {
     event.preventDefault();
     
     if (!currentAddress) return;
 
-    if (isEditing) {
-      // อัปเดตที่อยู่ที่มีอยู่แล้ว
-      const updatedAddresses = addresses.map(addr => 
-        addr.id === currentAddress.id ? currentAddress : addr
-      );
-      setAddresses(updatedAddresses);
+    if (!validatePhoneNumber(currentAddress.phone)) {
       toast({
-        title: "อัปเดตที่อยู่เรียบร้อยแล้ว",
-        variant: "default",
+        title: "รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง",
+        description: "กรุณากรอกในรูปแบบ 0XX-XXX-XXXX",
+        variant: "destructive",
       });
-    } else {
-      // เพิ่มที่อยู่ใหม่
-      setAddresses(prev => [...prev, currentAddress]);
-      toast({
-        title: "เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว",
-        variant: "default",
-      });
+      return;
     }
-    
-    setIsAddressDialogOpen(false);
-    setCurrentAddress(null);
+
+    try {
+      setIsLoading(true);
+      if (isEditing) {
+        const updatedAddresses = addresses.map(addr => 
+          addr.id === currentAddress.id ? currentAddress : addr
+        );
+        setAddresses(updatedAddresses);
+        toast({
+          title: "อัปเดตที่อยู่เรียบร้อยแล้ว",
+          variant: "default",
+        });
+      } else {
+        setAddresses(prev => [...prev, currentAddress]);
+        toast({
+          title: "เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว",
+          variant: "default",
+        });
+      }
+      
+      setIsAddressDialogOpen(false);
+      setCurrentAddress(null);
+    } catch (error) {
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถบันทึกที่อยู่ได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // อัปเดตค่าใน form สำหรับที่อยู่
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!currentAddress) return;
     
@@ -158,11 +198,17 @@ export default function ProfileUser() {
     setCurrentAddress(prev => prev ? { ...prev, [name]: value } : null);
   };
 
-  // อัปเดตค่าจาก select dropdown
   const handleSelectChange = (name: string, value: string) => {
     if (!currentAddress) return;
     setCurrentAddress(prev => prev ? { ...prev, [name]: value } : null);
   };
+
+  const filteredAddresses = addresses.filter(address => 
+    address.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.province.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.district.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="max-w-screen-xl mx-auto px-4">
@@ -203,11 +249,15 @@ export default function ProfileUser() {
             <div className="flex flex-col items-center">
               <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 relative">
                 <Image 
-                  src="/profile-placeholder.png" 
+                  src="/images/profile-placeholder.jpg" 
                   alt="Profile" 
                   fill
                   sizes="(max-width: 96px) 96px"
                   className="object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://via.placeholder.com/96";
+                  }}
                 />
               </div>
               <p className="mt-2 font-medium">Username</p>
@@ -242,23 +292,25 @@ export default function ProfileUser() {
             <Button 
               variant="outline" 
               onClick={handleAddAddress}
+              disabled={isLoading}
             >
               + Add New Address
             </Button>
           </div>
           
-          {addresses.length === 0 ? (
+          {filteredAddresses.length === 0 ? (
             <div className="text-center py-6 text-gray-500">
-              ไม่มีที่อยู่ โปรดเพิ่มที่อยู่ใหม่
+              {searchQuery ? "ไม่พบที่อยู่ที่ค้นหา" : "ไม่มีที่อยู่ โปรดเพิ่มที่อยู่ใหม่"}
             </div>
           ) : (
-            addresses.map((address) => (
+            filteredAddresses.map((address) => (
               <div key={address.id} className="bg-white rounded-lg border p-4 mb-4 relative">
                 <div className="absolute right-4 top-4 flex space-x-2">
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={() => handleEditAddress(address)}
+                    disabled={isLoading}
                   >
                     <Edit className="w-4 h-4 mr-1" /> Edit
                   </Button>
@@ -266,6 +318,7 @@ export default function ProfileUser() {
                     variant="ghost" 
                     size="sm"
                     onClick={() => handleDeleteAddress(address.id)}
+                    disabled={isLoading}
                   >
                     <Trash2 className="w-4 h-4 mr-1 text-red-500" /> Delete
                   </Button>
@@ -276,6 +329,7 @@ export default function ProfileUser() {
                     className="mr-4 h-4 w-4" 
                     checked={address.isDefault}
                     onChange={() => handleSetDefaultAddress(address.id)}
+                    disabled={isLoading}
                   />
                   {address.isDefault && <span className="text-sm text-green-600">Default Address</span>}
                 </div>
@@ -318,6 +372,7 @@ export default function ProfileUser() {
                   value={currentAddress?.firstname || ''}
                   onChange={handleInputChange}
                   required
+                  disabled={isLoading}
                 />
               </div>
               
@@ -329,37 +384,39 @@ export default function ProfileUser() {
                   value={currentAddress?.lastname || ''}
                   onChange={handleInputChange}
                   required
+                  disabled={isLoading}
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone">เบอร์โทรศัพท์</Label>
+                <Label htmlFor="phone">เบอร์โทรศัพท์ (0XX-XXX-XXXX)</Label>
                 <Input
                   id="phone"
                   name="phone"
                   value={currentAddress?.phone || ''}
                   onChange={handleInputChange}
                   required
+                  pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                  placeholder="0XX-XXX-XXXX"
+                  disabled={isLoading}
                 />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="province">จังหวัด</Label>
-                <Select 
-                  value={currentAddress?.province || ''} 
-                  onValueChange={(value) => handleSelectChange('province', value)}
+                <Select
+                    id="province"
+                    value={currentAddress?.province || ''}
+                    onChange={(e) => handleSelectChange('province', e.target.value)}
+                    disabled={isLoading}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="เลือกจังหวัด" />
-                  </SelectTrigger>
-                  <SelectContent>
+                    <SelectItem value="">เลือกจังหวัด</SelectItem>
                     <SelectItem value="Bangkok">กรุงเทพมหานคร</SelectItem>
                     <SelectItem value="Chiang Mai">เชียงใหม่</SelectItem>
                     <SelectItem value="Phuket">ภูเก็ต</SelectItem>
                     <SelectItem value="Chonburi">ชลบุรี</SelectItem>
-                  </SelectContent>
                 </Select>
-              </div>
+                </div>
               
               <div className="space-y-2">
                 <Label htmlFor="district">เขต/อำเภอ</Label>
@@ -369,6 +426,7 @@ export default function ProfileUser() {
                   value={currentAddress?.district || ''}
                   onChange={handleInputChange}
                   required
+                  disabled={isLoading}
                 />
               </div>
               
@@ -380,6 +438,7 @@ export default function ProfileUser() {
                   value={currentAddress?.subDistrict || ''}
                   onChange={handleInputChange}
                   required
+                  disabled={isLoading}
                 />
               </div>
               
@@ -390,6 +449,7 @@ export default function ProfileUser() {
                   name="streetName"
                   value={currentAddress?.streetName || ''}
                   onChange={handleInputChange}
+                  disabled={isLoading}
                 />
               </div>
               
@@ -400,6 +460,7 @@ export default function ProfileUser() {
                   name="building"
                   value={currentAddress?.building || ''}
                   onChange={handleInputChange}
+                  disabled={isLoading}
                 />
               </div>
               
@@ -411,6 +472,7 @@ export default function ProfileUser() {
                   value={currentAddress?.houseNumber || ''}
                   onChange={handleInputChange}
                   required
+                  disabled={isLoading}
                 />
               </div>
               
@@ -422,15 +484,28 @@ export default function ProfileUser() {
                   value={currentAddress?.postalCode || ''}
                   onChange={handleInputChange}
                   required
+                  pattern="[0-9]{5}"
+                  placeholder="XXXXX"
+                  disabled={isLoading}
                 />
               </div>
             </div>
             
             <DialogFooter className="mt-6">
-              <Button type="button" variant="outline" onClick={() => setIsAddressDialogOpen(false)}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsAddressDialogOpen(false)}
+                disabled={isLoading}
+              >
                 ยกเลิก
               </Button>
-              <Button type="submit">บันทึก</Button>
+              <Button 
+                type="submit"
+                disabled={isLoading}
+              >
+                {isLoading ? "กำลังบันทึก..." : "บันทึก"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

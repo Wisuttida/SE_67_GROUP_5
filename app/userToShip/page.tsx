@@ -322,35 +322,38 @@ export default function UserToShip() {
             />
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-1"
-              onClick={selectAllOrders}
-            >
-              <Checkbox 
-                checked={selectedOrders.length > 0 && selectedOrders.length === filteredOrders.length} 
-                className="mr-1"
-              />
-              เลือกทั้งหมด
-            </Button>
-            <Button 
-              variant="destructive" 
-              className="flex items-center gap-1"
-              onClick={deleteSelectedOrders}
-              disabled={selectedOrders.length === 0 || isLoading}
-            >
-              <Trash size={16} />
-              ลบที่เลือก
-            </Button>
-            <Button 
-              className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
-              onClick={markAsShipped}
-              disabled={selectedOrders.length === 0 || isLoading}
-            >
-              <Truck size={16} />
-              ทำเครื่องหมายว่าจัดส่งแล้ว
-            </Button>
-          </div>
+  {/* Replace the Button with a div for "select all" */}
+  <div 
+    className="flex items-center gap-2 px-4 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer"
+    onClick={selectAllOrders}
+  >
+    <Checkbox 
+      checked={selectedOrders.length > 0 && selectedOrders.length === filteredOrders.length}
+      className="mr-1"
+      onCheckedChange={selectAllOrders}
+    />
+    <span>เลือกทั้งหมด</span>
+  </div>
+  
+  {/* Keep these buttons as they are */}
+  <Button 
+    variant="destructive" 
+    className="flex items-center gap-1"
+    onClick={deleteSelectedOrders}
+    disabled={selectedOrders.length === 0 || isLoading}
+  >
+    <Trash size={16} />
+    ลบที่เลือก
+  </Button>
+  <Button 
+    className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
+    onClick={markAsShipped}
+    disabled={selectedOrders.length === 0 || isLoading}
+  >
+    <Truck size={16} />
+    ทำเครื่องหมายว่าจัดส่งแล้ว
+  </Button>
+</div>
         </div>
       </div>
       
