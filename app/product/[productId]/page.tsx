@@ -7,13 +7,14 @@ import Link from "next/link";
 import { testDatabase } from "@/components/testDatabase";
 
 interface Params {
-  params: Promise<{ productId: string }>;
+  params: Promise<{ product_id: string }>;
 }
 
 interface Product {
-  productId: number;
+  product_id: number;
   name: string;
-  price: number;
+  price: string; // or number, depending on how you want to handle prices
+  image_url: string | null; // assuming image_url can be null
   image: string;
   quantity?: number;
   shopName: string;
@@ -23,8 +24,8 @@ interface Product {
 function ProductdetailPage({ params }: Params) {
   // แกะค่า params ด้วย React.use()
   const resolvedParams = React.use(params);
-  const productIdNumber = Number(resolvedParams.productId);
-  const product = testDatabase.find((p) => p.productId === productIdNumber);
+  const productIdNumber = Number(resolvedParams.product_id);
+  const product = testDatabase.find((p) => p.product_id === productIdNumber);
   const [showDetails, setShowDetails] = useState(false);
   const [cart, setCart] = useState<Product[]>([]);
 
@@ -40,7 +41,7 @@ function ProductdetailPage({ params }: Params) {
     if (!product) return;
     let updatedCart = [...cart];
     const existingProductIndex = updatedCart.findIndex(
-      (item) => item.productId === product.productId
+      (item) => item.product_id === product.productId
     );
 
     if (existingProductIndex !== -1) {

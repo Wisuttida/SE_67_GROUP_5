@@ -24,7 +24,7 @@ const FilterSidebar = ({ selectedFilters, setSelectedFilters }: FilterSidebarPro
         {/* Price Ranges */}
         <div>
           <h2 className="text-lg font-bold mb-2">Price Range</h2>
-          {["500", "1000", "2000", "5000"].map((price) => (
+          {["100", "500", "1000", "1500"].map((price) => (
             <div key={price} className="flex items-center gap-2">
               <Checkbox 
                 id={`price-${price}`}
