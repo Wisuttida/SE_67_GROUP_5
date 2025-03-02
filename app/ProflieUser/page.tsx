@@ -47,7 +47,7 @@ export default function ProfileUser() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const profileMenuItems: ProfileMenuItem[] = [
-    { icon: <Store className="w-6 h-6" />, label: "My Shop", href: "/shop" },
+    { icon: <Store className="w-6 h-6" />, label: "My Shop", href: "/registerShop" },
     { icon: <Tractor className="w-6 h-6" />, label: "My Farm", href: "/farm" },
     { icon: <Grid className="w-6 h-6" />, label: "Order Customize", href: "/customize" },
     { icon: <ShoppingCart className="w-6 h-6" />, label: "Cart", href: "/cart" },
