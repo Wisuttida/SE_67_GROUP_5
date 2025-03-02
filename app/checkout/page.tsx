@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/Navbar";
+import QRCode from "react-qr-code";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Product {
   productId: number;
@@ -13,13 +15,24 @@ interface Product {
 }
 
 const CheckoutPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // รับค่าจาก query parameter "items" เป็น comma-separated list ของ productId
+  const selectedItemsQuery = searchParams.get("items");
+  const confirmedProductIds = selectedItemsQuery
+    ? selectedItemsQuery.split(",").map((id) => Number(id))
+    : [];
+
   const [cartItems, setCartItems] = useState<Product[]>([]);
-  const [formData, setFormData] = useState({
+  const [shippingInfo, setShippingInfo] = useState({
     fullName: "",
     address: "",
     phone: "",
   });
+  const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
+  // โหลด cart จาก localStorage ตอนโหลดหน้า
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
     if (storedCart) {
@@ -28,70 +41,164 @@ const CheckoutPage = () => {
   }, []);
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+    // คำนวณเฉพาะสินค้าที่อยู่ใน confirmedProductIds
+    const total = cartItems
+      .filter((item) => confirmedProductIds.includes(item.productId))
+      .reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return total.toFixed(2);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleShippingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setShippingInfo({ ...shippingInfo, [e.target.name]: e.target.value });
   };
 
-  const handleCheckout = () => {
-    if (!formData.fullName || !formData.address || !formData.phone) {
-      alert("Please fill in all fields.");
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setPaymentProof(e.target.files[0]);
+    }
+  };
+
+  const handlePayment = () => {
+    // ตรวจสอบข้อมูลการจัดส่ง
+    if (!shippingInfo.fullName || !shippingInfo.address || !shippingInfo.phone) {
+      alert("กรุณากรอกข้อมูลการจัดส่งให้ครบถ้วน");
+      return;
+    }
+    // ตรวจสอบหลักฐานการโอน
+    if (!paymentProof) {
+      alert("กรุณาแนบหลักฐานการโอนเงิน");
       return;
     }
 
-    // จำลองการสั่งซื้อ
-    console.log("Order Details:", {
-      customer: formData,
-      items: cartItems,
-      total: calculateTotal(),
-    });
+    setIsProcessing(true);
 
-    // เคลียร์ตะกร้าหลังจาก Checkout
-    localStorage.removeItem("cart");
-    setCartItems([]);
-    window.dispatchEvent(new Event("storage")); // แจ้งให้ Navbar อัปเดต
+    // จำลองการประมวลผลการชำระเงิน
+    setTimeout(() => {
+      console.log("Payment Details:", {
+        shipping: shippingInfo,
+        paymentProof: paymentProof.name,
+        items: cartItems.filter((item) =>
+          confirmedProductIds.includes(item.productId)
+        ),
+        total: calculateTotal(),
+      });
 
-    alert("Order placed successfully!");
+      // ลบเฉพาะสินค้าที่ถูกเลือกออกจากตะกร้า
+      const remainingCart = cartItems.filter(
+        (item) => !confirmedProductIds.includes(item.productId)
+      );
+      localStorage.setItem("cart", JSON.stringify(remainingCart));
+      setCartItems(remainingCart);
+      window.dispatchEvent(new Event("storage"));
+
+      alert("ชำระเงินเรียบร้อยแล้ว!");
+      setIsProcessing(false);
+
+      // นำผู้ใช้กลับไปหน้าตะกร้า
+      router.push("/cart");
+    }, 2000);
   };
 
   return (
     <>
       <Navbar />
       <div className="container mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-6">Checkout</h1>
+        <h1 className="text-3xl font-bold mb-6">Payment</h1>
 
-        {/* รายการสินค้า */}
+        {/* Order Summary */}
         <div className="border p-4 rounded-lg mb-6">
           <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-          {cartItems.length === 0 ? (
-            <p>Your cart is empty</p>
+          {cartItems.filter((item) =>
+            confirmedProductIds.includes(item.productId)
+          ).length === 0 ? (
+            <p>No selected items in your order.</p>
           ) : (
-            cartItems.map((item) => (
-              <div key={item.productId} className="flex justify-between items-center p-2 border-b">
-                <span>{item.name} (x{item.quantity})</span>
-                <span>${(item.price * item.quantity).toFixed(2)}</span>
-              </div>
-            ))
+            cartItems
+              .filter((item) => confirmedProductIds.includes(item.productId))
+              .map((item) => (
+                <div
+                  key={item.productId}
+                  className="flex justify-between items-center p-2 border-b"
+                >
+                  <span>
+                    {item.name} (x{item.quantity})
+                  </span>
+                  <span>${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+              ))
           )}
-          {cartItems.length > 0 && (
-            <h2 className="text-xl font-bold mt-4">Total: ${calculateTotal()}</h2>
+          {cartItems.filter((item) =>
+            confirmedProductIds.includes(item.productId)
+          ).length > 0 && (
+            <h2 className="text-xl font-bold mt-4">
+              Total: ${calculateTotal()}
+            </h2>
           )}
         </div>
 
-        {/* แบบฟอร์มจัดส่ง */}
-        <div className="border p-4 rounded-lg">
+        {/* Shipping Information */}
+        <div className="border p-4 rounded-lg mb-6">
           <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
           <div className="space-y-4">
-            <Input type="text" name="fullName" placeholder="Full Name" value={formData.fullName} onChange={handleChange} />
-            <Input type="text" name="address" placeholder="Shipping Address" value={formData.address} onChange={handleChange} />
-            <Input type="text" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} />
+            <Input
+              type="text"
+              name="fullName"
+              placeholder="Full Name"
+              value={shippingInfo.fullName}
+              onChange={handleShippingChange}
+            />
+            <Input
+              type="text"
+              name="address"
+              placeholder="Shipping Address"
+              value={shippingInfo.address}
+              onChange={handleShippingChange}
+            />
+            <Input
+              type="text"
+              name="phone"
+              placeholder="Phone Number"
+              value={shippingInfo.phone}
+              onChange={handleShippingChange}
+            />
           </div>
-          <Button className="mt-6 w-full" onClick={handleCheckout} disabled={cartItems.length === 0}>
-            Confirm Order
-          </Button>
         </div>
+
+        {/* Transfer Payment Section */}
+        <div className="border p-4 rounded-lg mb-6">
+          <h2 className="text-xl font-semibold mb-4">Transfer Payment</h2>
+          <div className="flex flex-col items-center">
+            {/* QRCode สำหรับแสกนโอนเงิน */}
+            <QRCode
+              value="https://yourbanktransferlink.com?account=123456789"
+              size={128}
+            />
+            <p className="mt-2 text-gray-700">Scan to transfer money</p>
+          </div>
+          <div className="mt-4">
+            <label className="block text-gray-700 mb-2">
+              Upload Proof of Transfer
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              className="border p-2 rounded w-full"
+              onChange={handleFileChange}
+            />
+          </div>
+        </div>
+
+        <Button
+          className="mt-6 w-full"
+          onClick={handlePayment}
+          disabled={
+            cartItems.filter((item) =>
+              confirmedProductIds.includes(item.productId)
+            ).length === 0 || isProcessing
+          }
+        >
+          {isProcessing ? "Processing Payment..." : "Confirm Payment"}
+        </Button>
       </div>
     </>
   );

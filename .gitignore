@@ -3,6 +3,7 @@
 # dependencies
 /node_modules/*
 !/node_modules/@radix-ui/
+!/node_modules/react-qr-code/
 /.pnp
 .pnp.*
 .yarn/*
