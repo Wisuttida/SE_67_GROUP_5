@@ -23,6 +23,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <Card className="w-full sm:w-96 p-5 shadow-lg">
+        
         <CardHeader>
           <div className="relative flex items-center justify-center">
             {/* ปุ่มย้อนกลับ */}
@@ -60,6 +61,7 @@ const LoginPage = () => {
             </a>
           </p>
         </CardFooter>
+
       </Card>
     </div>
   );
