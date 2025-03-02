@@ -15,6 +15,10 @@ import { ArrowLeft } from "lucide-react";
 
 const LoginPage = () => {
   const router = useRouter();
+  const handleLogin = () => {
+    // นำทางไปยังหน้า dashboard หลังจากกด Login
+    router.push("/ProfileUser");
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -48,7 +52,7 @@ const LoginPage = () => {
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-2">
-          <Button className="w-full">Login</Button>
+          <Button className="w-full" onClick={handleLogin}>Login</Button>
           <p className="text-sm text-center text-gray-600">
             Don't have an account?{" "}
             <a href="/register" className="text-blue-600 hover:underline">
