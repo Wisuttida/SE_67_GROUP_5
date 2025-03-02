@@ -53,7 +53,7 @@ const Navbar = () => {
                 <Link href="/registerShop">Register Shop</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/ProflieUser">User Profile</Link>
+                <Link href="/ProfileUser">User Profile</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

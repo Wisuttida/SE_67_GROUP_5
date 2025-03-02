@@ -1,11 +1,13 @@
 "use client";
-import { useState } from 'react';
 import { Edit, Search, ShoppingCart, Bell, Home, Store, Tractor, Grid, Clipboard, DollarSign, Upload, Truck } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import axios from 'axios';
+import { useState, useEffect } from 'react';
 
 interface AddressData {
   firstname: string;
@@ -87,6 +89,47 @@ export default function ProfileUser() {
     setAddresses(updatedAddresses);
   };
 
+  const router = useRouter();
+  const [csrfToken, setCsrfToken] = useState('');
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/csrf-token');
+        setCsrfToken(response.data.csrf_token);
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+      }
+    };
+
+    fetchCsrfToken();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post(`http://localhost:8000/api/logout`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include the token in the Authorization header
+          'X-CSRF-TOKEN': csrfToken, // Include CSRF token if necessary
+          withCredentials: true, // Include credentials (cookies) in the request
+        },
+      });
+      console.log('Response', response);
+        if (response.status === 200) {
+            // Clear the token from local storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('csrf')
+            localStorage.removeItem('user_data');
+            localStorage.removeItem('roles');
+            localStorage.removeItem('roles_name');
+            // Optionally redirect the user or update the UI
+            router.push('/'); // Redirect to login page or home page
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+        // Handle error (e.g., show a message to the user)
+    }
+  };
+
   return (
     <div className="max-w-screen-xl mx-auto px-4">
       {/* Header */}
@@ -99,7 +142,7 @@ export default function ProfileUser() {
         </nav>
         <div className="flex space-x-2">
           <Button variant="outline" size="sm">Profile</Button>
-          <Button variant="default" size="sm">Log out</Button>
+          <Button variant="default" size="sm" onClick={handleLogout}>Log out</Button>
         </div>
       </header>
 
