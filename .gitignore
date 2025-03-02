@@ -4,6 +4,7 @@
 /node_modules/*
 !/node_modules/@radix-ui/
 !/node_modules/react-qr-code/
+!/node_modules/axios/
 /.pnp
 .pnp.*
 .yarn/*
