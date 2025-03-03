@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";  // ปุ่มจาก UI Library ของคุณ
 import  Navbar  from "@/components/Navbar";  // คอมโพเนนต์ Navbar
-//import { Footer } from "@/components/Footer";  // คอมโพเนนต์ Footer
-//import { Banner } from "@/components/Banner";  // คอมโพเนนต์ Banner (ถ้ามี)
 import Productcard from "@/components/Productcard";
 import Banner from "@/components/Banner";
 import axios from "axios";

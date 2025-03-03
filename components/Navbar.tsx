@@ -76,12 +76,9 @@ const Navbar = () => {
         {/* Menu */}
         <NavigationMenu>
           <NavigationMenuList className="hidden md:flex space-x-4">
-            <NavigationMenuItem>
-              <Link href="/" className="hover:text-gray-600">Home</Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/product" className="hover:text-gray-600">Product</Link>
-            </NavigationMenuItem>
+            <NavigationMenuItem><Link href="/" className="hover:text-gray-600">Home</Link></NavigationMenuItem>
+            <NavigationMenuItem><Link href="/product" className="hover:text-gray-600">Product</Link></NavigationMenuItem>
+            <NavigationMenuItem><Link href="/customShop" className="hover:text-gray-600">Custom</Link></NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
 
