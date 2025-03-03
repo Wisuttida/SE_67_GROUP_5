@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { Edit, Search, ShoppingCart, Bell, Home, Store, Tractor, Grid, Clipboard, DollarSign, Upload, Truck, Trash2 } from 'lucide-react';
+import { Edit, Search, ShoppingCart, Bell, Store, Tractor, Grid, Clipboard, DollarSign, Upload, Truck, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,7 +11,6 @@ import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 
-// Default images
 const DEFAULT_IMAGES = {
   profile: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f3f4f6'/%3E%3Cpath d='M48 48C54.6274 48 60 42.6274 60 36C60 29.3726 54.6274 24 48 24C41.3726 24 36 29.3726 36 36C36 42.6274 41.3726 48 48 48ZM48 52C40.0474 52 33.5 58.5474 33.5 66.5H62.5C62.5 58.5474 55.9526 52 48 52Z' fill='%239ca3af'/%3E%3C/svg%3E"
 };
@@ -28,7 +27,7 @@ interface AddressData {
   streetName: string;
   building: string;
   houseNumber: string;
-  isDefault?: boolean;
+  isDefault: boolean;
 }
 
 interface ProfileMenuItem {
@@ -94,30 +93,17 @@ export default function ProfileUser() {
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!currentAddress) {
-      const newAddress = getEmptyAddress();
-      newAddress[e.target.name] = e.target.value;
-      setCurrentAddress(newAddress);
-      return;
-    }
-    
-    setCurrentAddress({
-      ...currentAddress,
-      [e.target.name]: e.target.value
+    const { name, value } = e.target;
+    setCurrentAddress(prev => {
+      if (!prev) return getEmptyAddress();
+      return { ...prev, [name]: value };
     });
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    if (!currentAddress) {
-      const newAddress = getEmptyAddress();
-      newAddress[name] = value;
-      setCurrentAddress(newAddress);
-      return;
-    }
-    
-    setCurrentAddress({
-      ...currentAddress,
-      [name]: value
+    setCurrentAddress(prev => {
+      if (!prev) return getEmptyAddress();
+      return { ...prev, [name]: value };
     });
   };
 
@@ -128,10 +114,7 @@ export default function ProfileUser() {
   };
 
   const handleEditAddress = (address: AddressData) => {
-    setCurrentAddress({
-      ...getEmptyAddress(),
-      ...address
-    });
+    setCurrentAddress({ ...address });
     setIsEditing(true);
     setIsAddressDialogOpen(true);
   };
@@ -361,7 +344,7 @@ export default function ProfileUser() {
                 <Input
                   id="firstname"
                   name="firstname"
-                  value={currentAddress ? currentAddress.firstname : ''}
+                  value={currentAddress?.firstname || ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -373,7 +356,7 @@ export default function ProfileUser() {
                 <Input
                   id="lastname"
                   name="lastname"
-                  value={currentAddress ? currentAddress.lastname : ''}
+                  value={currentAddress?.lastname || ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -385,7 +368,7 @@ export default function ProfileUser() {
                 <Input
                   id="phone"
                   name="phone"
-                  value={currentAddress ? currentAddress.phone : ''}
+                  value={currentAddress?.phone || ''}
                   onChange={handleInputChange}
                   required
                   pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
@@ -398,8 +381,9 @@ export default function ProfileUser() {
                 <Label htmlFor="province">จังหวัด</Label>
                 <select
                   id="province"
+                  name="province"
                   className="w-full px-3 py-2 border rounded-md"
-                  value={currentAddress ? currentAddress.province : ''}
+                  value={currentAddress?.province || ''}
                   onChange={(e) => handleSelectChange('province', e.target.value)}
                   disabled={isLoading}
                 >
@@ -416,7 +400,7 @@ export default function ProfileUser() {
                 <Input
                   id="district"
                   name="district"
-                  value={currentAddress ? currentAddress.district : ''}
+                  value={currentAddress?.district || ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -428,7 +412,7 @@ export default function ProfileUser() {
                 <Input
                   id="subDistrict"
                   name="subDistrict"
-                  value={currentAddress ? currentAddress.subDistrict : ''}
+                  value={currentAddress?.subDistrict || ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -440,7 +424,7 @@ export default function ProfileUser() {
                 <Input
                   id="streetName"
                   name="streetName"
-                  value={currentAddress ? currentAddress.streetName : ''}
+                  value={currentAddress?.streetName || ''}
                   onChange={handleInputChange}
                   disabled={isLoading}
                 />
@@ -451,7 +435,7 @@ export default function ProfileUser() {
                 <Input
                   id="building"
                   name="building"
-                  value={currentAddress ? currentAddress.building : ''}
+                  value={currentAddress?.building || ''}
                   onChange={handleInputChange}
                   disabled={isLoading}
                 />
@@ -462,7 +446,7 @@ export default function ProfileUser() {
                 <Input
                   id="houseNumber"
                   name="houseNumber"
-                  value={currentAddress ? currentAddress.houseNumber : ''}
+                  value={currentAddress?.houseNumber || ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -474,7 +458,7 @@ export default function ProfileUser() {
                 <Input
                   id="postalCode"
                   name="postalCode"
-                  value={currentAddress ? currentAddress.postalCode : ''}
+                  value={currentAddress?.postalCode || ''}
                   onChange={handleInputChange}
                   required
                   pattern="[0-9]{5}"
@@ -484,22 +468,34 @@ export default function ProfileUser() {
               </div>
             </div>
             
-            <DialogFooter className="mt-6">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setIsAddressDialogOpen(false)}
-                disabled={isLoading}
-              >
-                ยกเลิก
-              </Button>
-              <Button 
-                type="submit"
-                disabled={isLoading}
-              >
-                {isLoading ? "กำลังบันทึก..." : "บันทึก"}
-              </Button>
-            </DialogFooter>
+            <div className="mt-6 flex justify-end space-x-4">
+  <Button 
+    type="button" 
+    variant="outline" 
+    onClick={() => {
+      setIsAddressDialogOpen(false);
+      setCurrentAddress(null);
+    }}
+    disabled={isLoading}
+    className="min-w-[100px]"
+  >
+    ยกเลิก
+  </Button>
+  <Button 
+    type="submit"
+    disabled={isLoading}
+    className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
+  >
+    {isLoading ? (
+      <div className="flex items-center">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+        กำลังบันทึก...
+      </div>
+    ) : (
+      "บันทึก"
+    )}
+  </Button>
+</div>
           </form>
         </DialogContent>
       </Dialog>

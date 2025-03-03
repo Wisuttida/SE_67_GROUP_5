@@ -1,78 +1,221 @@
 "use client";
 
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-  } from "@/components/ui/card"
-
-import React from 'react'
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import axios from 'axios';
+import { logger } from '../../lib/logger';
 
-function RegisterPage() {
-    const router = useRouter();
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+const RegisterPage = () => {
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [first_name, setFirstName] = useState('');
+  const [last_name, setLastName] = useState('');
+  const [username, setUserName] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [phone_number, setPhone] = useState('');
+  const [message, setMessage] = useState('');
 
-    <Card className="bg-white p-5 rounded-lg shadow-lg w-full sm:w-96">
-    <CardHeader>
-        <CardTitle className="flex justify-between items-center mb-6">
-            Register
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setMessage(''); // Clear any previous error messages
+    console.log('click');
+    // Validate password confirmation
+    if (password !== passwordConfirmation) {
+      setMessage('Passwords do not match');
+      return;
+    }
 
-          <Button variant="outline" size="sm" onClick={() => router.back()}>
-            Go Back
-          </Button>
-        </CardTitle>
-    </CardHeader>
-    <CardContent >
-      <div className="space-y-5">
-        <div className="flex items-center gap-4">
-          <div>
-            <Label>Name</Label>
-            <Input type="name" placeholder="Name"/>
-          </div>
-          
-          <div>
-            <Label>Surname</Label>
-            <Input type="surname" placeholder="Surname"/>
-          </div>
-        </div>
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setMessage('Invalid email format');
+      return;
+    }
+    
+    try {
+        console.log('Submitting registration form...');
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/register`, {
+            first_name,
+            last_name,
+            username,
+            email,
+            password,
+            password_confirmation: passwordConfirmation,
+            phone_number
+        });
         
-        <div>
-          <Label>Username</Label>
-          <Input type="username" placeholder="Username"/>
-        </div>
+        console.log('Registration response:', response);
+        if (response.status === 200 || response.status === 201) {
+            router.push('/');
+        }
+    } catch (error: any) {
+        console.error('Registration error:', error);
+        const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+        setMessage(errorMessage);
+    }
+  };
 
-        <div>
-          <Label>Password</Label>
-          <Input type="password" placeholder="Password" />
-        </div>
+  const togglePassword = () => setShowPassword((prev) => !prev);
 
-        <div>
-          <Label>Phone Number</Label>
-          <Input type="phonenumber" placeholder="Phone Number"/>
-        </div>
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const emailInput = e.target.value;
+    setEmail(emailInput);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailInput)) {
+      setEmailError("Invalid email format");
+    } else {
+      setEmailError("");
+    }
+  };
 
-        <div>
-          <Label>Email</Label>
-          <Input type="email" placeholder="Email"/>
-        </div>
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <Card className="w-full sm:w-96 p-5 shadow-lg">
+          <CardHeader>
+            <div className="relative flex items-center justify-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.back()}
+                className="absolute left-0"
+              >
+                <ArrowLeft size={24} />
+              </Button>
+              <CardTitle className="text-xl">Register</CardTitle>
+            </div>
+          </CardHeader>
 
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label htmlFor="name">Name</Label>
+                <Input 
+                  id="name" 
+                  type="text" 
+                  placeholder="Name" 
+                  value={first_name} 
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value)} 
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="surname">Surname</Label>
+                <Input 
+                  id="surname" 
+                  type="text" 
+                  placeholder="Surname" 
+                  value={last_name} 
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastName(e.target.value)} 
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="username">Username</Label>
+              <Input 
+                id="username" 
+                type="text" 
+                placeholder="Username" 
+                value={username} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUserName(e.target.value)} 
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  className="pr-10"
+                  value={password} 
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)} 
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={togglePassword}
+                  className="absolute inset-y-0 right-0 flex items-center"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="passwordConfirm">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="passwordConfirm"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Confirm Password"
+                  value={passwordConfirmation}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPasswordConfirmation(e.target.value)}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={togglePassword}
+                  className="absolute inset-y-0 right-0 flex items-center"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input 
+                id="phone" 
+                type="tel" 
+                placeholder="Phone Number" 
+                value={phone_number} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)} 
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={handleEmailChange}
+                className={`${emailError ? "border-red-500" : ""}`}
+                required
+              />
+              {emailError && (
+                <p className="text-red-500 text-xs mt-1">{emailError}</p>
+              )}
+            </div>
+          </CardContent>
+
+          <CardFooter className="flex flex-col gap-2 items-center">
+            <Button className="w-full" type="submit">Register</Button>
+            {message && <p className="text-red-500 text-sm">{message}</p>}
+          </CardFooter>
+        </Card>
       </div>
-    </CardContent>
-    <CardFooter className="flex justify-center">
-        <Button>Register</Button>
-    </CardFooter>
-    </Card>
-
-    </div>
-  )
-}
+    </form>
+  );
+};
 
 export default RegisterPage;
