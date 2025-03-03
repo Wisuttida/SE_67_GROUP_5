@@ -56,7 +56,6 @@ const LoginPage = () => {
             setIsLoading(false);
             return;
         }
-        console.log('CSRF Token:', csrfToken);
         
         // Then make login request
         const response = await axios.post(apiUrl, 
@@ -81,6 +80,7 @@ const LoginPage = () => {
         if (response.data.data.token) {
             localStorage.setItem('token', response.data.data.token);
             localStorage.setItem('user_data', JSON.stringify(response.data.data.user)); // Store user data
+            localStorage.setItem('csrfToken', csrfToken);
             localStorage.setItem('roles', JSON.stringify(response.data.data.roles));
             localStorage.setItem('roles_name', JSON.stringify(response.data.data.rolesName));
             console.log('Token stored successfully');

@@ -11,13 +11,20 @@ interface Product {
   name: string;
   price: string; // or number, depending on how you want to handle prices
   image_url: string | null; // assuming image_url can be null
+  image: string;
+  stock_quantity: number,
+  quantity: number;
+  gender_target: string;
+  fragrance_strength: string;
+  shopName: string;
+  shopImage: string;
 }
 
 const ProductPage = () => {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/products").then(response => {
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`).then(response => {
       setProducts(response.data);
     })
     .catch(error => {
