@@ -24,7 +24,7 @@ const Navbar = () => {
         console.error('Error fetching CSRF token:', error);
       }
     };
-    
+
     fetchCsrfToken();
   }, []);
   
@@ -47,7 +47,6 @@ const Navbar = () => {
       
       if (response.status === 200) {
         localStorage.removeItem('token');
-        localStorage.removeItem('csrf');
         localStorage.removeItem('cart');
         localStorage.removeItem('csrfToken');
         localStorage.removeItem('user_data');
@@ -94,42 +93,40 @@ const Navbar = () => {
               <Button variant="outline">Account</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {!isLoggedIn ? (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href="/login">Login</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/register">Register</Link>
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profileShop">Shop Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/registerShop">Register Shop</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/ProfileUser">User Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/farm">Farm Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/registerFarm">Register Farm</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <button 
-                      onClick={handleLogout}
-                      className="w-full text-left"
-                    >
-                      Logout
-                    </button>
-                  </DropdownMenuItem>
-                </>
-              )}
+                  {!isLoggedIn && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/login">Login</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/register">Register</Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {isLoggedIn && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/profileShop">Shop Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/registerShop">Register Shop</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/ProfileUser">User Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/farm">Farm Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/registerFarm">Register Farm</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <button onClick={handleLogout} className="w-full text-left">
+                          Logout
+                        </button>
+                      </DropdownMenuItem>
+                    </>
+                  )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -15,6 +15,13 @@ interface Product {
   name: string;
   price: string; // or number, depending on how you want to handle prices
   image_url: string | null; // assuming image_url can be null
+  image: string;
+  stock_quantity: number,
+  quantity: number;
+  gender_target: string;
+  fragrance_strength: string;
+  shopName: string;
+  shopImage: string;
 }
 
 const HomePage = () => {
@@ -35,7 +42,7 @@ const HomePage = () => {
       <Navbar />
 
       {/* Hero Section หรือ Banner */}
-      <Banner />
+      {/* <Banner /> */}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto p-6">
