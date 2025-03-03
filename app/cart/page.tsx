@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, CheckCircle } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import {
@@ -12,6 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"; // ✅ นำเข้า Dialog จาก ShadCN UI
 
 interface Product {
   productId: number;
@@ -26,7 +33,7 @@ const CartPage = () => {
   const [cartItems, setCartItems] = useState<Product[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [selectedShop, setSelectedShop] = useState<string>("all");
-  const [isOrdered, setIsOrdered] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false); // ✅ state ควบคุม Dialog
 
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
@@ -49,9 +56,29 @@ const CartPage = () => {
   };
 
   const removeFromCart = (productId: number) => {
-    const updatedCart = cartItems.filter((item) => item.productId !== productId);
+    const updatedCart = cartItems.filter(
+      (item) => item.productId !== productId
+    );
     updateCart(updatedCart);
     setSelectedItems(selectedItems.filter((id) => id !== productId));
+  };
+
+  const increaseQuantity = (productId: number) => {
+    const updatedCart = cartItems.map((item) =>
+      item.productId === productId
+        ? { ...item, quantity: item.quantity + 1 }
+        : item
+    );
+    updateCart(updatedCart);
+  };
+
+  const decreaseQuantity = (productId: number) => {
+    const updatedCart = cartItems.map((item) =>
+      item.productId === productId && item.quantity > 1
+        ? { ...item, quantity: item.quantity - 1 }
+        : item
+    );
+    updateCart(updatedCart);
   };
 
   const calculateTotal = () => {
@@ -61,8 +88,13 @@ const CartPage = () => {
       .toFixed(2);
   };
 
-  const handleOrder = () => {
-    setIsOrdered(true);
+  const handlePlaceOrder = () => {
+    if (selectedItems.length === 0) return;
+
+    // ✅ แสดง Dialog แจ้งเตือน
+    setOrderSuccess(true);
+
+    // ✅ ล้างสินค้าที่เลือกหลังจากกดสั่งซื้อ
     setSelectedItems([]);
   };
 
@@ -73,8 +105,11 @@ const CartPage = () => {
       <Navbar />
       <div className="container mx-auto p-6 pb-24">
         <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
+
         <div className="mb-4">
-          <label className="block text-gray-700 font-semibold mb-2">Filter by Shop</label>
+          <label className="block text-gray-700 font-semibold mb-2">
+            Filter by Shop
+          </label>
           <Select value={selectedShop} onValueChange={setSelectedShop}>
             <SelectTrigger className="w-64">
               <SelectValue placeholder="Select a shop" />
@@ -88,14 +123,20 @@ const CartPage = () => {
             </SelectContent>
           </Select>
         </div>
+
         <div className="space-y-4">
           {cartItems.length === 0 ? (
             <p>Your cart is empty</p>
           ) : (
             cartItems
-              .filter((item) => selectedShop === "all" || item.shopName === selectedShop)
+              .filter(
+                (item) => selectedShop === "all" || item.shopName === selectedShop
+              )
               .map((item) => (
-                <div key={item.productId} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={item.productId}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center">
                     <input
                       type="checkbox"
@@ -103,14 +144,43 @@ const CartPage = () => {
                       checked={selectedItems.includes(item.productId)}
                       onChange={() => toggleSelectItem(item.productId)}
                     />
-                    <img src={item.shopImage} alt={item.shopName} className="w-10 h-10 rounded-full mr-3" />
+
+                    <img
+                      src={item.shopImage}
+                      alt={item.shopName}
+                      className="w-10 h-10 rounded-full mr-3"
+                    />
+
                     <div>
                       <h2 className="font-semibold">{item.name}</h2>
                       <p className="text-gray-500">Price: ${item.price}</p>
-                      <p className="text-sm text-gray-600">Shop: {item.shopName}</p>
+                      <p className="text-sm text-gray-600">
+                        Shop: {item.shopName}
+                      </p>
                     </div>
                   </div>
-                  <Button variant="outline" onClick={() => removeFromCart(item.productId)}>Remove</Button>
+
+                  <div className="flex items-center space-x-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => decreaseQuantity(item.productId)}
+                    >
+                      -
+                    </Button>
+                    <span>{item.quantity}</span>
+                    <Button
+                      variant="outline"
+                      onClick={() => increaseQuantity(item.productId)}
+                    >
+                      +
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => removeFromCart(item.productId)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
                 </div>
               ))
           )}
@@ -124,22 +194,32 @@ const CartPage = () => {
             <Button
               variant="outline"
               className="flex items-center gap-2"
-              onClick={handleOrder}
-              disabled={isOrdered}
+              onClick={handlePlaceOrder} // ✅ กดแล้วเปิด Dialog
             >
-              {isOrdered ? (
-                <>
-                  <CheckCircle size={20} className="text-green-500" /> Ordered
-                </>
-              ) : (
-                <>
-                  <ShoppingCart size={20} /> Place Order
-                </>
-              )}
+              <ShoppingCart size={20} />
+              Place Order
             </Button>
           </div>
         </div>
       )}
+
+      {/* ✅ Dialog แจ้งเตือน */}
+      <Dialog open={orderSuccess} onOpenChange={setOrderSuccess}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>สั่งสินค้าแล้ว!</DialogTitle>
+          </DialogHeader>
+          <p className="text-gray-600">กรุณาตรวจสอบการชำระเงินที่ To Pay</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOrderSuccess(false)}>
+              OK
+            </Button>
+            <Link href="/userToPay">
+              <Button>ไปหน้า To Pay</Button>
+            </Link>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
