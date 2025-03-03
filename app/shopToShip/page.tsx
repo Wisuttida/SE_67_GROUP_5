@@ -1,48 +1,75 @@
 "use client";
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import ProfileShopMenu from '@/components/ProfileShopMenu';
-import Navbar from '@/components/Navbar';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import ProfileShopMenu from "@/components/ProfileShopMenu";
+import Navbar from "@/components/Navbar";
 
-const ShopToShip = () => {
-  const orders = [
-    { id: 1, shopName: 'Shop1', productName: 'Product Name', amount: 'Amount', totalPrice: 'Total Price' },
-    { id: 2, shopName: 'Shop1', productName: 'Product Name', amount: 'Amount', totalPrice: 'Total Price' },
-    { id: 3, shopName: 'Shop1', productName: 'Product Name', amount: 'Amount', totalPrice: 'Total Price' },
-    { id: 4, shopName: 'Shop1', productName: 'Product Name', amount: 'Amount', totalPrice: 'Total Price' },
-    { id: 5, shopName: 'Shop1', productName: 'Product Name', amount: 'Amount', totalPrice: 'Total Price' },
-  ];
+const orders = [
+  { shopName: "Shop 1", orderId: "order-1", productName: "สินค้า 1", price: 500, quantity: 1, status: "รอจัดส่ง" },
+  { shopName: "Shop 2", orderId: "order-2", productName: "สินค้า 2", price: 1200, quantity: 2, status: "รอจัดส่ง" },
+  { shopName: "Shop 3", orderId: "order-3", productName: "สินค้า 3", price: 2100, quantity: 3, status: "กำลังจัดส่ง" },
+  { shopName: "Shop 4", orderId: "order-4", productName: "สินค้า 4", price: 3200, quantity: 4, status: "จัดส่งแล้ว" },
+  { shopName: "Shop 5", orderId: "order-5", productName: "สินค้า 5", price: 4500, quantity: 5, status: "จัดส่งสำเร็จ" },
+  { shopName: "Shop 6", orderId: "order-6", productName: "สินค้า 6", price: 6000, quantity: 6, status: "รอจัดส่ง" },
+];
+
+const TABS = ["รอจัดส่ง", "กำลังจัดส่ง", "จัดส่งแล้ว", "จัดส่งสำเร็จ"];
+
+const OrderCard = ({ order }) => {
+  return (
+    <div className="border rounded-lg p-4 bg-white shadow-md">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">{order.shopName}</h2>
+        <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-200">{order.status}</span>
+      </div>
+      <p className="text-gray-600 text-sm">รหัสคำสั่งซื้อ: {order.orderId}</p>
+      <div className="mt-2 border-t pt-2">
+        <p className="text-gray-800 font-medium">{order.productName}</p>
+        <p className="text-gray-600 text-sm">จำนวน: {order.quantity} ชิ้น</p>
+        <p className="text-black font-bold">฿{order.price}</p>
+      </div>
+      <div className="mt-4 flex gap-2">
+        <Button variant="outline" className="w-full">อัปเดตข้อมูลจัดส่ง</Button>
+        <Button className="w-full bg-blue-600 text-white">ดำเนินการ</Button>
+      </div>
+    </div>
+  );
+};
+
+const ShippingDashboard = () => {
+  const [selectedTab, setSelectedTab] = useState("รอจัดส่ง");
+  const filteredOrders = orders.filter(order => order.status === selectedTab);
 
   return (
     <div>
       <Navbar />
       <div className="p-6 bg-gray-100 min-h-screen">
         <ProfileShopMenu />
-        <h2 className="text-2xl font-semibold mb-4 text-center">To Ship</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {orders.map((order) => (
-            <div key={order.id} className="bg-white p-4 rounded-lg shadow-md flex flex-col justify-between">
-              <div className="flex items-center mb-4">
-                <img
-                  src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                  alt="Shop"
-                  className="w-12 h-12 rounded-full mr-4"
-                />
-                <div>
-                  <h3 className="text-lg font-semibold">{order.shopName}</h3>
-                  <p className="text-sm">{order.productName}</p>
-                  <p className="text-sm">{order.amount}</p>
-                  <p className="text-sm">{order.totalPrice}</p>
-                </div>
-              </div>
-              <Button className="bg-green-500 text-white">Finish</Button>
-            </div>
+        <h1 className="text-2xl font-bold mb-4">การจัดส่งสินค้า</h1>
+        
+        <div className="flex space-x-4 border-b pb-2 mb-4">
+          {TABS.map(tab => (
+            <button 
+              key={tab}
+              className={`px-4 py-2 font-semibold ${selectedTab === tab ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600"}`}
+              onClick={() => setSelectedTab(tab)}
+            >
+              {tab}
+            </button>
           ))}
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredOrders.length > 0 ? (
+            filteredOrders.map((order, index) => <OrderCard key={index} order={order} />)
+          ) : (
+            <p className="text-gray-500">ไม่มีคำสั่งซื้อในหมวดนี้</p>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default ShopToShip;
+export default ShippingDashboard;
