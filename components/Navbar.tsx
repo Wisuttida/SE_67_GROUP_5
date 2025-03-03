@@ -13,6 +13,8 @@ import { useState, useEffect } from 'react';
 const Navbar = () => {
   const router = useRouter();
   const [csrfToken, setCsrfToken] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
@@ -22,10 +24,17 @@ const Navbar = () => {
         console.error('Error fetching CSRF token:', error);
       }
     };
-
+    
     fetchCsrfToken();
   }, []);
-
+  
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true); // User is logged in
+    }
+  }, []);
+  
   const handleLogout = async () => {
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {}, {
@@ -85,12 +94,16 @@ const Navbar = () => {
               <Button variant="outline">Account</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href="/login">Login</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/register">Register</Link>
-              </DropdownMenuItem>
+              {!isLoggedIn && (
+                <>
+                <DropdownMenuItem asChild>
+                  <Link href="/login">Login</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/register">Register</Link>
+                </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuItem asChild>
                 <Link href="/profileShop">Shop Profile</Link>
               </DropdownMenuItem>

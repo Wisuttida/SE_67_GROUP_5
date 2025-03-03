@@ -5,9 +5,10 @@ import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { testDatabase } from "@/components/testDatabase";
+import axios from "axios";
 
 interface Params {
-  params: Promise<{ product_id: string }>;
+  params: Promise<{ productId: number }>;
 }
 
 interface Product {
@@ -24,22 +25,27 @@ interface Product {
   shopImage: string;
 }
 
+
 function ProductdetailPage({ params }: Params) {
-  // แกะค่า params ด้วย React.use()
   const resolvedParams = React.use(params);
-  const productIdNumber = Number(resolvedParams.product_id);
-  const product = testDatabase.find((p) => p.product_id === productIdNumber);
   const [showDetails, setShowDetails] = useState(false);
   const [cart, setCart] = useState<Product[]>([]);
-
-  // โหลด cart จาก localStorage ตอนโหลดหน้า
+  const [products, setProducts] = useState<Product[]>([]);
+  
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      setCart(JSON.parse(storedCart));
-    }
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`).then(response => {
+      setProducts(response.data);
+    })
+    .catch(error => {
+      console.error("Error fetching products:", error);
+    });
   }, []);
-
+  const product = products.find((p) => p.product_id == resolvedParams.productId);
+  
+  // const storedCart = localStorage.getItem("cart");   รอทำ async
+  // if (storedCart) {
+  //   setCart(JSON.parse(storedCart));
+  // }
   const addToCart = () => {
     if (!product) return;
     let updatedCart = [...cart];
@@ -57,19 +63,6 @@ function ProductdetailPage({ params }: Params) {
     localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
 
-  if (!product) {
-    return (
-      <div>
-        <Navbar />
-        <main className="max-w-7xl mx-auto p-6 text-center">
-          <h2 className="text-xl font-semibold mt-4 text-red-500">
-            Product not found
-          </h2>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div>
       {/* Navbar */}
@@ -81,8 +74,8 @@ function ProductdetailPage({ params }: Params) {
           <section className="grid grid-cols-2 gap-8">
             {/* รูปสินค้า */}
             <img
-              src={product.image}
-              alt={product.name}
+              src={product?.image_url || "/path/to/default-image.jpg"}
+              alt={product?.name}
               className="w-full h-96 object-cover rounded-lg"
             />
 
@@ -90,27 +83,27 @@ function ProductdetailPage({ params }: Params) {
             <div className="flex flex-col justify-between">
               {/* ข้อมูลสินค้า */}
               <div>
-                <h2 className="text-3xl font-bold">{product.name}</h2>
+                <h2 className="text-3xl font-bold">{product?.name}</h2>
                 <p className="text-2xl text-gray-700 mt-2">
-                  ${product.price}
+                  ฿{product?.price}
                 </p>
 
-                {/* ข้อมูลร้านค้า */}
+                {/* ข้อมูลร้านค้า
                 <div className="flex items-center mt-4">
                   <Link
                     href={`/shop/${encodeURIComponent(product.shopName)}`}
                     className="flex items-center"
                   >
                     <img
-                      src={product.shopImage}
-                      alt={product.shopName}
+                      src={product?.shopImage}
+                      alt={product?.shopName}
                       className="w-12 h-12 rounded-full border mr-3"
                     />
                     <span className="text-lg font-semibold text-black-600">
-                      {product.shopName}
+                      {product?.shopName}
                     </span>
                   </Link>
-                </div>
+                </div> */}
 
               </div>
 

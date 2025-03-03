@@ -56,7 +56,6 @@ const LoginPage = () => {
             setIsLoading(false);
             return;
         }
-        console.log('CSRF Token:', csrfToken);
         
         // Then make login request
         const response = await axios.post(apiUrl, 

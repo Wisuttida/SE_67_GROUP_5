@@ -7,8 +7,15 @@ import { useEffect, useState } from "react";
 interface Product {
   product_id: number;
   name: string;
-  price: string;
-  image_url: string | null;
+  price: string; // or number, depending on how you want to handle prices
+  image_url: string | null; // assuming image_url can be null
+  image: string;
+  stock_quantity: number,
+  quantity: number;
+  gender_target: string;
+  fragrance_strength: string;
+  shopName: string;
+  shopImage: string;
 }
 
 interface CartProduct extends Product {
