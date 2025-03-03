@@ -6,8 +6,53 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import CartButton from "@/components/CartButton"; // Import CartButton
+import { useRouter } from "next/navigation";
+import axios from 'axios';
+import { useState, useEffect } from 'react';
 
 const Navbar = () => {
+  const router = useRouter();
+  const [csrfToken, setCsrfToken] = useState('');
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/csrf-token');
+        setCsrfToken(response.data.csrf_token);
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+      }
+    };
+
+    fetchCsrfToken();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {}, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include the token in the Authorization header
+          'X-CSRF-TOKEN': csrfToken, // Include CSRF token if necessary
+        },
+        withCredentials: true, // Include credentials (cookies) in the request
+      });
+        if (response.status === 200) {
+            // Clear the token from local storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('csrf');
+            localStorage.removeItem('cart');
+            localStorage.removeItem('csrfToken');
+            localStorage.removeItem('user_data');
+            localStorage.removeItem('roles');
+            localStorage.removeItem('roles_name');
+            // Optionally redirect the user or update the UI
+            router.push('/'); // Redirect to login page or home page
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+        // Handle error (e.g., show a message to the user)
+    }
+  };
+
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between p-4">
@@ -54,6 +99,9 @@ const Navbar = () => {
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/ProfileUser">User Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Button onClick={handleLogout}>Logout</Button>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
