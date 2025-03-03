@@ -4,15 +4,20 @@ import { Search, ShoppingCart, Filter, Trash, Truck, ExternalLink } from 'lucide
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
-import * as badge from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+
+// Default images for fallback
+const DEFAULT_IMAGES = {
+  profile: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%23f3f4f6'/%3E%3Cpath d='M20 20C22.7614 20 25 17.7614 25 15C25 12.2386 22.7614 10 20 10C17.2386 10 15 12.2386 15 15C15 17.7614 17.2386 20 20 20ZM20 22C16.6863 22 14 24.6863 14 28H26C26 24.6863 23.3137 22 20 22Z' fill='%239ca3af'/%3E%3C/svg%3E",
+  product: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='12'%3EProduct%3C/text%3E%3C/svg%3E"
+};
 
 interface Product {
   id: string;
@@ -40,12 +45,11 @@ interface ShippingOrder {
 }
 
 export default function UserToShip() {
-  // สร้าง state สำหรับเก็บข้อมูลรายการที่ต้องจัดส่ง
+  const { toast } = useToast();
   const [orders, setOrders] = useState<ShippingOrder[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<ShippingOrder[]>([]);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   
@@ -55,22 +59,16 @@ export default function UserToShip() {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [shippingMethod, setShippingMethod] = useState('');
 
-  // ฟังก์ชันเพื่อดึงข้อมูลรายการที่ต้องจัดส่ง
   useEffect(() => {
     const fetchOrders = async () => {
       setIsLoading(true);
       try {
-        // ในสถานการณ์จริง จะต้องเรียก API เพื่อดึงข้อมูล
-        // ตัวอย่าง: const response = await fetch('/api/orders/to-ship');
-        // const data = await response.json();
-        
-        // จำลองการดึงข้อมูล
         const mockOrders: ShippingOrder[] = Array(6).fill(null).map((_, index) => ({
           id: `order-${index + 1}`,
           shop: {
             id: `shop-${index + 1}`,
             name: `Shop ${index + 1}`,
-            avatar: "/avatar.png"
+            avatar: DEFAULT_IMAGES.profile
           },
           product: {
             id: `product-${index + 1}`,
@@ -78,7 +76,7 @@ export default function UserToShip() {
             description: `คำอธิบายสินค้า ${index + 1}`,
             price: 500 + (index * 100),
             quantity: 1 + index,
-            image: "/product.png"
+            image: DEFAULT_IMAGES.product
           },
           orderDate: new Date(2025, 2, 1 - index).toISOString(),
           status: index % 2 === 0 ? 'pending' : (index % 3 === 0 ? 'shipped' : 'pending')
@@ -87,30 +85,22 @@ export default function UserToShip() {
         setOrders(mockOrders);
         setFilteredOrders(mockOrders);
       } catch (error) {
-        console.error("Error fetching orders:", error);
-        toast({
-          variant: "destructive",
-          title: "เกิดข้อผิดพลาด",
-          description: "ไม่สามารถดึงข้อมูลรายการสินค้าที่ต้องจัดส่งได้"
-        });
+        toast("ไม่สามารถดึงข้อมูลรายการสินค้าที่ต้องจัดส่งได้");
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchOrders();
-  }, []);
+  }, [toast]);
   
-  // ฟังก์ชันการค้นหาและการกรอง
   useEffect(() => {
     let result = [...orders];
     
-    // กรองตามแท็บที่เลือก
     if (activeTab !== 'all') {
       result = result.filter(order => order.status === activeTab);
     }
     
-    // กรองตามคำค้นหา
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(order => 
@@ -123,7 +113,6 @@ export default function UserToShip() {
     setFilteredOrders(result);
   }, [orders, searchQuery, activeTab]);
   
-  // ฟังก์ชันเลือกหรือยกเลิกการเลือกคำสั่งซื้อ
   const toggleOrderSelection = (orderId: string) => {
     setSelectedOrders(prev => 
       prev.includes(orderId) 
@@ -132,7 +121,6 @@ export default function UserToShip() {
     );
   };
   
-  // ฟังก์ชันเลือกทั้งหมด
   const selectAllOrders = () => {
     if (selectedOrders.length === filteredOrders.length) {
       setSelectedOrders([]);
@@ -141,64 +129,32 @@ export default function UserToShip() {
     }
   };
   
-  // ฟังก์ชันอัปเดตสถานะเป็น "จัดส่งแล้ว"
   const markAsShipped = async () => {
     if (selectedOrders.length === 0) {
-      toast({
-        title: "โปรดเลือกรายการ",
-        description: "กรุณาเลือกรายการที่ต้องการทำเครื่องหมายว่าจัดส่งแล้ว",
-        variant: "destructive"
-      });
+      toast("กรุณาเลือกรายการที่ต้องการทำเครื่องหมายว่าจัดส่งแล้ว");
       return;
     }
     
     setIsLoading(true);
     try {
-      // ในสถานการณ์จริง จะต้องเรียก API เพื่ออัปเดตสถานะ
-      // ตัวอย่าง: await fetch('/api/orders/update-status', {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ orderIds: selectedOrders, status: 'shipped' })
-      // });
-      
-      // จำลองการอัปเดตสถานะ
-      console.log("Marking orders as shipped:", selectedOrders);
-      
-      // อัปเดต state
       setOrders(prev => prev.map(order => 
         selectedOrders.includes(order.id) 
           ? { ...order, status: 'shipped' } 
           : order
       ));
       
-      // รีเซ็ตการเลือก
       setSelectedOrders([]);
-      
-      // แสดงข้อความแจ้งเตือนการอัปเดตสำเร็จ
-      toast({
-        title: "อัปเดตสำเร็จ",
-        description: `ทำเครื่องหมายจัดส่งแล้ว ${selectedOrders.length} รายการ`
-      });
+      toast(`ทำเครื่องหมายจัดส่งแล้ว ${selectedOrders.length} รายการ`);
     } catch (error) {
-      console.error("Error updating order status:", error);
-      toast({
-        variant: "destructive",
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถอัปเดตสถานะรายการได้ โปรดลองอีกครั้ง"
-      });
+      toast("ไม่สามารถอัปเดตสถานะรายการได้ โปรดลองอีกครั้ง");
     } finally {
       setIsLoading(false);
     }
   };
   
-  // ฟังก์ชันลบรายการที่เลือก
   const deleteSelectedOrders = async () => {
     if (selectedOrders.length === 0) {
-      toast({
-        title: "โปรดเลือกรายการ",
-        description: "กรุณาเลือกรายการที่ต้องการลบ",
-        variant: "destructive"
-      });
+      toast("กรุณาเลือกรายการที่ต้องการลบ");
       return;
     }
     
@@ -208,40 +164,16 @@ export default function UserToShip() {
     
     setIsLoading(true);
     try {
-      // ในสถานการณ์จริง จะต้องเรียก API เพื่อลบรายการ
-      // ตัวอย่าง: await fetch('/api/orders', {
-      //   method: 'DELETE',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ orderIds: selectedOrders })
-      // });
-      
-      // จำลองการลบรายการ
-      console.log("Deleting orders:", selectedOrders);
-      
-      // อัปเดต state
       setOrders(prev => prev.filter(order => !selectedOrders.includes(order.id)));
-      
-      // รีเซ็ตการเลือก
       setSelectedOrders([]);
-      
-      // แสดงข้อความแจ้งเตือนการลบสำเร็จ
-      toast({
-        title: "ลบสำเร็จ",
-        description: `ลบ ${selectedOrders.length} รายการเรียบร้อยแล้ว`
-      });
+      toast(`ลบ ${selectedOrders.length} รายการเรียบร้อยแล้ว`);
     } catch (error) {
-      console.error("Error deleting orders:", error);
-      toast({
-        variant: "destructive",
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถลบรายการได้ โปรดลองอีกครั้ง"
-      });
+      toast("ไม่สามารถลบรายการได้ โปรดลองอีกครั้ง");
     } finally {
       setIsLoading(false);
     }
   };
   
-  // ฟังก์ชันเปิด dialog สำหรับอัปเดตข้อมูลการจัดส่ง
   const openUpdateDialog = (order: ShippingOrder) => {
     setSelectedOrderForUpdate(order);
     setTrackingNumber(order.trackingNumber || '');
@@ -249,27 +181,11 @@ export default function UserToShip() {
     setUpdateDialogOpen(true);
   };
   
-  // ฟังก์ชันบันทึกข้อมูลการจัดส่ง
   const saveShippingDetails = async () => {
     if (!selectedOrderForUpdate) return;
     
     setIsLoading(true);
     try {
-      // ในสถานการณ์จริง จะต้องเรียก API เพื่ออัปเดตข้อมูลการจัดส่ง
-      // ตัวอย่าง: await fetch(`/api/orders/${selectedOrderForUpdate.id}/shipping`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ trackingNumber, shippingMethod, status: 'shipped' })
-      // });
-      
-      // จำลองการอัปเดตข้อมูล
-      console.log("Updating shipping details:", {
-        orderId: selectedOrderForUpdate.id,
-        trackingNumber,
-        shippingMethod
-      });
-      
-      // อัปเดต state
       setOrders(prev => prev.map(order => 
         order.id === selectedOrderForUpdate.id 
           ? { 
@@ -281,22 +197,11 @@ export default function UserToShip() {
           : order
       ));
       
-      // ปิด dialog
       setUpdateDialogOpen(false);
       setSelectedOrderForUpdate(null);
-      
-      // แสดงข้อความแจ้งเตือนการอัปเดตสำเร็จ
-      toast({
-        title: "อัปเดตสำเร็จ",
-        description: "บันทึกข้อมูลการจัดส่งเรียบร้อยแล้ว"
-      });
+      toast("บันทึกข้อมูลการจัดส่งเรียบร้อยแล้ว");
     } catch (error) {
-      console.error("Error updating shipping details:", error);
-      toast({
-        variant: "destructive",
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถบันทึกข้อมูลการจัดส่งได้ โปรดลองอีกครั้ง"
-      });
+      toast("ไม่สามารถบันทึกข้อมูลการจัดส่งได้ โปรดลองอีกครั้ง");
     } finally {
       setIsLoading(false);
     }
@@ -304,12 +209,11 @@ export default function UserToShip() {
 
   return (
     <div className="max-w-screen-xl mx-auto px-4 pb-12">
-        <Navbar />
+      <Navbar />
       <div className="flex justify-center py-4">
         <h2 className="text-2xl font-bold">รายการที่ต้องจัดส่ง</h2>
       </div>
       
-      {/* ส่วนค้นหาและกรอง */}
       <div className="bg-white p-4 rounded-lg shadow-md mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-grow">
@@ -322,50 +226,63 @@ export default function UserToShip() {
             />
           </div>
           <div className="flex gap-2">
-  {/* Replace the Button with a div for "select all" */}
-  <div 
-    className="flex items-center gap-2 px-4 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer"
-    onClick={selectAllOrders}
-  >
-    <Checkbox 
-      checked={selectedOrders.length > 0 && selectedOrders.length === filteredOrders.length}
-      className="mr-1"
-      onCheckedChange={selectAllOrders}
-    />
-    <span>เลือกทั้งหมด</span>
-  </div>
-  
-  {/* Keep these buttons as they are */}
-  <Button 
-    variant="destructive" 
-    className="flex items-center gap-1"
-    onClick={deleteSelectedOrders}
-    disabled={selectedOrders.length === 0 || isLoading}
-  >
-    <Trash size={16} />
-    ลบที่เลือก
-  </Button>
-  <Button 
-    className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
-    onClick={markAsShipped}
-    disabled={selectedOrders.length === 0 || isLoading}
-  >
-    <Truck size={16} />
-    ทำเครื่องหมายว่าจัดส่งแล้ว
-  </Button>
-</div>
+            <div 
+              className="flex items-center gap-2 px-4 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer"
+              onClick={selectAllOrders}
+            >
+              <Checkbox 
+                checked={selectedOrders.length > 0 && selectedOrders.length === filteredOrders.length}
+                className="mr-1"
+                onCheckedChange={selectAllOrders}
+              />
+              <span>เลือกทั้งหมด</span>
+            </div>
+            
+            <Button 
+              variant="destructive" 
+              className="flex items-center gap-1"
+              onClick={deleteSelectedOrders}
+              disabled={selectedOrders.length === 0 || isLoading}
+            >
+              <Trash size={16} />
+              ลบที่เลือก
+            </Button>
+            <Button 
+              className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
+              onClick={markAsShipped}
+              disabled={selectedOrders.length === 0 || isLoading}
+            >
+              <Truck size={16} />
+              ทำเครื่องหมายว่าจัดส่งแล้ว
+            </Button>
+          </div>
         </div>
       </div>
       
-      {/* แท็บสถานะ */}
-      <Tabs defaultValue="all" className="mb-6" onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 md:grid-cols-4 mb-4">
-          <TabsTrigger value="all">ทั้งหมด</TabsTrigger>
-          <TabsTrigger value="pending">รอจัดส่ง</TabsTrigger>
-          <TabsTrigger value="shipped">จัดส่งแล้ว</TabsTrigger>
-          <TabsTrigger value="delivered">จัดส่งถึงแล้ว</TabsTrigger>
+      <div className="mb-6">
+        <TabsList>
+          <TabsTrigger
+            label="ทั้งหมด"
+            active={activeTab === 'all'}
+            onClick={() => setActiveTab('all')}
+          />
+          <TabsTrigger
+            label="รอจัดส่ง"
+            active={activeTab === 'pending'}
+            onClick={() => setActiveTab('pending')}
+          />
+          <TabsTrigger
+            label="จัดส่งแล้ว"
+            active={activeTab === 'shipped'}
+            onClick={() => setActiveTab('shipped')}
+          />
+          <TabsTrigger
+            label="จัดส่งถึงแล้ว"
+            active={activeTab === 'delivered'}
+            onClick={() => setActiveTab('delivered')}
+          />
         </TabsList>
-      </Tabs>
+      </div>
       
       {isLoading && filteredOrders.length === 0 ? (
         <div className="flex justify-center items-center h-64">
@@ -399,7 +316,7 @@ export default function UserToShip() {
                       <p className="text-sm text-gray-500">รหัสคำสั่งซื้อ: {order.id}</p>
                     </div>
                   </div>
-                  <badge.Badge 
+                  <Badge 
                     className={`
                       ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
                       ${order.status === 'shipped' ? 'bg-blue-100 text-blue-800' : ''}
@@ -409,7 +326,7 @@ export default function UserToShip() {
                     {order.status === 'pending' ? 'รอจัดส่ง' : 
                      order.status === 'shipped' ? 'จัดส่งแล้ว' : 
                      'จัดส่งถึงแล้ว'}
-                  </badge.Badge>
+                  </Badge>
                 </div>
                 <div className="p-4 flex items-center">
                   <Image
@@ -463,7 +380,6 @@ export default function UserToShip() {
         </div>
       )}
       
-      {/* Dialog สำหรับอัปเดตข้อมูลการจัดส่ง */}
       <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -475,19 +391,19 @@ export default function UserToShip() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">วิธีจัดส่ง</label>
-              <Select value={shippingMethod} onValueChange={setShippingMethod}>
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกวิธีจัดส่ง" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="thaipost">ไปรษณีย์ไทย</SelectItem>
-                  <SelectItem value="flash">Flash Express</SelectItem>
-                  <SelectItem value="kerry">Kerry Express</SelectItem>
-                  <SelectItem value="j&t">J&T Express</SelectItem>
-                  <SelectItem value="lalamove">Lalamove</SelectItem>
-                  <SelectItem value="grab">Grab Express</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                className="w-full px-3 py-2 border rounded-md"
+                value={shippingMethod}
+                onChange={(e) => setShippingMethod(e.target.value)}
+              >
+                <option value="">เลือกวิธีจัดส่ง</option>
+                <option value="thaipost">ไปรษณีย์ไทย</option>
+                <option value="flash">Flash Express</option>
+                <option value="kerry">Kerry Express</option>
+                <option value="j&t">J&T Express</option>
+                <option value="lalamove">Lalamove</option>
+                <option value="grab">Grab Express</option>
+              </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">เลขพัสดุ</label>

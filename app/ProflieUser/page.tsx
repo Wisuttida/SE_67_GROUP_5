@@ -1,16 +1,20 @@
 "use client";
 import { useState } from 'react';
-import { Edit, Search, ShoppingCart, Bell, Home, Store, Tractor, Grid, Clipboard, DollarSign, Upload, Truck, Trash2, X } from 'lucide-react';
+import { Edit, Search, ShoppingCart, Bell, Home, Store, Tractor, Grid, Clipboard, DollarSign, Upload, Truck, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+
+// Default images
+const DEFAULT_IMAGES = {
+  profile: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f3f4f6'/%3E%3Cpath d='M48 48C54.6274 48 60 42.6274 60 36C60 29.3726 54.6274 24 48 24C41.3726 24 36 29.3726 36 36C36 42.6274 41.3726 48 48 48ZM48 52C40.0474 52 33.5 58.5474 33.5 66.5H62.5C62.5 58.5474 55.9526 52 48 52Z' fill='%239ca3af'/%3E%3C/svg%3E"
+};
 
 interface AddressData {
   id: string;
@@ -85,8 +89,37 @@ export default function ProfileUser() {
     postalCode: '',
     streetName: '',
     building: '',
-    houseNumber: ''
+    houseNumber: '',
+    isDefault: false
   });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!currentAddress) {
+      const newAddress = getEmptyAddress();
+      newAddress[e.target.name] = e.target.value;
+      setCurrentAddress(newAddress);
+      return;
+    }
+    
+    setCurrentAddress({
+      ...currentAddress,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    if (!currentAddress) {
+      const newAddress = getEmptyAddress();
+      newAddress[name] = value;
+      setCurrentAddress(newAddress);
+      return;
+    }
+    
+    setCurrentAddress({
+      ...currentAddress,
+      [name]: value
+    });
+  };
 
   const handleAddAddress = () => {
     setCurrentAddress(getEmptyAddress());
@@ -95,7 +128,10 @@ export default function ProfileUser() {
   };
 
   const handleEditAddress = (address: AddressData) => {
-    setCurrentAddress({...address});
+    setCurrentAddress({
+      ...getEmptyAddress(),
+      ...address
+    });
     setIsEditing(true);
     setIsAddressDialogOpen(true);
   };
@@ -106,17 +142,10 @@ export default function ProfileUser() {
         setIsLoading(true);
         const updatedAddresses = addresses.filter(addr => addr.id !== id);
         setAddresses(updatedAddresses);
-        toast({
-          title: "ลบที่อยู่เรียบร้อยแล้ว",
-          variant: "default",
-        });
+        toast("ลบที่อยู่เรียบร้อยแล้ว");
       }
     } catch (error) {
-      toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถลบที่อยู่ได้ กรุณาลองใหม่อีกครั้ง",
-        variant: "destructive",
-      });
+      toast("ไม่สามารถลบที่อยู่ได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setIsLoading(false);
     }
@@ -130,16 +159,9 @@ export default function ProfileUser() {
         isDefault: address.id === id
       }));
       setAddresses(updatedAddresses);
-      toast({
-        title: "ตั้งเป็นที่อยู่หลักเรียบร้อยแล้ว",
-        variant: "default",
-      });
+      toast("ตั้งเป็นที่อยู่หลักเรียบร้อยแล้ว");
     } catch (error) {
-      toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถตั้งค่าที่อยู่หลักได้ กรุณาลองใหม่อีกครั้ง",
-        variant: "destructive",
-      });
+      toast("ไม่สามารถตั้งค่าที่อยู่หลักได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setIsLoading(false);
     }
@@ -151,11 +173,7 @@ export default function ProfileUser() {
     if (!currentAddress) return;
 
     if (!validatePhoneNumber(currentAddress.phone)) {
-      toast({
-        title: "รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง",
-        description: "กรุณากรอกในรูปแบบ 0XX-XXX-XXXX",
-        variant: "destructive",
-      });
+      toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณากรอกในรูปแบบ 0XX-XXX-XXXX");
       return;
     }
 
@@ -166,41 +184,19 @@ export default function ProfileUser() {
           addr.id === currentAddress.id ? currentAddress : addr
         );
         setAddresses(updatedAddresses);
-        toast({
-          title: "อัปเดตที่อยู่เรียบร้อยแล้ว",
-          variant: "default",
-        });
+        toast("อัปเดตที่อยู่เรียบร้อยแล้ว");
       } else {
         setAddresses(prev => [...prev, currentAddress]);
-        toast({
-          title: "เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว",
-          variant: "default",
-        });
+        toast("เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว");
       }
       
       setIsAddressDialogOpen(false);
       setCurrentAddress(null);
     } catch (error) {
-      toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถบันทึกที่อยู่ได้ กรุณาลองใหม่อีกครั้ง",
-        variant: "destructive",
-      });
+      toast("ไม่สามารถบันทึกที่อยู่ได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!currentAddress) return;
-    
-    const { name, value } = e.target;
-    setCurrentAddress(prev => prev ? { ...prev, [name]: value } : null);
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    if (!currentAddress) return;
-    setCurrentAddress(prev => prev ? { ...prev, [name]: value } : null);
   };
 
   const filteredAddresses = addresses.filter(address => 
@@ -249,15 +245,11 @@ export default function ProfileUser() {
             <div className="flex flex-col items-center">
               <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 relative">
                 <Image 
-                  src="/images/profile-placeholder.jpg" 
-                  alt="Profile" 
-                  fill
-                  sizes="(max-width: 96px) 96px"
+                  src={DEFAULT_IMAGES.profile}
+                  alt="Profile"
+                  width={96}
+                  height={96}
                   className="object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://via.placeholder.com/96";
-                  }}
                 />
               </div>
               <p className="mt-2 font-medium">Username</p>
@@ -369,7 +361,7 @@ export default function ProfileUser() {
                 <Input
                   id="firstname"
                   name="firstname"
-                  value={currentAddress?.firstname || ''}
+                  value={currentAddress ? currentAddress.firstname : ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -381,7 +373,7 @@ export default function ProfileUser() {
                 <Input
                   id="lastname"
                   name="lastname"
-                  value={currentAddress?.lastname || ''}
+                  value={currentAddress ? currentAddress.lastname : ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -393,7 +385,7 @@ export default function ProfileUser() {
                 <Input
                   id="phone"
                   name="phone"
-                  value={currentAddress?.phone || ''}
+                  value={currentAddress ? currentAddress.phone : ''}
                   onChange={handleInputChange}
                   required
                   pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
@@ -404,26 +396,27 @@ export default function ProfileUser() {
               
               <div className="space-y-2">
                 <Label htmlFor="province">จังหวัด</Label>
-                <Select
-                    id="province"
-                    value={currentAddress?.province || ''}
-                    onChange={(e) => handleSelectChange('province', e.target.value)}
-                    disabled={isLoading}
+                <select
+                  id="province"
+                  className="w-full px-3 py-2 border rounded-md"
+                  value={currentAddress ? currentAddress.province : ''}
+                  onChange={(e) => handleSelectChange('province', e.target.value)}
+                  disabled={isLoading}
                 >
-                    <SelectItem value="">เลือกจังหวัด</SelectItem>
-                    <SelectItem value="Bangkok">กรุงเทพมหานคร</SelectItem>
-                    <SelectItem value="Chiang Mai">เชียงใหม่</SelectItem>
-                    <SelectItem value="Phuket">ภูเก็ต</SelectItem>
-                    <SelectItem value="Chonburi">ชลบุรี</SelectItem>
-                </Select>
-                </div>
+                  <option value="">เลือกจังหวัด</option>
+                  <option value="Bangkok">กรุงเทพมหานคร</option>
+                  <option value="Chiang Mai">เชียงใหม่</option>
+                  <option value="Phuket">ภูเก็ต</option>
+                  <option value="Chonburi">ชลบุรี</option>
+                </select>
+              </div>
               
               <div className="space-y-2">
                 <Label htmlFor="district">เขต/อำเภอ</Label>
                 <Input
                   id="district"
                   name="district"
-                  value={currentAddress?.district || ''}
+                  value={currentAddress ? currentAddress.district : ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -435,7 +428,7 @@ export default function ProfileUser() {
                 <Input
                   id="subDistrict"
                   name="subDistrict"
-                  value={currentAddress?.subDistrict || ''}
+                  value={currentAddress ? currentAddress.subDistrict : ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -447,7 +440,7 @@ export default function ProfileUser() {
                 <Input
                   id="streetName"
                   name="streetName"
-                  value={currentAddress?.streetName || ''}
+                  value={currentAddress ? currentAddress.streetName : ''}
                   onChange={handleInputChange}
                   disabled={isLoading}
                 />
@@ -458,7 +451,7 @@ export default function ProfileUser() {
                 <Input
                   id="building"
                   name="building"
-                  value={currentAddress?.building || ''}
+                  value={currentAddress ? currentAddress.building : ''}
                   onChange={handleInputChange}
                   disabled={isLoading}
                 />
@@ -469,7 +462,7 @@ export default function ProfileUser() {
                 <Input
                   id="houseNumber"
                   name="houseNumber"
-                  value={currentAddress?.houseNumber || ''}
+                  value={currentAddress ? currentAddress.houseNumber : ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -481,7 +474,7 @@ export default function ProfileUser() {
                 <Input
                   id="postalCode"
                   name="postalCode"
-                  value={currentAddress?.postalCode || ''}
+                  value={currentAddress ? currentAddress.postalCode : ''}
                   onChange={handleInputChange}
                   required
                   pattern="[0-9]{5}"
