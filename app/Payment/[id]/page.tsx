@@ -9,6 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 
+// Default images for fallback
+const DEFAULT_IMAGES = {
+  profile: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%23f3f4f6'/%3E%3Cpath d='M20 20C22.7614 20 25 17.7614 25 15C25 12.2386 22.7614 10 20 10C17.2386 10 15 12.2386 15 15C15 17.7614 17.2386 20 20 20ZM20 22C16.6863 22 14 24.6863 14 28H26C26 24.6863 23.3137 22 20 22Z' fill='%239ca3af'/%3E%3C/svg%3E",
+  product: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='100' viewBox='0 0 60 100'%3E%3Crect width='60' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='12'%3EProduct%3C/text%3E%3C/svg%3E",
+  qr: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='24'%3EQR Code%3C/text%3E%3C/svg%3E"
+};
+
 interface Address {
   name: string;
   phoneNumber: string;
@@ -50,46 +57,68 @@ export default function Payment() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [showProofDialog, setShowProofDialog] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
 
   useEffect(() => {
-    // Simulated data fetch
-    const mockPaymentData: PaymentData = {
-      address: {
-        name: "John Doe",
-        phoneNumber: "0891234567",
-        province: "กรุงเทพมหานคร",
-        district: "วัฒนา",
-        subDistrict: "คลองตันเหนือ",
-        postalCode: "10110",
-        streetName: "สุขุมวิท",
-        building: "อาคาร A",
-        houseNo: "123/45"
-      },
-      shop: {
-        id: "shop1",
-        name: "Shop1",
-        avatar: "/profile-placeholder.png"
-      },
-      product: {
-        id: "prod1",
-        name: "Product Name",
-        description: "Description",
-        amount: 1,
-        price: 500,
-        image: "/product-placeholder.png",
-        estimatedDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      bankName: "ธนาคารกสิกรไทย",
-      accountName: "บริษัท ชอปปิ้ง จำกัด",
-      qrCode: "/qr-placeholder.png"
+    const fetchPaymentData = async () => {
+      try {
+        setIsLoading(true);
+        // Simulated data fetch with delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const mockPaymentData: PaymentData = {
+          address: {
+            name: "John Doe",
+            phoneNumber: "0891234567",
+            province: "กรุงเทพมหานคร",
+            district: "วัฒนา",
+            subDistrict: "คลองตันเหนือ",
+            postalCode: "10110",
+            streetName: "สุขุมวิท",
+            building: "อาคาร A",
+            houseNo: "123/45"
+          },
+          shop: {
+            id: "shop1",
+            name: "Shop1",
+            avatar: DEFAULT_IMAGES.profile
+          },
+          product: {
+            id: "prod1",
+            name: "Product Name",
+            description: "Description",
+            amount: 1,
+            price: 500,
+            image: DEFAULT_IMAGES.product,
+            estimatedDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          bankName: "ธนาคารกสิกรไทย",
+          accountName: "บริษัท ชอปปิ้ง จำกัด",
+          qrCode: DEFAULT_IMAGES.qr
+        };
+
+        setPaymentData(mockPaymentData);
+      } catch (error) {
+        toast("ไม่สามารถโหลดข้อมูลการชำระเงินได้");
+        router.push('/userToPay');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    setPaymentData(mockPaymentData);
-  }, [params.id]);
+    if (params.id) {
+      fetchPaymentData();
+    }
+
+    return () => {
+      setPaymentData(null);
+      setSelectedFile(null);
+      setShowProofDialog(false);
+    };
+  }, [params.id, router, toast]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -119,10 +148,16 @@ export default function Payment() {
     }
   };
 
-  if (!paymentData) {
+  if (isLoading || !paymentData) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex justify-center items-center">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <p className="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -168,10 +203,6 @@ export default function Payment() {
                   width={40}
                   height={40}
                   className="object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='12'%3E?%3C/text%3E%3C/svg%3E";
-                  }}
                 />
               </div>
               <span className="font-medium">{paymentData.shop.name}</span>
@@ -185,10 +216,6 @@ export default function Payment() {
                   width={60}
                   height={100}
                   className="object-contain"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='100' viewBox='0 0 60 100'%3E%3Crect width='60' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='12'%3E?%3C/text%3E%3C/svg%3E";
-                  }}
                 />
               </div>
               
@@ -217,10 +244,6 @@ export default function Payment() {
                 width={200}
                 height={200}
                 className="object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='24'%3EQR Code%3C/text%3E%3C/svg%3E";
-                }}
               />
             </div>
 
@@ -262,7 +285,15 @@ export default function Payment() {
         </div>
 
         {/* Upload Proof Dialog */}
-        <Dialog open={showProofDialog} onOpenChange={setShowProofDialog}>
+        <Dialog 
+          open={showProofDialog} 
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedFile(null);
+            }
+            setShowProofDialog(open);
+          }}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>อัพโหลดหลักฐานการโอน</DialogTitle>
@@ -295,17 +326,30 @@ export default function Payment() {
 
               <div className="flex justify-end gap-4">
                 <Button
+                  type="button"
                   variant="outline"
-                  onClick={() => setShowProofDialog(false)}
+                  onClick={() => {
+                    setShowProofDialog(false);
+                    setSelectedFile(null);
+                  }}
                   disabled={isLoading}
+                  className="min-w-[100px]"
                 >
                   ยกเลิก
                 </Button>
                 <Button
                   onClick={handleUploadProof}
                   disabled={!selectedFile || isLoading}
+                  className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {isLoading ? 'กำลังอัพโหลด...' : 'อัพโหลด'}
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      กำลังอัพโหลด...
+                    </div>
+                  ) : (
+                    'อัพโหลด'
+                  )}
                 </Button>
               </div>
             </div>

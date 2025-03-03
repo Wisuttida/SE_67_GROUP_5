@@ -309,22 +309,34 @@ export default function UserOrder() {
               </div>
             </div>
             
-            <DialogFooter className="mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-                disabled={isLoading}
-              >
-                ยกเลิก
-              </Button>
-              <Button
-                type="submit"
-                disabled={isLoading}
-              >
-                {isLoading ? 'กำลังบันทึก...' : 'บันทึก'}
-              </Button>
-            </DialogFooter>
+            <div className="mt-6 flex justify-end space-x-4">
+  <Button
+    type="button"
+    variant="outline"
+    onClick={() => {
+      setIsDialogOpen(false);
+      setCurrentOrder(null);
+    }}
+    disabled={isLoading}
+    className="min-w-[100px]"
+  >
+    ยกเลิก
+  </Button>
+  <Button
+    type="submit"
+    disabled={isLoading}
+    className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
+  >
+    {isLoading ? (
+      <div className="flex items-center justify-center">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+        กำลังบันทึก...
+      </div>
+    ) : (
+      'บันทึก'
+    )}
+  </Button>
+</div>
           </form>
         </DialogContent>
       </Dialog>
