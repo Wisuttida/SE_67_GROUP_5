@@ -74,7 +74,6 @@ const LoginPage = () => {
         console.log('Server response:', {
           status: response.status,
           data: response.data,
-          kuy: response.data.data.token
         });
 
         if (response.data.data.token) {

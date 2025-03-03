@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,21 @@ const RegisterPage = () => {
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [phone_number, setPhone] = useState('');
   const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [csrfToken, setCsrfToken] = useState('');
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/csrf-token');
+        setCsrfToken(response.data.csrf_token);
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+      }
+    };
+
+    fetchCsrfToken();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,6 +56,11 @@ const RegisterPage = () => {
     }
     
     try {
+        if (!csrfToken) {
+          setMessage('CSRF token not found. Please refresh the page.');
+          setIsLoading(false);
+          return;
+        }
         console.log('Submitting registration form...');
         const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/register`, {
             first_name,
@@ -50,6 +70,14 @@ const RegisterPage = () => {
             password,
             password_confirmation: passwordConfirmation,
             phone_number
+        }, {
+          headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': csrfToken, // Include CSRF token if stored
+          },
+          withCredentials: true // Include credentials in the request
         });
         
         console.log('Registration response:', response);
