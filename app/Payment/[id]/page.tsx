@@ -53,8 +53,12 @@ interface PaymentData {
   qrCode: string;
 }
 
+type PaymentParams = {
+  id: string;
+};
+
 export default function Payment() {
-  const params = useParams();
+  const params = useParams() as PaymentParams;
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -66,6 +70,14 @@ export default function Payment() {
     const fetchPaymentData = async () => {
       try {
         setIsLoading(true);
+
+        // Validate that we have an ID
+        if (!params?.id) {
+            toast("ไม่พบข้อมูลการชำระเงิน");
+            router.push('/userToPay');
+            return;
+          }
+
         // Simulated data fetch with delay
         await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -109,41 +121,50 @@ export default function Payment() {
       }
     };
 
-    if (params.id) {
-      fetchPaymentData();
-    }
+    fetchPaymentData();
 
     return () => {
       setPaymentData(null);
       setSelectedFile(null);
       setShowProofDialog(false);
     };
-  }, [params.id, router, toast]);
+  }, [params?.id, router, toast]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0]);
+      const file = event.target.files[0];
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast("กรุณาเลือกไฟล์รูปภาพเท่านั้น");
+        return;
+      }
+      
+      setSelectedFile(file);
     }
   };
 
   const handleUploadProof = async () => {
     if (!selectedFile) {
-      toast("กรุณาเลือกไฟล์หลักฐานการโอน");
-      return;
-    }
+        toast("กรุณาเลือกไฟล์หลักฐานการโอนก่อนอัพโหลด");
+        return;
+      }
 
     setIsLoading(true);
     try {
-      // Simulate upload
+      // Simulate upload with delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast("อัพโหลดหลักฐานการโอนเรียบร้อยแล้ว");
+
       setShowProofDialog(false);
       setSelectedFile(null);
+      
+      // Wait a bit before redirecting
+      await new Promise(resolve => setTimeout(resolve, 1000));
       router.push('/userOrder');
     } catch (error) {
-      toast("เกิดข้อผิดพลาดในการอัพโหลดหลักฐาน");
-    } finally {
+        toast("ไม่สามารถอัพโหลดหลักฐานการโอนได้ กรุณาลองใหม่อีกครั้ง");
+      } finally {
       setIsLoading(false);
     }
   };
@@ -275,9 +296,9 @@ export default function Payment() {
           <Button
             className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
             onClick={() => {
-              toast("กรุณาอัพโหลดหลักฐานการโอนก่อนยืนยันการสั่งซื้อ");
-              setShowProofDialog(true);
-            }}
+                toast("กรุณาอัพโหลดหลักฐานการโอนก่อนยืนยันการสั่งซื้อ");
+                setShowProofDialog(true);
+              }}
             disabled={isLoading}
           >
             สั่งซื้อ
