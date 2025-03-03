@@ -16,7 +16,10 @@ interface Product {
   price: string; // or number, depending on how you want to handle prices
   image_url: string | null; // assuming image_url can be null
   image: string;
-  quantity?: number;
+  stock_quantity: number,
+  quantity: number;
+  gender_target: string;
+  fragrance_strength: string;
   shopName: string;
   shopImage: string;
 }
@@ -41,7 +44,7 @@ function ProductdetailPage({ params }: Params) {
     if (!product) return;
     let updatedCart = [...cart];
     const existingProductIndex = updatedCart.findIndex(
-      (item) => item.product_id === product.productId
+      (item) => item.product_id === product.product_id
     );
 
     if (existingProductIndex !== -1) {
@@ -89,8 +92,9 @@ function ProductdetailPage({ params }: Params) {
               <div>
                 <h2 className="text-3xl font-bold">{product.name}</h2>
                 <p className="text-2xl text-gray-700 mt-2">
-                  ${product.price.toFixed(2)}
+                  ${product.price}
                 </p>
+
                 {/* ข้อมูลร้านค้า */}
                 <div className="flex items-center mt-4">
                   <Link
