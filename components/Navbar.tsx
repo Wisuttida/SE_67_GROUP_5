@@ -79,7 +79,7 @@ const Navbar = () => {
           <NavigationMenuList className="hidden md:flex space-x-4">
             <NavigationMenuItem><Link href="/" className="hover:text-gray-600">Home</Link></NavigationMenuItem>
             <NavigationMenuItem><Link href="/product" className="hover:text-gray-600">Product</Link></NavigationMenuItem>
-            <NavigationMenuItem><Link href="/customShop" className="hover:text-gray-600">Custom</Link></NavigationMenuItem>
+            
           </NavigationMenuList>
         </NavigationMenu>
 
@@ -116,9 +116,6 @@ const Navbar = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/registerFarm">Register Farm</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profileAdmin">Admin Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <button 
