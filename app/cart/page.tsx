@@ -21,10 +21,15 @@ import {
 } from "@/components/ui/dialog"; // ✅ นำเข้า Dialog จาก ShadCN UI
 
 interface Product {
-  productId: number;
+  product_id: number;
   name: string;
-  price: number;
+  price: number; // or number, depending on how you want to handle prices
+  image_url: string | null; // assuming image_url can be null
+  image: string;
+  stock_quantity: number,
   quantity: number;
+  gender_target: string;
+  fragrance_strength: string;
   shopName: string;
   shopImage: string;
 }
@@ -57,7 +62,7 @@ const CartPage = () => {
 
   const removeFromCart = (productId: number) => {
     const updatedCart = cartItems.filter(
-      (item) => item.productId !== productId
+      (item) => item.product_id !== productId
     );
     updateCart(updatedCart);
     setSelectedItems(selectedItems.filter((id) => id !== productId));
@@ -65,7 +70,7 @@ const CartPage = () => {
 
   const increaseQuantity = (productId: number) => {
     const updatedCart = cartItems.map((item) =>
-      item.productId === productId
+      item.product_id === productId
         ? { ...item, quantity: item.quantity + 1 }
         : item
     );
@@ -74,7 +79,7 @@ const CartPage = () => {
 
   const decreaseQuantity = (productId: number) => {
     const updatedCart = cartItems.map((item) =>
-      item.productId === productId && item.quantity > 1
+      item.product_id === productId && item.quantity > 1
         ? { ...item, quantity: item.quantity - 1 }
         : item
     );
@@ -83,7 +88,7 @@ const CartPage = () => {
 
   const calculateTotal = () => {
     return cartItems
-      .filter((item) => selectedItems.includes(item.productId))
+      .filter((item) => selectedItems.includes(item.product_id))
       .reduce((total, item) => total + item.price * item.quantity, 0)
       .toFixed(2);
   };
@@ -134,19 +139,19 @@ const CartPage = () => {
               )
               .map((item) => (
                 <div
-                  key={item.productId}
+                  key={item.product_id}
                   className="flex items-center justify-between p-4 border rounded-lg"
                 >
                   <div className="flex items-center">
                     <input
                       type="checkbox"
                       className="mr-3 w-5 h-5"
-                      checked={selectedItems.includes(item.productId)}
-                      onChange={() => toggleSelectItem(item.productId)}
+                      checked={selectedItems.includes(item.product_id)}
+                      onChange={() => toggleSelectItem(item.product_id)}
                     />
 
                     <img
-                      src={item.shopImage}
+                      src={item.image_url || "/path/to/default-image.jpg"}
                       alt={item.shopName}
                       className="w-10 h-10 rounded-full mr-3"
                     />
@@ -163,20 +168,20 @@ const CartPage = () => {
                   <div className="flex items-center space-x-4">
                     <Button
                       variant="outline"
-                      onClick={() => decreaseQuantity(item.productId)}
+                      onClick={() => decreaseQuantity(item.product_id)}
                     >
                       -
                     </Button>
                     <span>{item.quantity}</span>
                     <Button
                       variant="outline"
-                      onClick={() => increaseQuantity(item.productId)}
+                      onClick={() => increaseQuantity(item.product_id)}
                     >
                       +
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => removeFromCart(item.productId)}
+                      onClick={() => removeFromCart(item.product_id)}
                     >
                       Remove
                     </Button>

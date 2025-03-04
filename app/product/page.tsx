@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import Productcard from "@/components/Productcard";
 import FilterSidebar from "@/components/FilterSidebar";
@@ -18,6 +18,10 @@ interface Product {
   fragrance_strength: string;
   shopName: string;
   shopImage: string;
+}
+
+interface CartProduct extends Product {
+  quantity: number;
 }
 
 const ProductPage = () => {
@@ -44,6 +48,7 @@ const ProductPage = () => {
       return true; // Skip other filters for now
     });
   });
+
   return (
     <div>
       <Navbar />
@@ -59,12 +64,13 @@ const ProductPage = () => {
 
         {/* Product Showcase */}
         <section className="grid grid-cols-3 gap-8 w-3/4">
-          {filteredProducts.map((product) => (
+          {filteredProducts.map((product, index) => (
             <Productcard key={product.product_id} productEach={product} />
           ))}
         </section>
       </main>
     </div>
+    
   );
 };
 

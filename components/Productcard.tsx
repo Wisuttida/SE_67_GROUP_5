@@ -57,7 +57,7 @@ const Productcard: React.FC<ProductCardProps> = ({ productEach }) => {
   };
 
   return (
-    <div className="bg-gray-100 p-4 rounded-lg shadow-lg">
+    <div className="bg-gray-100 p-4 rounded-lg shadow-lg"  id={`${productEach.product_id}`}>
 
       <Link href={`/product/${productEach.product_id}`}>
         <img
