@@ -2,17 +2,16 @@
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import { Search } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import CartButton from "@/components/CartButton";
+import { Search } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import axios from 'axios';
 import { useState, useEffect } from 'react';
+import  CartButton  from "@/components/CartButton";
+import SearchBar from "./SearchBar";
 
 const Navbar = () => {
   const router = useRouter();
-  const [csrfToken, setCsrfToken] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasShop, setHasShop] = useState(false);
   const [hasFarm, setHasFarm] = useState(false);
@@ -27,9 +26,6 @@ const Navbar = () => {
       }
     };
 
-    fetchCsrfToken();
-  }, []);
-  
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -80,28 +76,29 @@ const Navbar = () => {
   return (
     <div className="bg-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between p-4">
-        {/* Logo */}
         <Link href="/" className="text-2xl font-bold text-gray-800">
           Perfume Thai
         </Link>
 
-        {/* Search Bar */}
-        <div className="hidden md:flex items-center border rounded-lg px-2">
-          <Search className="text-gray-400" size={18} />
-          <Input type="text" placeholder="Search products..." className="border-none focus:ring-0" />
-        </div>
+        <SearchBar/>
 
-        {/* Menu */}
         <NavigationMenu>
           <NavigationMenuList className="hidden md:flex space-x-4">
-            <NavigationMenuItem><Link href="/" className="hover:text-gray-600">Home</Link></NavigationMenuItem>
-            <NavigationMenuItem><Link href="/product" className="hover:text-gray-600">Product</Link></NavigationMenuItem>
-            <NavigationMenuItem><Link href="/customShop" className="hover:text-gray-600">Custom</Link></NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link href="/" className="hover:text-gray-600">Home</Link>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link href="/product" className="hover:text-gray-600">Product</Link>
+            </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
 
-        <div className="flex items-center gap-6">
-          <CartButton />
+        <div className="flex items-center gap-4">
+          {!isLoggedIn ? (
+            <></>
+          ):(
+            <CartButton/>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

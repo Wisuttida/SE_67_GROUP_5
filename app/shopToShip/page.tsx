@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import ProfileShopMenu from "@/components/ProfileShopMenu";
 import Navbar from "@/components/Navbar";
 
-const orders = [
+const initialOrders = [
   { shopName: "Shop 1", orderId: "order-1", productName: "สินค้า 1", price: 500, quantity: 1, status: "รอจัดส่ง" },
   { shopName: "Shop 2", orderId: "order-2", productName: "สินค้า 2", price: 1200, quantity: 2, status: "รอจัดส่ง" },
   { shopName: "Shop 3", orderId: "order-3", productName: "สินค้า 3", price: 2100, quantity: 3, status: "กำลังจัดส่ง" },
@@ -16,9 +16,9 @@ const orders = [
 
 const TABS = ["รอจัดส่ง", "กำลังจัดส่ง", "จัดส่งแล้ว", "จัดส่งสำเร็จ"];
 
-const OrderCard = ({ order }) => {
+const OrderCard = ({ order, updateOrderStatus }) => {
   return (
-    <div className="border rounded-lg p-4 bg-white shadow-md">
+    <div className="bg-white p-6 rounded-2xl shadow-lg">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{order.shopName}</h2>
         <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-200">{order.status}</span>
@@ -30,8 +30,18 @@ const OrderCard = ({ order }) => {
         <p className="text-black font-bold">฿{order.price}</p>
       </div>
       <div className="mt-4 flex gap-2">
-        <Button variant="outline" className="w-full">อัปเดตข้อมูลจัดส่ง</Button>
-        <Button className="w-full bg-blue-600 text-white">ดำเนินการ</Button>
+        {order.status === "รอจัดส่ง" ? (
+          <Button 
+            className="w-full bg-blue-600 text-white hover:bg-blue-700" 
+            onClick={() => {
+              if (window.confirm("จัดส่งสำเร็จใช่ไหม?")) {
+                updateOrderStatus(order.orderId);
+              }
+            }}
+          >
+            ยืนยันการจัดส่ง
+          </Button>
+        ) : null}
       </div>
     </div>
   );
@@ -39,33 +49,46 @@ const OrderCard = ({ order }) => {
 
 const ShippingDashboard = () => {
   const [selectedTab, setSelectedTab] = useState("รอจัดส่ง");
+  const [orders, setOrders] = useState(initialOrders);
+
+  const updateOrderStatus = (orderId) => {
+    setOrders(prevOrders =>
+      prevOrders.map(order =>
+        order.orderId === orderId ? { ...order, status: "กำลังจัดส่ง" } : order
+      )
+    );
+  };
+
   const filteredOrders = orders.filter(order => order.status === selectedTab);
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="p-6 bg-gray-100 min-h-screen">
-        <ProfileShopMenu />
-        <h1 className="text-2xl font-bold mb-4">การจัดส่งสินค้า</h1>
-        
-        <div className="flex space-x-4 border-b pb-2 mb-4">
-          {TABS.map(tab => (
-            <button 
-              key={tab}
-              className={`px-4 py-2 font-semibold ${selectedTab === tab ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600"}`}
-              onClick={() => setSelectedTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
+      <div className="p-6">
+        <div className="mb-6">
+          <ProfileShopMenu />
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredOrders.length > 0 ? (
-            filteredOrders.map((order, index) => <OrderCard key={index} order={order} />)
-          ) : (
-            <p className="text-gray-500">ไม่มีคำสั่งซื้อในหมวดนี้</p>
-          )}
+        <div className="bg-gradient-to-br from-gray-100 to-white p-6 rounded-2xl shadow-lg">
+          <h1 className="text-2xl font-bold mb-4">การจัดส่งสินค้า</h1>
+          <div className="flex space-x-4 border-b pb-2 mb-4">
+            {TABS.map(tab => (
+              <button 
+                key={tab}
+                className={`px-4 py-2 font-semibold ${selectedTab === tab ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600"}`}
+                onClick={() => setSelectedTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredOrders.length > 0 ? (
+              filteredOrders.map((order, index) => <OrderCard key={index} order={order} updateOrderStatus={updateOrderStatus} />)
+            ) : (
+              <p className="text-gray-500">ไม่มีคำสั่งซื้อในหมวดนี้</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
