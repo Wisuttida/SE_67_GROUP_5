@@ -4,6 +4,7 @@ import ProfileShopMenu from '@/components/ProfileShopMenu';
 import Image from 'next/image';
 import { useState } from 'react';
 import axios from "axios";
+
 const initialProducts = [
   {
     id: 1,
@@ -36,6 +37,12 @@ const initialProducts = [
 export default function MyProductShop() {
   const [products, setProducts] = useState(initialProducts);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [filter, setFilter] = useState({
+    price: '',
+    fragrance: '',
+    strengths: '',
+    gender: '',
+  });
 
   const handleUpdate = (id: number, key: string, value: string | number) => {
     setProducts((prev) =>
@@ -59,8 +66,21 @@ export default function MyProductShop() {
   };
 
   const handleRemove = (id: number) => {
-    setProducts((prev) => prev.filter((product) => product.id !== id));
+    const confirmRemove = window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?");
+    if (confirmRemove) {
+      setProducts((prev) => prev.filter((product) => product.id !== id));
+    }
   };
+
+  const filteredProducts = products
+    .filter((product) => !filter.fragrance || product.fragrance === filter.fragrance)
+    .filter((product) => !filter.strengths || product.strengths === filter.strengths)
+    .filter((product) => !filter.gender || product.gender === filter.gender)
+    .sort((a, b) => {
+      if (filter.price === 'asc') return a.price - b.price;
+      if (filter.price === 'desc') return b.price - a.price;
+      return 0;
+    });
 
   return (
     <div>
@@ -69,8 +89,36 @@ export default function MyProductShop() {
         <ProfileShopMenu />
         <h1 className="text-2xl font-bold mb-6">My Products</h1>
 
+        {/* Filter Section */}
+        <div className="mb-6 flex flex-wrap gap-4">
+          <select onChange={(e) => setFilter({ ...filter, price: e.target.value })} className="border p-2 rounded">
+            <option value="">เรียงตามราคา</option>
+            <option value="asc">ต่ำไปสูง</option>
+            <option value="desc">สูงไปต่ำ</option>
+          </select>
+          <select onChange={(e) => setFilter({ ...filter, fragrance: e.target.value })} className="border p-2 rounded">
+            <option value="">ประเภทกลิ่น</option>
+            <option value="Floral">Floral</option>
+            <option value="Fruity">Fruity</option>
+            <option value="Woody">Woody</option>
+            <option value="Citrus">Citrus</option>
+          </select>
+          <select onChange={(e) => setFilter({ ...filter, strengths: e.target.value })} className="border p-2 rounded">
+            <option value="">ความเข้ม</option>
+            <option value="Light">Light</option>
+            <option value="Medium">Medium</option>
+            <option value="Strong">Strong</option>
+          </select>
+          <select onChange={(e) => setFilter({ ...filter, gender: e.target.value })} className="border p-2 rounded">
+            <option value="">เพศ</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Unisex">Unisex</option>
+          </select>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <div key={product.id} className="border rounded-lg p-4 shadow-sm bg-white">
               <Image
                 src={product.image}
@@ -81,179 +129,30 @@ export default function MyProductShop() {
               />
               {editingId === product.id ? (
                 <div className="mt-4 space-y-2">
-                  <label className="block">
-                    <span className="text-sm font-medium">ชื่อสินค้า</span>
-                    <input
-                      type="text"
-                      value={product.productName}
-                      onChange={(e) =>
-                        handleUpdate(product.id, 'productName', e.target.value)
-                      }
-                      className="mt-1 block w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
-                      placeholder="ชื่อสินค้า"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-sm font-medium">ราคา</span>
-                    <input
-                      type="number"
-                      value={product.price}
-                      onChange={(e) =>
-                        handleUpdate(product.id, 'price', Number(e.target.value))
-                      }
-                      className="mt-1 block w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
-                      placeholder="ราคา"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-sm font-medium">จำนวนในคลัง</span>
-                    <input
-                      type="number"
-                      value={product.stock}
-                      onChange={(e) =>
-                        handleUpdate(product.id, 'stock', Number(e.target.value))
-                      }
-                      className="mt-1 block w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
-                      placeholder="จำนวนในคลัง"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-sm font-medium">ขั้นต่ำในการสั่งซื้อ</span>
-                    <input
-                      type="number"
-                      value={product.quantity}
-                      onChange={(e) =>
-                        handleUpdate(product.id, 'quantity', Number(e.target.value))
-                      }
-                      className="mt-1 block w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
-                      placeholder="ขั้นต่ำในการสั่งซื้อ"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-sm font-medium">ปริมาณ</span>
-                    <input
-                      type="number"
-                      value={product.volume}
-                      onChange={(e) =>
-                        handleUpdate(product.id, 'volume', Number(e.target.value))
-                      }
-                      className="mt-1 block w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
-                      placeholder="ปริมาณ"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-sm font-medium">คำอธิบายสินค้า</span>
-                    <textarea
-                      value={product.description}
-                      onChange={(e) =>
-                        handleUpdate(product.id, 'description', e.target.value)
-                      }
-                      className="mt-1 block w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
-                      placeholder="คำอธิบายสินค้า"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-sm font-medium">ประเภทกลิ่น</span>
-                    <select
-                      value={product.fragrance}
-                      onChange={(e) =>
-                        handleUpdate(product.id, 'fragrance', e.target.value)
-                      }
-                      className="mt-1 block w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="Floral">Floral</option>
-                      <option value="Fruity">Fruity</option>
-                      <option value="Woody">Woody</option>
-                      <option value="Citrus">Citrus</option>
-                    </select>
-                  </label>
-                  <label className="block">
-                    <span className="text-sm font-medium">ความเข้ม</span>
-                    <select
-                      value={product.strengths}
-                      onChange={(e) =>
-                        handleUpdate(product.id, 'strengths', e.target.value)
-                      }
-                      className="mt-1 block w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="Light">Light</option>
-                      <option value="Medium">Medium</option>
-                      <option value="Strong">Strong</option>
-                    </select>
-                  </label>
-                  <label className="block">
-                    <span className="text-sm font-medium">เพศ</span>
-                    <select
-                      value={product.gender}
-                      onChange={(e) =>
-                        handleUpdate(product.id, 'gender', e.target.value)
-                      }
-                      className="mt-1 block w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Unisex">Unisex</option>
-                    </select>
-                  </label>
-                  <label className="block">
-                    <span className="text-sm font-medium">รูปสินค้า</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) =>
-                        handleImageUpload(product.id, e.target.files[0])
-                      }
-                      className="mt-1 block w-full"
-                    />
-                  </label>
-                  <button
-                    onClick={handleSave}
-                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full"
-                  >
-                    Save
-                  </button>
+                  {Object.entries(product).map(([key, value]) => (
+                    key !== 'id' && key !== 'image' && (
+                      <div key={key}>
+                        <label className="block capitalize">{key}</label>
+                        <input
+                          type="text"
+                          value={value as string}
+                          onChange={(e) => handleUpdate(product.id, key, e.target.value)}
+                          className="border p-2 w-full"
+                        />
+                      </div>
+                    )
+                  ))}
+                  <button onClick={handleSave} className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg w-full">Save</button>
                 </div>
               ) : (
                 <div className="mt-4 space-y-1">
-                  <p>
-                    <strong>ชื่อสินค้า:</strong> {product.productName}
-                  </p>
-                  <p>
-                    <strong>ราคา:</strong> ฿{product.price}
-                  </p>
-                  <p>
-                    <strong>จำนวนในคลัง:</strong> {product.stock}
-                  </p>
-                  <p>
-                    <strong>ขั้นต่ำในการสั่งซื้อ:</strong> {product.quantity}
-                  </p>
-                  <p>
-                    <strong>ปริมาณ:</strong> {product.volume}
-                  </p>
-                  <p>
-                    <strong>คำอธิบายสินค้า:</strong> {product.description}
-                  </p>
-                  <p>
-                    <strong>ประเภทกลิ่น:</strong> {product.fragrance}
-                  </p>
-                  <p>
-                    <strong>ความเข้ม:</strong> {product.strengths}
-                  </p>
-                  <p>
-                    <strong>เพศ:</strong> {product.gender}
-                  </p>
-                  <button
-                    onClick={() => handleEdit(product.id)}
-                    className="mt-4 px-4 py-2 border rounded-lg hover:bg-gray-100 w-full"
-                  >
-                    ✏️ Edit
-                  </button>
-                  <button
-                    onClick={() => handleRemove(product.id)}
-                    className="mt-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 w-full"
-                  >
-                    🗑️ Remove
-                  </button>
+                  {Object.entries(product).map(([key, value]) => (
+                    key !== 'id' && (
+                      <p key={key}><strong>{key}:</strong> {value}</p>
+                    )
+                  ))}
+                  <button onClick={() => handleEdit(product.id)} className="mt-4 px-4 py-2 border rounded-lg hover:bg-gray-100 w-full">✏️ Edit</button>
+                  <button onClick={() => handleRemove(product.id)} className="mt-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 w-full">🗑️ Remove</button>
                 </div>
               )}
             </div>
