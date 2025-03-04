@@ -17,7 +17,7 @@ const ProfileShopMenu = () => {
     { name: "User Profile", icon: <User size={32} />, path: "/ProfileUser" },
     { name: "My Shop", icon: <Store size={32} />, path: "/profileShop" },
     { name: "My Product", icon: <Package size={32} />, path: "/myProductShop" },
-    { name: "Order", icon: <ClipboardList size={32} />, path: "/profileShop" },
+    { name: "Order", icon: <ClipboardList size={32} />, path: "/shopOrder" },
     { name: "Add Product", icon: <Plus size={32} />, path: "/addProduct" },
     { name: "Buy Ingredient", icon: <Droplets size={32} />, path: "/profileShop" },
     { name: "To Ship", icon: <Truck size={32} />, path: "/shopToShip" },
