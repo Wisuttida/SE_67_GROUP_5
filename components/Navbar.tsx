@@ -9,12 +9,14 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from 'react';
 import  CartButton  from "@/components/CartButton";
 import SearchBar from "./SearchBar";
+import axios from 'axios';
 
 const Navbar = () => {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasShop, setHasShop] = useState(false);
   const [hasFarm, setHasFarm] = useState(false);
+  const [csrfToken, setCsrfToken] = useState('');
   
   useEffect(() => {
     const fetchCsrfToken = async () => {
@@ -25,6 +27,9 @@ const Navbar = () => {
         console.error('Error fetching CSRF token:', error);
       }
     };
+
+    fetchCsrfToken();
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
