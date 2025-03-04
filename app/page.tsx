@@ -40,7 +40,7 @@ const HomePage = () => {
       <Navbar />
 
       {/* Hero Section หรือ Banner */}
-      <Banner />
+      {/* <Banner /> */}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto p-6">
