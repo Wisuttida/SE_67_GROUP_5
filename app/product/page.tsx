@@ -27,6 +27,7 @@ interface CartProduct extends Product {
 const ProductPage = () => {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+
   useEffect(() => {
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`).then(response => {
       setProducts(response.data);
@@ -35,6 +36,7 @@ const ProductPage = () => {
       console.error("Error fetching products:", error);
     });
   }, []);
+  
   // Filter products based on selected filters
   const filteredProducts = products.filter((product) => {
     if (selectedFilters.length === 0) return true;

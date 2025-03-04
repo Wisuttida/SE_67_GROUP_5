@@ -7,6 +7,8 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from 'react';
+import  CartButton  from "@/components/CartButton";
+import SearchBar from "./SearchBar";
 
 const Navbar = () => {
   const router = useRouter();
@@ -30,14 +32,7 @@ const Navbar = () => {
           Perfume Thai
         </Link>
 
-        <div className="hidden md:flex items-center border rounded-lg px-2">
-          <Search className="text-gray-400" size={18} />
-          <Input 
-            type="text" 
-            placeholder="Search products..." 
-            className="border-none focus:ring-0" 
-          />
-        </div>
+        <SearchBar/>
 
         <NavigationMenu>
           <NavigationMenuList className="hidden md:flex space-x-4">
@@ -51,6 +46,12 @@ const Navbar = () => {
         </NavigationMenu>
 
         <div className="flex items-center gap-4">
+          {!isLoggedIn ? (
+            <></>
+          ):(
+            <CartButton/>
+          )}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">Account</Button>
