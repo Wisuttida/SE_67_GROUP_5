@@ -1,257 +1,200 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import axios from 'axios';
 import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
 
-interface FormData {
-  farmName: string;
-  accountNo: string;
-  bankName: string;
-  accountName: string;
-  phoneNumber: string;
-}
-
-interface FormErrors {
-  farmName: string;
-  accountNo: string;
-  bankName: string;
-  accountName: string;
-  phoneNumber: string;
-}
-
-export default function RegisterFarm() {
+function RegisterFarm() {
   const router = useRouter();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const [formData, setFormData] = useState<FormData>({
-    farmName: '',
-    accountNo: '',
-    bankName: '',
-    accountName: '',
-    phoneNumber: ''
+  const [csrfToken, setCsrfToken] = useState('');
+  const [formData, setFormData] = useState({
+    'farm_name': "",
+    'bank_name': "",
+    'bank_account': "",
+    'bank_number': "",
+    'users_user_id': ""
   });
+  const [message, setMessage] = useState('');
 
-  const [errors, setErrors] = useState<FormErrors>({
-    farmName: '',
-    accountNo: '',
-    bankName: '',
-    accountName: '',
-    phoneNumber: ''
-  });
-
-  const validateForm = () => {
-    let valid = true;
-    const newErrors = { ...errors };
-
-    // Validate farm name
-    if (!formData.farmName.trim()) {
-      newErrors.farmName = 'กรุณากรอกชื่อฟาร์ม';
-      valid = false;
-    }
-
-    // Validate account number
-    if (!formData.accountNo.trim()) {
-      newErrors.accountNo = 'กรุณากรอกเลขบัญชี';
-      valid = false;
-    } else if (!/^[0-9]{10}$/.test(formData.accountNo)) {
-      newErrors.accountNo = 'เลขบัญชีต้องเป็นตัวเลข 10 หลัก';
-      valid = false;
-    }
-
-    // Validate bank name
-    if (!formData.bankName.trim()) {
-      newErrors.bankName = 'กรุณากรอกชื่อธนาคาร';
-      valid = false;
-    }
-
-    // Validate account name
-    if (!formData.accountName.trim()) {
-      newErrors.accountName = 'กรุณากรอกชื่อบัญชี';
-      valid = false;
-    }
-
-    // Validate phone number
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'กรุณากรอกเบอร์โทรศัพท์';
-      valid = false;
-    } else if (!/^[0-9]{10}$/.test(formData.phoneNumber)) {
-      newErrors.phoneNumber = 'เบอร์โทรศัพท์ต้องเป็นตัวเลข 10 หลัก';
-      valid = false;
-    }
-
-    setErrors(newErrors);
-    return valid;
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    if (errors[name as keyof FormErrors]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
+  useEffect(() => {
+    const user_data = localStorage.getItem('user_data');
+    if(user_data) {
+      const user = JSON.parse(user_data);
+      setFormData((prevData) => ({
+        ...prevData,
+        users_user_id: user.user_id, // Update users_user_id whenever userId changes
       }));
     }
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/csrf-token');
+        setCsrfToken(response.data.csrf_token);
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+      }
+    };
+
+    fetchCsrfToken();
+  }, []);
+
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-  
-    // Reset any existing errors
-    setErrors({
-      farmName: '',
-      accountNo: '',
-      bankName: '',
-      accountName: '',
-      phoneNumber: ''
-    });
-  
-    // Validate form
-    if (!validateForm()) {
-      return;
-    }
-  
-    setIsLoading(true);
+    setMessage(''); // Clear any previous error messages
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-  
-      // Show success message
-      toast("ลงทะเบียนฟาร์มสำเร็จ");
-  
-      // Reset form
-      setFormData({
-        farmName: '',
-        accountNo: '',
-        bankName: '',
-        accountName: '',
-        phoneNumber: ''
-      });
-  
-      // Navigate after a short delay
-      setTimeout(() => {
-        router.push('/farm');
-      }, 1500);
-  
-    } catch (error) {
-      toast("ไม่สามารถลงทะเบียนฟาร์มได้ กรุณาลองใหม่อีกครั้ง");
-    } finally {
-      setIsLoading(false);
+        console.log('Submitting registration form...');
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/registerFarm`, {
+            farm_name: formData.farm_name,
+            bank_name: formData.bank_name,
+            bank_account: formData.bank_account,
+            bank_number: formData.bank_number,
+            users_user_id: formData.users_user_id
+        }, {
+          headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': csrfToken, // Include CSRF token if stored
+          },
+          withCredentials: true // Include credentials in the request
+        });
+        
+        console.log('Registration response:', response);
+        if (response.status === 200 || response.status === 201) {
+            localStorage.setItem('farm', JSON.stringify(response.data.data.farm));
+            localStorage.setItem('roles', JSON.stringify(response.data.data.roles));
+            localStorage.setItem('roles_name', JSON.stringify(response.data.data.rolesName));
+            router.push('/farm');
+        }
+    } catch (error: any) {
+        console.error('Registration error:', error);
+        const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+        setMessage(errorMessage);
     }
+  };
+
+  const bankOptions = [
+    { value: 'ธนาคารกรุงเทพ (BBL)', label: 'ธนาคารกรุงเทพ (BBL)' },
+    { value: 'ธนาคารกสิกรไทย (KBANK)', label: 'ธนาคารกสิกรไทย (KBANK)' },
+    { value: 'ธนาคารไทยพาณิชย์ (SCB)', label: 'ธนาคารไทยพาณิชย์ (SCB)' },
+    { value: 'ธนาคารกรุงไทย (KTB)', label: 'ธนาคารกรุงไทย (KTB)' },
+    { value: 'ธนาคารกรุงศรีอยุธยา (BAY)', label: 'ธนาคารกรุงศรีอยุธยา (BAY)' },
+    { value: 'ธนาคารทหารไทยธนชาต (TTB)', label: 'ธนาคารทหารไทยธนชาต (TTB)' },
+    { value: 'ธนาคารซีไอเอ็มบี ไทย (CIMBT)', label: 'ธนาคารซีไอเอ็มบี ไทย (CIMBT)' },
+    { value: 'ธนาคารยูโอบี (UOB Thailand)', label: 'ธนาคารยูโอบี (UOB Thailand)' },
+    { value: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)', label: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)' },
+    { value: 'ธนาคารออมสิน (GSB)', label: 'ธนาคารออมสิน (GSB)' },
+  ];
+  const bankSelect = (value) => {
+    setFormData({ ...formData, bank_name: value });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      
-      <div className="max-w-md mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-6">
-            <h1 className="text-2xl font-semibold text-center mb-6">Farmer</h1>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <Card className="bg-white p-5 rounded-lg shadow-lg w-full sm:w-[600px]">
+        <CardHeader>
+          <div className="relative flex items-center justify-center">
+            <CardTitle className="text-center w-full">Farm</CardTitle>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <form onSubmit={handleRegister} className="space-y-5">
+            <div>
+              <Label>Farm Name</Label>
+              <Input
+                type="text"
+                name="farm_name"
+                value={formData.farm_name}
+                onChange={handleChange}
+                placeholder="Farm Name"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="farmName">Farm Name</Label>
-                <Input
-                  id="farmName"
-                  name="farmName"
-                  value={formData.farmName}
-                  onChange={handleChange}
-                  placeholder="Farm Name"
-                  className={errors.farmName ? 'border-red-500' : ''}
-                />
-                {errors.farmName && (
-                  <p className="text-red-500 text-xs mt-1">{errors.farmName}</p>
-                )}
+                <Label>Bank Name</Label>
+                  <Select onValueChange={bankSelect} defaultValue={formData.bank_name}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a bank" />
+                    </SelectTrigger>
+                      <SelectContent>
+                        {bankOptions.map((bank) => (
+                          <SelectItem key={bank.value} value={bank.value}>
+                            {bank.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                  </Select>
               </div>
 
               <div>
-                <Label htmlFor="accountNo">Account No.</Label>
+                <Label>Account No.</Label>
                 <Input
-                  id="accountNo"
-                  name="accountNo"
-                  value={formData.accountNo}
+                  type="text"
+                  name="bank_number"
+                  value={formData.bank_number}
                   onChange={handleChange}
                   placeholder="Account No."
-                  className={errors.accountNo ? 'border-red-500' : ''}
                 />
-                {errors.accountNo && (
-                  <p className="text-red-500 text-xs mt-1">{errors.accountNo}</p>
-                )}
               </div>
 
               <div>
-                <Label htmlFor="bankName">Bank Name</Label>
+                <Label>Account Name</Label>
                 <Input
-                  id="bankName"
-                  name="bankName"
-                  value={formData.bankName}
-                  onChange={handleChange}
-                  placeholder="Bank Name"
-                  className={errors.bankName ? 'border-red-500' : ''}
-                />
-                {errors.bankName && (
-                  <p className="text-red-500 text-xs mt-1">{errors.bankName}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="accountName">Account Name</Label>
-                <Input
-                  id="accountName"
-                  name="accountName"
-                  value={formData.accountName}
+                  type="text"
+                  name="bank_account"
+                  value={formData.bank_account}
                   onChange={handleChange}
                   placeholder="Account Name"
-                  className={errors.accountName ? 'border-red-500' : ''}
                 />
-                {errors.accountName && (
-                  <p className="text-red-500 text-xs mt-1">{errors.accountName}</p>
-                )}
               </div>
+            </div>
 
-              <div>
-                <Label htmlFor="phoneNumber">Phone Number</Label>
-                <Input
-                  id="phoneNumber"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleChange}
-                  placeholder="Phone Number"
-                  className={errors.phoneNumber ? 'border-red-500' : ''}
-                />
-                {errors.phoneNumber && (
-                  <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white"
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Submitting...
-                  </div>
-                ) : (
-                  'Submit'
-                )}
+            <CardFooter className="flex justify-between">
+              {/* ปุ่มย้อนกลับ */}
+              <Button variant="outline" onClick={() => router.back()}>
+                Back
               </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+              {/* ปุ่ม Submit */}
+              <Button type="submit">Submit</Button>
+            </CardFooter>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
+
+export default RegisterFarm;

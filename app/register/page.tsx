@@ -41,8 +41,6 @@ const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage(''); // Clear any previous error messages
-    console.log('click');
-    // Validate password confirmation
     if (password !== passwordConfirmation) {
       setMessage('Passwords do not match');
       return;

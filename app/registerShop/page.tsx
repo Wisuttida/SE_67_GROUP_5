@@ -7,37 +7,122 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import React, { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import axios from 'axios';
+import { ArrowLeft, User } from "lucide-react";
+import { join } from "path";
+import { json } from "stream/consumers";
+import BankSelect from "./BankSelections";
 
 function RegisterShop() {
   const router = useRouter();
+  const [csrfToken, setCsrfToken] = useState('');
   const [formData, setFormData] = useState({
-    shopName: "",
-    bankName: "",
-    accountNo: "",
-    accountName: "",
-    phoneNumber: "",
-    acceptCustomization: false,
+    'shop_name': "",
+    'accepts_custom': false,
+    'bank_name': "",
+    'bank_account': "",
+    'bank_number': "",
+    'users_user_id': ""
   });
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const user_data = localStorage.getItem('user_data');
+    if(user_data) {
+      const user = JSON.parse(user_data);
+      setFormData((prevData) => ({
+        ...prevData,
+        users_user_id: user.user_id, // Update users_user_id whenever userId changes
+      }));
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value, // Handle checkbox differently
+    });
   };
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/csrf-token');
+        setCsrfToken(response.data.csrf_token);
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+      }
+    };
+
+    fetchCsrfToken();
+  }, []);
+
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    console.log("Form Data:", formData);
-    // Add further logic to send data to your backend
-    router.push("/profileShop");
+    setMessage(''); // Clear any previous error messages
+
+    try {
+        console.log('Submitting registration form...');
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/registerShop`, {
+            shop_name: formData.shop_name,
+            accepts_custom: formData.accepts_custom,
+            bank_name: formData.bank_name,
+            bank_account: formData.bank_account,
+            bank_number: formData.bank_number,
+            users_user_id: formData.users_user_id
+        }, {
+          headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': csrfToken, // Include CSRF token if stored
+          },
+          withCredentials: true // Include credentials in the request
+        });
+        
+        console.log('Registration response:', response);
+        if (response.status === 200 || response.status === 201) {
+            localStorage.setItem('shop', JSON.stringify(response.data.data.shop));
+            localStorage.setItem('roles', JSON.stringify(response.data.data.roles));
+            localStorage.setItem('roles_name', JSON.stringify(response.data.data.rolesName));
+            router.push('/profileShop');
+        }
+    } catch (error: any) {
+        console.error('Registration error:', error);
+        const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+        setMessage(errorMessage);
+    }
+  };
+
+  const bankOptions = [
+    { value: 'ธนาคารกรุงเทพ (BBL)', label: 'ธนาคารกรุงเทพ (BBL)' },
+    { value: 'ธนาคารกสิกรไทย (KBANK)', label: 'ธนาคารกสิกรไทย (KBANK)' },
+    { value: 'ธนาคารไทยพาณิชย์ (SCB)', label: 'ธนาคารไทยพาณิชย์ (SCB)' },
+    { value: 'ธนาคารกรุงไทย (KTB)', label: 'ธนาคารกรุงไทย (KTB)' },
+    { value: 'ธนาคารกรุงศรีอยุธยา (BAY)', label: 'ธนาคารกรุงศรีอยุธยา (BAY)' },
+    { value: 'ธนาคารทหารไทยธนชาต (TTB)', label: 'ธนาคารทหารไทยธนชาต (TTB)' },
+    { value: 'ธนาคารซีไอเอ็มบี ไทย (CIMBT)', label: 'ธนาคารซีไอเอ็มบี ไทย (CIMBT)' },
+    { value: 'ธนาคารยูโอบี (UOB Thailand)', label: 'ธนาคารยูโอบี (UOB Thailand)' },
+    { value: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)', label: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)' },
+    { value: 'ธนาคารออมสิน (GSB)', label: 'ธนาคารออมสิน (GSB)' },
+  ];
+  const bankSelect = (value) => {
+    setFormData({ ...formData, bank_name: value });
   };
 
   return (
@@ -51,13 +136,13 @@ function RegisterShop() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleRegister} className="space-y-5">
             <div>
               <Label>Shop Name</Label>
               <Input
                 type="text"
-                name="shopName"
-                value={formData.shopName}
+                name="shop_name"
+                value={formData.shop_name}
                 onChange={handleChange}
                 placeholder="Shop Name"
               />
@@ -66,21 +151,26 @@ function RegisterShop() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Bank Name</Label>
-                <Input
-                  type="text"
-                  name="bankName"
-                  value={formData.bankName}
-                  onChange={handleChange}
-                  placeholder="Bank Name"
-                />
+                  <Select onValueChange={bankSelect} defaultValue={formData.bank_name}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a bank" />
+                    </SelectTrigger>
+                      <SelectContent>
+                        {bankOptions.map((bank) => (
+                          <SelectItem key={bank.value} value={bank.value}>
+                            {bank.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                  </Select>
               </div>
 
               <div>
                 <Label>Account No.</Label>
                 <Input
                   type="text"
-                  name="accountNo"
-                  value={formData.accountNo}
+                  name="bank_number"
+                  value={formData.bank_number}
                   onChange={handleChange}
                   placeholder="Account No."
                 />
@@ -90,21 +180,10 @@ function RegisterShop() {
                 <Label>Account Name</Label>
                 <Input
                   type="text"
-                  name="accountName"
-                  value={formData.accountName}
+                  name="bank_account"
+                  value={formData.bank_account}
                   onChange={handleChange}
                   placeholder="Account Name"
-                />
-              </div>
-
-              <div>
-                <Label>Phone Number</Label>
-                <Input
-                  type="text"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleChange}
-                  placeholder="Phone Number"
                 />
               </div>
             </div>
@@ -112,9 +191,8 @@ function RegisterShop() {
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
-                id="acceptCustomization"
-                name="acceptCustomization"
-                checked={formData.acceptCustomization}
+                name="accepts_custom"
+                checked={formData.accepts_custom}
                 onChange={handleChange}
               />
               <Label htmlFor="acceptCustomization">

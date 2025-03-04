@@ -14,6 +14,8 @@ const Navbar = () => {
   const router = useRouter();
   const [csrfToken, setCsrfToken] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [hasShop, setHasShop] = useState(false);
+  const [hasFarm, setHasFarm] = useState(false);
   
   useEffect(() => {
     const fetchCsrfToken = async () => {
@@ -32,6 +34,20 @@ const Navbar = () => {
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
+    }
+    const shopGet = localStorage.getItem('shop');
+    if(shopGet) {
+      const shop = JSON.parse(shopGet);
+      if (shop.shop_id) {
+        setHasShop(true);
+      }
+    }
+    const farmGet = localStorage.getItem('farm');
+    if(farmGet) {
+      const farm = JSON.parse(farmGet);
+      if (farm.farm_id) {
+        setHasFarm(true);
+      }
     }
   }, []);
   
@@ -52,6 +68,8 @@ const Navbar = () => {
         localStorage.removeItem('user_data');
         localStorage.removeItem('roles');
         localStorage.removeItem('roles_name');
+        localStorage.removeItem('shop');
+        localStorage.removeItem('farm');
         router.push('/');
       }
     } catch (error) {
@@ -103,20 +121,28 @@ const Navbar = () => {
                   {isLoggedIn && (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link href="/profileShop">Shop Profile</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/registerShop">Register Shop</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
                         <Link href="/ProfileUser">User Profile</Link>
                       </DropdownMenuItem>
+                      {hasShop && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/profileShop">Shop Profile</Link>
+                        </DropdownMenuItem>
+                      )}
+                      {!hasShop && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/registerShop">Register Shop</Link>
+                        </DropdownMenuItem>
+                      )}
+                      {hasFarm && (
                       <DropdownMenuItem asChild>
                         <Link href="/farm">Farm Profile</Link>
                       </DropdownMenuItem>
+                      )}
+                      {!hasFarm && (
                       <DropdownMenuItem asChild>
                         <Link href="/registerFarm">Register Farm</Link>
                       </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem>
                         <button onClick={handleLogout} className="w-full text-left">
                           Logout

@@ -82,6 +82,8 @@ const LoginPage = () => {
             localStorage.setItem('csrfToken', csrfToken);
             localStorage.setItem('roles', JSON.stringify(response.data.data.roles));
             localStorage.setItem('roles_name', JSON.stringify(response.data.data.rolesName));
+            localStorage.setItem('shop', JSON.stringify(response.data.data.shop));
+            localStorage.setItem('farm', JSON.stringify(response.data.data.farm));
             console.log('Token stored successfully');
             router.push('/ProfileUser');
         } else {
