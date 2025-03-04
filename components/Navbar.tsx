@@ -37,14 +37,14 @@ const Navbar = () => {
       setIsLoggedIn(true);
     }
     const shopGet = localStorage.getItem('shop');
-    if(shopGet) {
+    if(shopGet && shopGet !== 'undefined') {
       const shop = JSON.parse(shopGet);
       if (shop.shop_id) {
         setHasShop(true);
       }
     }
     const farmGet = localStorage.getItem('farm');
-    if(farmGet) {
+    if(farmGet && farmGet !== 'undefined') {
       const farm = JSON.parse(farmGet);
       if (farm.farm_id) {
         setHasFarm(true);
@@ -63,14 +63,7 @@ const Navbar = () => {
       });
       
       if (response.status === 200) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('cart');
-        localStorage.removeItem('csrfToken');
-        localStorage.removeItem('user_data');
-        localStorage.removeItem('roles');
-        localStorage.removeItem('roles_name');
-        localStorage.removeItem('shop');
-        localStorage.removeItem('farm');
+        localStorage.clear();
         router.push('/');
       }
     } catch (error) {
