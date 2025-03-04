@@ -7,54 +7,44 @@ import { Search } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import CartButton from "@/components/CartButton";
 import { useRouter } from "next/navigation";
-import axios from 'axios';
 import { useState, useEffect } from 'react';
 
 const Navbar = () => {
   const router = useRouter();
-  const [csrfToken, setCsrfToken] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   useEffect(() => {
-    const fetchCsrfToken = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/csrf-token');
-        setCsrfToken(response.data.csrf_token);
-      } catch (error) {
-        console.error('Error fetching CSRF token:', error);
-      }
+    const checkLoginStatus = () => {
+      const token = localStorage.getItem('token');
+      setIsLoggedIn(!!token);
     };
     
-    fetchCsrfToken();
-  }, []);
-  
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-    }
+    checkLoginStatus();
+    
+    // Add event listener for storage changes
+    window.addEventListener('storage', checkLoginStatus);
+    
+    return () => {
+      window.removeEventListener('storage', checkLoginStatus);
+    };
   }, []);
   
   const handleLogout = async () => {
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {}, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'X-CSRF-TOKEN': csrfToken,
-        },
-        withCredentials: true,
-      });
+      // Clear all stored data
+      localStorage.removeItem('token');
+      localStorage.removeItem('csrf');
+      localStorage.removeItem('cart');
+      localStorage.removeItem('csrfToken');
+      localStorage.removeItem('user_data');
+      localStorage.removeItem('roles');
+      localStorage.removeItem('roles_name');
       
-      if (response.status === 200) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('csrf');
-        localStorage.removeItem('cart');
-        localStorage.removeItem('csrfToken');
-        localStorage.removeItem('user_data');
-        localStorage.removeItem('roles');
-        localStorage.removeItem('roles_name');
-        router.push('/');
-      }
+      // Update login state
+      setIsLoggedIn(false);
+      
+      // Redirect to home page
+      router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -93,40 +83,38 @@ const Navbar = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="outline">Account</Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-48">
               {!isLoggedIn ? (
                 <>
                   <DropdownMenuItem asChild>
-                    <Link href="/login">Login</Link>
+                    <Link href="/login" className="w-full">Login</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/register">Register</Link>
+                    <Link href="/register" className="w-full">Register</Link>
                   </DropdownMenuItem>
                 </>
               ) : (
                 <>
                   <DropdownMenuItem asChild>
-                    <Link href="/profileShop">Shop Profile</Link>
+                    <Link href="/ProfileUser" className="w-full">User Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/registerShop">Register Shop</Link>
+                    <Link href="/profileShop" className="w-full">Shop Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/ProfileUser">User Profile</Link>
+                    <Link href="/registerShop" className="w-full">Register Shop</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/farm">Farm Profile</Link>
+                    <Link href="/farm" className="w-full">Farm Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/registerFarm">Register Farm</Link>
+                    <Link href="/registerFarm" className="w-full">Register Farm</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <button 
-                      onClick={handleLogout}
-                      className="w-full text-left"
-                    >
-                      Logout
-                    </button>
+                  <DropdownMenuItem 
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={handleLogout}
+                  >
+                    Logout
                   </DropdownMenuItem>
                 </>
               )}
