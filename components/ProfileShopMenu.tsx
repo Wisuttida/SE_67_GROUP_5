@@ -1,27 +1,27 @@
 "use client";
 
 import React, { useState } from "react";
-import { User, Package, Settings, Plus, Droplets, Truck, ClipboardList } from "lucide-react";
+import { User, Store, Package, ClipboardList, Plus, Droplets, Truck, Inbox } from "lucide-react";
 import Link from "next/link";
 
 const ProfileShopMenu = () => {
   const [profile, setProfile] = useState({
     username: "John Doe",
     profileImage: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-    coverImage: "", // เพิ่มฟิลด์รูปภาพปก
+    coverImage: "",
     acceptingCustomOrders: false,
   });
   const [isEditing, setIsEditing] = useState(false);
 
   const menuItems = [
     { name: "User Profile", icon: <User size={32} />, path: "/ProfileUser" },
-    { name: "My Shop", icon: <User size={32} />, path: "/profileShop" },
+    { name: "My Shop", icon: <Store size={32} />, path: "/profileShop" },
     { name: "My Product", icon: <Package size={32} />, path: "/myProductShop" },
-    { name: "Order", icon: <Settings size={32} />, path: "/profileShop" },
+    { name: "Order", icon: <ClipboardList size={32} />, path: "/profileShop" },
     { name: "Add Product", icon: <Plus size={32} />, path: "/addProduct" },
     { name: "Buy Ingredient", icon: <Droplets size={32} />, path: "/profileShop" },
     { name: "To Ship", icon: <Truck size={32} />, path: "/shopToShip" },
-    { name: "To Receive", icon: <ClipboardList size={32} />, path: "/profileShop" },
+    { name: "To Receive", icon: <Inbox size={32} />, path: "/profileShop" },
   ];
 
   const handleProfileChange = (e) => {
