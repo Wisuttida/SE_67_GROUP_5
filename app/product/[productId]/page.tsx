@@ -21,8 +21,10 @@ interface Product {
   quantity: number;
   gender_target: string;
   fragrance_strength: string;
-  shopName: string;
-  shopImage: string;
+  shop_name: string;
+  shop_image: string;
+  volume: number;
+  description: string;
 }
 
 
@@ -34,6 +36,7 @@ function ProductdetailPage({ params }: Params) {
   
   useEffect(() => {
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`).then(response => {
+      console.log(response.data);
       setProducts(response.data);
     })
     .catch(error => {
@@ -88,22 +91,6 @@ function ProductdetailPage({ params }: Params) {
                   ฿{product?.price}
                 </p>
 
-                {/* ข้อมูลร้านค้า
-                <div className="flex items-center mt-4">
-                  <Link
-                    href={`/shop/${encodeURIComponent(product.shopName)}`}
-                    className="flex items-center"
-                  >
-                    <img
-                      src={product?.shopImage}
-                      alt={product?.shopName}
-                      className="w-12 h-12 rounded-full border mr-3"
-                    />
-                    <span className="text-lg font-semibold text-black-600">
-                      {product?.shopName}
-                    </span>
-                  </Link>
-                </div> */}
 
               </div>
 
@@ -117,7 +104,25 @@ function ProductdetailPage({ params }: Params) {
               </Button>
             </div>
           </section>
+        </div>
 
+        <div className="bg-white p-3 rounded-lg shadow-lg flex items-center mt-4 ">
+          <Link
+            href={`/shop/${product?.shop_name}`}
+            className="flex items-center"
+          >
+            <img
+              src={product?.shop_image}
+              alt={product?.shop_name}
+              className="w-12 h-12 rounded-full border mr-3"
+            />
+            <span className="text-lg font-semibold text-black-600">
+              {product?.shop_name}
+            </span>
+          </Link>
+        </div>
+        
+        <div>
           {/* ปุ่มแสดงรายละเอียด */}
           <Button
             variant="outline"
@@ -132,11 +137,11 @@ function ProductdetailPage({ params }: Params) {
             <div className="mt-4 p-4 bg-gray-100 rounded-lg transition-all">
               <h3 className="text-lg font-semibold">Product Details</h3>
               <p className="text-gray-700 mt-2">
-                This is a high-quality perfume made with the finest ingredients.
+                {product?.description}
               </p>
             </div>
           )}
-        </div>
+          </div>
       </main>
     </div>
   );
