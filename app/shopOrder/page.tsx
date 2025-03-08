@@ -209,42 +209,46 @@ const OrderConfirmation = () => {
   const filteredOrders = orders.filter((order) => order.status === selectedTab);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar */}
-      <SideBarShop className="w-1/4 bg-gray-800 text-white p-6" />
+    <div className="min-h-screen bg-gray-100">
+      <Navbar />
+      <div className="min-h-screen bg-gray-100 flex">
+        
+        {/* Sidebar */}
+        <SideBarShop className="w-1/4 bg-gray-800 text-white p-6" />
 
-      <div className="flex-1">
-        <Navbar />
-        <div className="max-w-screen-xl mx-auto px-4 py-6">
-          <div className="bg-white p-6 rounded-2xl shadow-lg text-center">
-            <h1 className="text-2xl font-bold mb-4">การยืนยันคำสั่งซื้อ</h1>
-            <div className="flex justify-center space-x-4 border-b pb-2 mb-4">
-              {TABS.map((tab) => (
-                <button
-                  key={tab}
-                  className={`px-4 py-2 font-semibold ${selectedTab === tab ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600 hover:text-blue-500"}`}
-                  onClick={() => setSelectedTab(tab)}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
+        <div className="flex-1">
+          
+          <div className="max-w-screen-xl mx-auto px-4 py-6">
+            <div className="bg-white p-6 rounded-2xl shadow-lg text-center">
+              <h1 className="text-2xl font-bold mb-4">การยืนยันคำสั่งซื้อ</h1>
+              <div className="flex justify-center space-x-4 border-b pb-2 mb-4">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab}
+                    className={`px-4 py-2 font-semibold ${selectedTab === tab ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600 hover:text-blue-500"}`}
+                    onClick={() => setSelectedTab(tab)}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order, index) => (
-                  <OrderCard
-                    key={index}
-                    order={order}
-                    confirmOrder={confirmOrder}
-                    cancelOrder={cancelOrder}
-                    customConfirmOrder={customConfirmOrder}
-                    customCancelOrder={customCancelOrder}
-                  />
-                ))
-              ) : (
-                <p className="text-gray-500">ไม่มีคำสั่งซื้อในหมวดนี้</p>
-              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
+                {filteredOrders.length > 0 ? (
+                  filteredOrders.map((order, index) => (
+                    <OrderCard
+                      key={index}
+                      order={order}
+                      confirmOrder={confirmOrder}
+                      cancelOrder={cancelOrder}
+                      customConfirmOrder={customConfirmOrder}
+                      customCancelOrder={customCancelOrder}
+                    />
+                  ))
+                ) : (
+                  <p className="text-gray-500">ไม่มีคำสั่งซื้อในหมวดนี้</p>
+                )}
+              </div>
             </div>
           </div>
         </div>

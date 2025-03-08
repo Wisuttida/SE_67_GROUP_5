@@ -1,9 +1,8 @@
 "use client";
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import ProfileShopMenu from "@/components/SideBarShop";
 import Navbar from "@/components/Navbar";
+import SideBarShop from "@/components/SideBarShop";
 
 const initialOrders = [
   { shopName: "Shop 1", orderId: "order-1", productName: "สินค้า 1", price: 500, quantity: 1, status: "รอจัดส่ง" },
@@ -64,30 +63,34 @@ const ShippingDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="p-6">
-        <div className="mb-6">
-          <ProfileShopMenu />
-        </div>
-        <div className="bg-gradient-to-br from-gray-100 to-white p-6 rounded-2xl shadow-lg">
-          <h1 className="text-2xl font-bold mb-4">การจัดส่งสินค้า</h1>
-          <div className="flex space-x-4 border-b pb-2 mb-4">
-            {TABS.map(tab => (
-              <button 
-                key={tab}
-                className={`px-4 py-2 font-semibold ${selectedTab === tab ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600"}`}
-                onClick={() => setSelectedTab(tab)}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredOrders.length > 0 ? (
-              filteredOrders.map((order, index) => <OrderCard key={index} order={order} updateOrderStatus={updateOrderStatus} />)
-            ) : (
-              <p className="text-gray-500">ไม่มีคำสั่งซื้อในหมวดนี้</p>
-            )}
+      <div className="flex">
+        {/* Sidebar */}
+        <SideBarShop />
+        
+
+        {/* Main content area */}
+        <div className="flex-1 p-6 bg-gray-100">
+          <div className="bg-gradient-to-br from-gray-100 to-white p-6 rounded-2xl shadow-lg">
+            <h1 className="text-2xl font-bold mb-4">การจัดส่งสินค้า</h1>
+            <div className="flex space-x-4 border-b pb-2 mb-4">
+              {TABS.map(tab => (
+                <button 
+                  key={tab}
+                  className={`px-4 py-2 font-semibold ${selectedTab === tab ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600"}`}
+                  onClick={() => setSelectedTab(tab)}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredOrders.length > 0 ? (
+                filteredOrders.map((order, index) => <OrderCard key={index} order={order} updateOrderStatus={updateOrderStatus} />)
+              ) : (
+                <p className="text-gray-500">ไม่มีคำสั่งซื้อในหมวดนี้</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
