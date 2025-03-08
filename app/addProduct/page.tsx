@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
-import ProfileShopMenu from '@/components/ProfileShopMenu';
+import ProfileShopMenu from '@/components/SideBarShop';
 import { useRouter } from 'next/navigation';
 
 const AddProduct = () => {

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import ProfileShopMenu from "@/components/ProfileShopMenu";
+import ProfileShopMenu from "@/components/SideBarShop";
 import Navbar from "@/components/Navbar";
 
 const initialOrders = [

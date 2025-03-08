@@ -1,6 +1,6 @@
 "use client";
 import Navbar from '@/components/Navbar';
-import ProfileShopMenu from '@/components/ProfileShopMenu';
+import ProfileShopMenu from '@/components/SideBarShop';
 import Image from 'next/image';
 import { useState } from 'react';
 import axios from "axios";
