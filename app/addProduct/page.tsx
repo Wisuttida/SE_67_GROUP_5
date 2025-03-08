@@ -1,10 +1,9 @@
 "use client";
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
-import ProfileShopMenu from '@/components/SideBarShop';
 import { useRouter } from 'next/navigation';
+import SideBarShop from '@/components/SideBarShop';
 
 const AddProduct = () => {
     const router = useRouter();
@@ -42,10 +41,13 @@ const AddProduct = () => {
     };
 
     return (
-        <div>
-            <Navbar />
-            <div className="p-6 bg-gray-100 min-h-screen">
-                <ProfileShopMenu />
+        <div className="flex min-h-screen">
+            {/* Sidebar */}
+            <SideBarShop className="w-1/4 bg-gray-800 text-white p-6" />
+            
+            {/* Main content area */}
+            <div className="flex-1 p-6 bg-gray-100">
+                <Navbar />
                 <div className="mt-6 bg-white p-6 rounded-lg shadow-md flex">
                     <div className="flex flex-col items-center p-4">
                         <div className="w-64 h-64 bg-gray-200 flex items-center justify-center rounded-lg mb-4 relative">
@@ -99,9 +101,9 @@ const AddProduct = () => {
                                 className="p-2 border rounded-lg w-full"
                             >
                                 <option value="">เลือกความเข้มข้น</option>
-                                <option value="Light">Light</option>
-                                <option value="Medium">Medium</option>
-                                <option value="Strong">Strong</option>
+                                <option value="Light">25%</option>
+                                <option value="Medium">50%</option>
+                                <option value="Strong">100%</option>
                             </select>
                         </div>
 
