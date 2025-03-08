@@ -1,17 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
-import { User, Store, Package, ClipboardList, Plus, Droplets, Truck, Inbox } from "lucide-react";
+import { useState } from "react";
+import { Edit, Store, Truck, User, ClipboardList, Droplets, Inbox, Check, Package, Plus, X } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
+import Image from "next/image";
 
-const ProfileShopMenu = () => {
-  const [profile, setProfile] = useState({
-    username: "John Doe",
-    profileImage: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-    coverImage: "",
-    acceptingCustomOrders: false,
-  });
+const DEFAULT_PROFILE_IMAGE = "/default-profile.png"; // รูปโปรไฟล์เริ่มต้น
+
+export default function ProfileUser() {
+  const [username, setUsername] = useState("Username");
+  const [profileImage, setProfileImage] = useState(DEFAULT_PROFILE_IMAGE);
   const [isEditing, setIsEditing] = useState(false);
+  const [tempUsername, setTempUsername] = useState(username);
+  const [tempProfileImage, setTempProfileImage] = useState(profileImage);
 
   const menuItems = [
     { name: "User Profile", icon: <User size={32} />, path: "/ProfileUser" },
@@ -24,99 +27,85 @@ const ProfileShopMenu = () => {
     { name: "To Receive", icon: <Inbox size={32} />, path: "/profileShop" },
   ];
 
-  const handleProfileChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setProfile((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleImageChange = (e, type) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setProfile((prev) => ({ ...prev, [type]: imageUrl }));
+  const handleImageChange = (event) => {
+    if (event.target.files && event.target.files[0]) {
+      const imageUrl = URL.createObjectURL(event.target.files[0]);
+      setTempProfileImage(imageUrl);
     }
   };
 
+  const handleSaveProfile = () => {
+    setUsername(tempUsername);
+    setProfileImage(tempProfileImage);
+    setIsEditing(false);
+  };
+
   return (
-    <div className="bg-gradient-to-br from-gray-100 to-white p-6 rounded-2xl shadow-lg">
-      {/* รูปภาพปกร้านค้า */}
-      <div className="relative w-full h-64 bg-gray-300 rounded-2xl overflow-hidden">
-        {profile.coverImage ? (
-          <img src={profile.coverImage} alt="Cover" className="w-full h-full object-cover" />
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            Upload Cover Image
-          </div>
-        )}
-        {isEditing && (
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleImageChange(e, "coverImage")}
-            className="absolute top-4 left-4 bg-white p-2 text-sm rounded-lg shadow-md"
-          />
-        )}
-      </div>
+    <div className="max-w-screen-xl mx-auto px-4">
+      <Card className="mt-6 shadow-lg">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row items-center md:items-center">
+            <div className="relative flex flex-col items-center">
+              <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 shadow-md border">
+                <Image src={profileImage} alt="Profile" width={96} height={96} className="object-cover" />
+              </div>
+              <h2 className="text-lg font-semibold mt-4">{username}</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-4 flex items-center gap-1 text-white bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-full transition"
+                onClick={() => setIsEditing(true)}
+              >
+                <Edit className="w-4 h-4" /> Edit Profile
+              </Button>
+            </div>
 
-      <div className="flex items-center space-x-6 mt-8">
-        {/* รูปโปรไฟล์ */}
-        <div>
-          <div className="w-24 h-24 border-4 border-white rounded-full overflow-hidden shadow-lg">
-            <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 md:ml-10 w-full">
+              {menuItems.map((item, index) => (
+                <Link href={item.path} key={index}>
+                  <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="flex flex-col items-center p-4">
+                      <div className="w-12 h-12 flex items-center justify-center">{item.icon}</div>
+                      <p className="text-sm mt-2">{item.name}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
           </div>
-          {isEditing && <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, "profileImage")} />}
-          <div className="flex items-center mt-4">
-            <input
-              type="checkbox"
-              name="acceptingCustomOrders"
-              checked={profile.acceptingCustomOrders}
-              onChange={handleProfileChange}
-              disabled={!isEditing}
-              className="mr-2"
-            />
-            <label className="text-gray-600">Accepting customize from customer</label>
-          </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* ชื่อร้านค้า และปุ่มแก้ไข */}
-        <div>
-          {isEditing ? (
+      {isEditing && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Edit Profile</h3>
+              <button onClick={() => setIsEditing(false)}>
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="flex flex-col items-center mb-4">
+              <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 shadow-md border mb-4">
+                <Image src={tempProfileImage} alt="Temp Profile" width={96} height={96} className="object-cover" />
+              </div>
+              <label className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-full cursor-pointer transition">
+                Upload Image
+                <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              </label>
+            </div>
             <input
               type="text"
-              name="username"
-              value={profile.username}
-              onChange={handleProfileChange}
-              className="text-2xl font-semibold text-gray-800 bg-gray-100 p-2 rounded-lg shadow-inner"
-              placeholder="Shop Name"
+              value={tempUsername}
+              onChange={(e) => setTempUsername(e.target.value)}
+              className="border rounded-md px-3 py-2 w-full mb-4 focus:ring-2 focus:ring-blue-500"
             />
-          ) : (
-            <h2 className="text-3xl font-bold text-gray-800">{profile.username}</h2>
-          )}
-          <button
-            className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-            onClick={() => setIsEditing((prev) => !prev)}
-          >
-            {isEditing ? "✅ Save Profile" : "✏️ Edit Profile"}
-          </button>
+            <Button variant="outline" size="sm" onClick={handleSaveProfile} className="flex items-center gap-1 w-full">
+              <Check className="w-4 h-4" /> Save
+            </Button>
+          </div>
         </div>
-      </div>
-
-      {/* เมนูต่างๆ */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
-        {menuItems.map((item, index) => (
-          <Link key={index} href={item.path || "#"} className="block">
-            <div className="flex flex-col items-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer">
-              {item.icon}
-              <p className="mt-3 text-gray-700 font-medium">{item.name}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+      )}
     </div>
   );
-};
-
-export default ProfileShopMenu;
+}

@@ -9,6 +9,11 @@ const ProfileShop = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
 
+  // เก็บค่าก่อนแก้ไข
+  const [tempAddressInfo, setTempAddressInfo] = useState(null);
+  const [tempDescription, setTempDescription] = useState('');
+  const [tempBankInfo, setTempBankInfo] = useState(null);
+
   const [addressInfo, setAddressInfo] = useState({
     firstName: '',
     lastName: '',
@@ -26,6 +31,38 @@ const ProfileShop = () => {
     accountNumber: '',
     accountName: '',
   });
+
+  // เปิดโหมดแก้ไขและเก็บค่าก่อนหน้า
+  const handleEditAddress = () => {
+    setTempAddressInfo({ ...addressInfo });
+    setIsAddressEditing(true);
+  };
+
+  const handleEditDescription = () => {
+    setTempDescription(description);
+    setIsDescriptionEditing(true);
+  };
+
+  const handleEditBankInfo = () => {
+    setTempBankInfo({ ...bankInfo });
+    setIsEditing(true);
+  };
+
+  // ยกเลิกการแก้ไข (คืนค่ากลับ)
+  const handleCancelAddressEdit = () => {
+    setAddressInfo(tempAddressInfo);
+    setIsAddressEditing(false);
+  };
+
+  const handleCancelDescriptionEdit = () => {
+    setDescription(tempDescription);
+    setIsDescriptionEditing(false);
+  };
+
+  const handleCancelBankEdit = () => {
+    setBankInfo(tempBankInfo);
+    setIsEditing(false);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -55,8 +92,8 @@ const ProfileShop = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="p-6">
         <ProfileShopMenu />
+      <div className="max-w-screen-xl mx-auto px-4">
 
         {/* ที่อยู่ร้าน */}
         <div className="bg-white p-6 rounded-2xl shadow-lg mt-6">
@@ -68,7 +105,7 @@ const ProfileShop = () => {
               </div>
             ))}
           </div>
-          <button onClick={() => setIsAddressEditing(true)} className="text-blue-500 mt-4">✏️ แก้ไขที่อยู่</button>
+          <button onClick={handleEditAddress} className="text-blue-500 mt-4">✏️ แก้ไขที่อยู่</button>
         </div>
 
         {isAddressEditing && (
@@ -89,7 +126,7 @@ const ProfileShop = () => {
                 ))}
               </div>
               <div className="flex justify-end mt-6 space-x-4">
-                <button onClick={() => setIsAddressEditing(false)} className="bg-gray-300 px-4 py-2 rounded-lg">ยกเลิก</button>
+                <button onClick={handleCancelAddressEdit} className="bg-gray-300 px-4 py-2 rounded-lg">ยกเลิก</button>
                 <button onClick={handleAddressSave} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">บันทึก</button>
               </div>
             </div>
@@ -108,7 +145,7 @@ const ProfileShop = () => {
                 placeholder="คำอธิบายร้าน"
               />
               <div className="flex justify-end mt-4 space-x-4">
-                <button onClick={() => setIsDescriptionEditing(false)} className="bg-gray-300 px-4 py-2 rounded-lg">ยกเลิก</button>
+                <button onClick={handleCancelDescriptionEdit} className="bg-gray-300 px-4 py-2 rounded-lg">ยกเลิก</button>
                 <button onClick={handleDescriptionSave} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">บันทึก</button>
               </div>
             </div>
@@ -116,7 +153,7 @@ const ProfileShop = () => {
             <p>{description || 'ไม่มีคำอธิบาย'}</p>
           )}
           {!isDescriptionEditing && (
-            <button onClick={() => setIsDescriptionEditing(true)} className="text-blue-500 mt-4">✏️ แก้ไขคำอธิบาย</button>
+            <button onClick={handleEditDescription} className="text-blue-500 mt-4">✏️ แก้ไขคำอธิบาย</button>
           )}
         </div>
 
@@ -138,7 +175,7 @@ const ProfileShop = () => {
                 </div>
               ))}
               <div className="flex justify-end mt-4 space-x-4">
-                <button onClick={() => setIsEditing(false)} className="bg-gray-300 px-4 py-2 rounded-lg">ยกเลิก</button>
+                <button onClick={handleCancelBankEdit} className="bg-gray-300 px-4 py-2 rounded-lg">ยกเลิก</button>
                 <button onClick={handleSave} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">บันทึก</button>
               </div>
             </div>
@@ -147,7 +184,7 @@ const ProfileShop = () => {
               {Object.entries(bankInfo).map(([key, value]) => (
                 <p key={key}>{key.replace(/([A-Z])/g, ' $1')}: {value || '-'}</p>
               ))}
-              <button onClick={() => setIsEditing(true)} className="text-blue-500 mt-4">✏️ แก้ไขข้อมูลบัญชีธนาคาร</button>
+              <button onClick={handleEditBankInfo} className="text-blue-500 mt-4">✏️ แก้ไขข้อมูลบัญชีธนาคาร</button>
             </div>
           )}
         </div>
