@@ -11,7 +11,6 @@ import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
-// Default image for profile
 const DEFAULT_PROFILE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f3f4f6'/%3E%3Cpath d='M48 48C54.6274 48 60 42.6274 60 36C60 29.3726 54.6274 24 48 24C41.3726 24 36 29.3726 36 36C36 42.6274 41.3726 48 48 48ZM48 52C40.0474 52 33.5 58.5474 33.5 66.5H62.5C62.5 58.5474 55.9526 52 48 52Z' fill='%239ca3af'/%3E%3C/svg%3E";
 
 interface FarmData {
@@ -53,7 +52,6 @@ export default function Farm() {
     event.preventDefault();
     setIsLoading(true);
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast("บันทึกข้อมูลเรียบร้อยแล้ว");
       setShowEditDialog(false);
@@ -68,7 +66,6 @@ export default function Farm() {
     event.preventDefault();
     setIsLoading(true);
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast("บันทึกที่อยู่เรียบร้อยแล้ว");
       setShowAddressDialog(false);
@@ -80,7 +77,7 @@ export default function Farm() {
   };
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4">
+    <div>
       <Navbar />
 
       {/* Profile Section */}
@@ -156,7 +153,9 @@ export default function Farm() {
             <p>{farmData.phoneNumber}</p>
             <p>{farmData.building} {farmData.houseNo}</p>
             <p>{farmData.streetName} {farmData.subDistrict}</p>
-            <p>{farmData.district} {farmData.province} {farmData.postalCode}</p>
+            <p>
+              {farmData.district} {farmData.province} {farmData.postalCode}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -169,86 +168,184 @@ export default function Farm() {
         </CardContent>
       </Card>
 
-{/* Edit Profile Dialog */}
-<Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>Edit Profile</DialogTitle>
-    </DialogHeader>
-    
-    <form onSubmit={handleSaveProfile}>
-      <div className="space-y-4">
-        {/* ... other form fields ... */}
-      </div>
-      
-      <div className="mt-6 flex justify-end space-x-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setShowEditDialog(false)}
-          disabled={isLoading}
-        >
-          ยกเลิก
-        </Button>
-        <Button
-          type="submit"
-          disabled={isLoading}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              กำลังบันทึก...
-            </div>
-          ) : (
-            'บันทึก'
-          )}
-        </Button>
-      </div>
-    </form>
-  </DialogContent>
-</Dialog>
+      {/* Edit Profile Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleSaveProfile}>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  value={farmData.username}
+                  onChange={(e) => setFarmData({ ...farmData, username: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstname">First Name</Label>
+                  <Input
+                    id="firstname"
+                    value={farmData.firstname}
+                    onChange={(e) => setFarmData({ ...farmData, firstname: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastname">Last Name</Label>
+                  <Input
+                    id="lastname"
+                    value={farmData.lastname}
+                    onChange={(e) => setFarmData({ ...farmData, lastname: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
 
-{/* Edit Address Dialog */}
-<Dialog open={showAddressDialog} onOpenChange={setShowAddressDialog}>
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>Edit Farm Address</DialogTitle>
-    </DialogHeader>
-    
-    <form onSubmit={handleSaveAddress}>
-      <div className="grid grid-cols-2 gap-4">
-        {/* ... form fields ... */}
-      </div>
-      
-      <div className="mt-6 flex justify-end space-x-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setShowAddressDialog(false)}
-          disabled={isLoading}
-          className="min-w-[100px]"
-        >
-          ยกเลิก
-        </Button>
-        <Button
-          type="submit"
-          disabled={isLoading}
-          className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              กำลังบันทึก...
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <textarea
+                  id="description"
+                  className="w-full min-h-[100px] p-2 border rounded-md"
+                  value={farmData.description}
+                  onChange={(e) => setFarmData({ ...farmData, description: e.target.value })}
+                />
+              </div>
             </div>
-          ) : (
-            'บันทึก'
-          )}
-        </Button>
-      </div>
-    </form>
-  </DialogContent>
-</Dialog>
+            
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowEditDialog(false)}
+                disabled={isLoading}
+              >
+                ยกเลิก
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Address Dialog */}
+      <Dialog open={showAddressDialog} onOpenChange={setShowAddressDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Farm Address</DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleSaveAddress}>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <Input
+                  id="phoneNumber"
+                  value={farmData.phoneNumber}
+                  onChange={(e) => setFarmData({ ...farmData, phoneNumber: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="province">Province</Label>
+                <Input
+                  id="province"
+                  value={farmData.province}
+                  onChange={(e) => setFarmData({ ...farmData, province: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="district">District</Label>
+                <Input
+                  id="district"
+                  value={farmData.district}
+                  onChange={(e) => setFarmData({ ...farmData, district: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="subDistrict">Sub-district</Label>
+                <Input
+                  id="subDistrict"
+                  value={farmData.subDistrict}
+                  onChange={(e) => setFarmData({ ...farmData, subDistrict: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="postalCode">Postal Code</Label>
+                <Input
+                  id="postalCode"
+                  value={farmData.postalCode}
+                  onChange={(e) => setFarmData({ ...farmData, postalCode: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="streetName">Street Name</Label>
+                <Input
+                  id="streetName"
+                  value={farmData.streetName}
+                  onChange={(e) => setFarmData({ ...farmData, streetName: e.target.value })}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="building">Building</Label>
+                <Input
+                  id="building"
+                  value={farmData.building}
+                  onChange={(e) => setFarmData({ ...farmData, building: e.target.value })}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="houseNo">House No.</Label>
+                <Input
+                  id="houseNo"
+                  value={farmData.houseNo}
+                  onChange={(e) => setFarmData({ ...farmData, houseNo: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAddressDialog(false)}
+                disabled={isLoading}
+              >
+                ยกเลิก
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

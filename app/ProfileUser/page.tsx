@@ -190,7 +190,7 @@ export default function ProfileUser() {
   );
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4">
+    <div>
       <Navbar />
 
       {/* Search Bar */}
