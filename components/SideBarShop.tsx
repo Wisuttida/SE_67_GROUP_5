@@ -26,7 +26,7 @@ export default function ProfileUser() {
     { name: "To Receive", icon: <Inbox size={32} />, path: "/profileShop" },
   ];
 
-  const handleImageChange = (event) => {
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const imageUrl = URL.createObjectURL(event.target.files[0]);
       setTempProfileImage(imageUrl);
