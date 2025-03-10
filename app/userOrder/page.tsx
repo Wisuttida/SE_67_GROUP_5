@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, ShoppingCart, Bell, Edit, Trash2, Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,7 +114,7 @@ export default function UserOrder() {
   };
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4">
+    <div>
       <Navbar />
 
       {/* Search Bar */}
@@ -133,23 +133,6 @@ export default function UserOrder() {
             className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
           >
             <Search className="w-5 h-5 text-gray-500" />
-          </Button>
-        </div>
-        <div className="flex space-x-6 ml-4">
-          <Button 
-            variant="outline"
-            size="sm" 
-            className="flex items-center gap-2"
-            onClick={handleAddOrder}
-          >
-            <Plus className="w-4 h-4" />
-            เพิ่มรายการ
-          </Button>
-          <Button variant="ghost" size="sm" className="p-1">
-            <ShoppingCart className="w-6 h-6" />
-          </Button>
-          <Button variant="ghost" size="sm" className="p-1">
-            <Bell className="w-6 h-6" />
           </Button>
         </div>
       </div>
@@ -173,7 +156,7 @@ export default function UserOrder() {
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden mr-3">
                           <Image 
-                            src="/profile-placeholder.png"
+                            src={order.image || '/profile-placeholder.png'}
                             alt="Shop Profile"
                             width={40}
                             height={40}
@@ -182,32 +165,14 @@ export default function UserOrder() {
                         </div>
                         <span className="font-medium">{order.shop}</span>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditOrder(order)}
-                          disabled={isLoading}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteOrder(order.id)}
-                          disabled={isLoading}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </div>
                     </div>
                     
                     <div className="flex mt-4">
                       <div className="w-1/3 flex justify-center items-center">
                         <div className="w-24 h-32 bg-gray-100 flex items-center justify-center">
                           <Image 
-                            src="/images/product.png"
-                            alt="Product"
+                            src={order.image || '/images/product.png'}
+                            alt={order.productName}
                             width={60}
                             height={100}
                             className="object-contain"
@@ -309,34 +274,32 @@ export default function UserOrder() {
               </div>
             </div>
             
-            <div className="mt-6 flex justify-end space-x-4">
-  <Button
-    type="button"
-    variant="outline"
-    onClick={() => {
-      setIsDialogOpen(false);
-      setCurrentOrder(null);
-    }}
-    disabled={isLoading}
-    className="min-w-[100px]"
-  >
-    ยกเลิก
-  </Button>
-  <Button
-    type="submit"
-    disabled={isLoading}
-    className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
-  >
-    {isLoading ? (
-      <div className="flex items-center justify-center">
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-        กำลังบันทึก...
-      </div>
-    ) : (
-      'บันทึก'
-    )}
-  </Button>
-</div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsDialogOpen(false);
+                  setCurrentOrder(null);
+                }}
+                disabled={isLoading}
+              >
+                ยกเลิก
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    กำลังบันทึก...
+                  </div>
+                ) : (
+                  'บันทึก'
+                )}
+              </Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

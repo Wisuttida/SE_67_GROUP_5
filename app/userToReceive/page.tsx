@@ -75,7 +75,7 @@ export default function UserToReceive() {
   };
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4">
+    <div>
       <Navbar />
 
       {/* Search Bar */}
