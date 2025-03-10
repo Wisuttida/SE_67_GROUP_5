@@ -4,20 +4,18 @@ import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { testDatabase } from "@/components/testDatabase";
 import axios from "axios";
 
 interface Params {
-  params: Promise<{ productId: number }>;
+  params: Promise<{ productId: string }>; // productId มาจาก URL (เป็น Promise)
 }
 
 interface Product {
   product_id: number;
   name: string;
-  price: string; // or number, depending on how you want to handle prices
-  image_url: string | null; // assuming image_url can be null
-  image: string;
-  stock_quantity: number,
+  price: string;
+  image_url: string | null;
+  stock_quantity: number;
   quantity: number;
   gender_target: string;
   fragrance_strength: string;
@@ -27,30 +25,33 @@ interface Product {
   description: string;
 }
 
+function ProductDetailPage({ params }: Params) {
+  const resolvedParams = React.use(params); // ใช้ React.use() เพื่อแกะค่าออกจาก Promise
+  const productId = resolvedParams?.productId; // productId จาก params ที่ถูกแกะออกมา
 
-function ProductdetailPage({ params }: Params) {
-  const resolvedParams = React.use(params);
   const [showDetails, setShowDetails] = useState(false);
   const [cart, setCart] = useState<Product[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  
+  const [product, setProduct] = useState<Product | null>(null);
+
+  // ดึงข้อมูลสินค้า
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`).then(response => {
-      console.log(response.data);
-      setProducts(response.data);
-    })
-    .catch(error => {
-      console.error("Error fetching products:", error);
-    });
-  }, []);
-  const product = products.find((p) => p.product_id == resolvedParams.productId);
-  
-  // const storedCart = localStorage.getItem("cart");   รอทำ async
-  // if (storedCart) {
-  //   setCart(JSON.parse(storedCart));
-  // }
+    if (!productId) return; // ป้องกัน fetch ถ้า productId ยังไม่พร้อม
+
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}`)
+      .then((response) => {
+        console.log("Product Data:", response.data);
+        setProduct(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching product:", error);
+      });
+  }, [productId]);
+
+  // ฟังก์ชันเพิ่มสินค้าเข้าตะกร้า
   const addToCart = () => {
     if (!product) return;
+
     let updatedCart = [...cart];
     const existingProductIndex = updatedCart.findIndex(
       (item) => item.product_id === product.product_id
@@ -78,7 +79,7 @@ function ProductdetailPage({ params }: Params) {
             {/* รูปสินค้า */}
             <img
               src={product?.image_url || "/path/to/default-image.jpg"}
-              alt={product?.name}
+              alt={product?.name || "Product image"}
               className="w-full h-96 object-cover rounded-lg"
             />
 
@@ -87,64 +88,46 @@ function ProductdetailPage({ params }: Params) {
               {/* ข้อมูลสินค้า */}
               <div>
                 <h2 className="text-3xl font-bold">{product?.name}</h2>
-                <p className="text-2xl text-gray-700 mt-2">
-                  ฿{product?.price}
-                </p>
-
-
+                <p className="text-2xl text-gray-700 mt-2">฿{product?.price}</p>
               </div>
 
               {/* ปุ่ม Add to Cart */}
-              <Button
-                variant="default"
-                className="mt-6 w-full"
-                onClick={addToCart}
-              >
+              <Button variant="default" className="mt-6 w-full" onClick={addToCart}>
                 Add to Cart
               </Button>
             </div>
           </section>
         </div>
 
-        <div className="bg-white p-3 rounded-lg shadow-lg flex items-center mt-4 ">
-          <Link
-            href={`/shop/${product?.shop_name}`}
-            className="flex items-center"
-          >
-            <img
-              src={product?.shop_image}
-              alt={product?.shop_name}
-              className="w-12 h-12 rounded-full border mr-3"
-            />
-            <span className="text-lg font-semibold text-black-600">
-              {product?.shop_name}
-            </span>
-          </Link>
-        </div>
-        
-        <div>
-          {/* ปุ่มแสดงรายละเอียด */}
-          <Button
-            variant="outline"
-            className="mt-4 w-full"
-            onClick={() => setShowDetails(!showDetails)}
-          >
-            {showDetails ? "Hide Details" : "Show Details"}
-          </Button>
-
-          {/* กล่องรายละเอียดสินค้า (ซ่อน/แสดงได้) */}
-          {showDetails && (
-            <div className="mt-4 p-4 bg-gray-100 rounded-lg transition-all">
-              <h3 className="text-lg font-semibold">Product Details</h3>
-              <p className="text-gray-700 mt-2">
-                {product?.description}
-              </p>
-            </div>
-          )}
+        {/* ข้อมูลร้านค้า */}
+        {product && (
+          <div className="bg-white p-3 rounded-lg shadow-lg flex items-center mt-4">
+            <Link href={`/shop/${product.shop_name}`} className="flex items-center">
+              <img
+                src={product.shop_image}
+                alt={product.shop_name}
+                className="w-12 h-12 rounded-full border mr-3"
+              />
+              <span className="text-lg font-semibold text-black-600">{product.shop_name}</span>
+            </Link>
           </div>
+        )}
+
+        {/* ปุ่มแสดงรายละเอียด */}
+        <Button variant="outline" className="mt-4 w-full" onClick={() => setShowDetails(!showDetails)}>
+          {showDetails ? "Hide Details" : "Show Details"}
+        </Button>
+
+        {/* กล่องรายละเอียดสินค้า (ซ่อน/แสดงได้) */}
+        {showDetails && product && (
+          <div className="mt-4 p-4 bg-gray-100 rounded-lg transition-all">
+            <h3 className="text-lg font-semibold">Product Details</h3>
+            <p className="text-gray-700 mt-2">{product.description}</p>
+          </div>
+        )}
       </main>
     </div>
   );
 }
 
-export default ProductdetailPage;
+export default ProductDetailPage;
