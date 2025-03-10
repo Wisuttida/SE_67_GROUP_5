@@ -26,7 +26,7 @@ const HomePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   // โหลด cart จาก localStorage ตอนโหลดหน้า
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/products").then(response => {
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`).then(response => {
       setProducts(response.data);
       //console.log('geeee', response.data);
     })
@@ -51,9 +51,9 @@ const HomePage = () => {
 
         {/* Product Showcase (รายการสินค้าตัวอย่าง) */}
         <section className="grid grid-cols-3 gap-8">
-          {products.map((product) => (
-            <div key={product.product_id}>
-              <Productcard key={product.product_id} productEach={product}/>
+          {products.map((product,index) => (
+            <div>
+              <Productcard key={`${product.product_id}-${index}`} productEach={product}/>
             </div>
           ))}
         </section>
