@@ -3,10 +3,39 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import SideBarShop from "@/components/SideBarShop";
+interface Order {
+  orderId: string;
+  shopName: string;
+  productName: string;
+  price: number;
+  quantity: number;
+  status: string;
+  address: string;
+  fragrances?: string[];  // ถ้ามีค่ากลิ่น
+  description?: string;   // ถ้ามีคำอธิบาย
+  intensity?: number;     // ถ้ามีระดับความเข้มข้น
+  volume?: number;        // ถ้ามีปริมาณ
+  tester?: boolean;       // ถ้ามี Tester
+}
+
 
 const TABS = ["Custom", "รอยืนยัน", "ยืนยันแล้ว", "ยกเลิกแล้ว"];
 
-const OrderCard = ({ order, confirmOrder, cancelOrder, customConfirmOrder, customCancelOrder }) => {
+const OrderCard = ({
+  order,
+  confirmOrder,
+  cancelOrder,
+  customConfirmOrder,
+  customCancelOrder,
+}: {
+  order: Order;  // ระบุประเภทของ order เป็น Order ที่สร้างไว้
+  confirmOrder: (orderId: string) => void;
+  cancelOrder: (orderId: string) => void;
+  customConfirmOrder: (orderId: string, price: number) => void;
+  customCancelOrder: (orderId: string) => void;
+}) => {
+  const [price, setPrice] = useState(order.price || 0);
+
   return (
     <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-md mx-auto">
       <div className="flex items-center justify-between">
@@ -15,88 +44,65 @@ const OrderCard = ({ order, confirmOrder, cancelOrder, customConfirmOrder, custo
           {order.status}
         </span>
       </div>
-      
-      {/* ข้อมูลสำหรับคำสั่งซื้อทั่วไป */}
-      {order.status !== "Custom" && (
-        <div>
-          <p className="text-gray-600 text-sm">รหัสคำสั่งซื้อ: {order.orderId}</p>
-          <div className="mt-2 border-t pt-2 text-center">
-            <img src={order.productImage} alt="รูปสินค้า" className="mt-2 rounded-lg shadow-md w-full" key={order.productImage} />
-            <p className="text-gray-800 font-medium mt-2">{order.productName}</p>
-            <p className="text-gray-600 text-sm">จำนวน: {order.quantity} ชิ้น</p>
-            <p className="text-black font-bold">฿{order.price}</p>
-            <p className="text-gray-600 text-sm mt-2">ที่อยู่การจัดส่ง: {order.address}</p>
-          </div>
-        </div>
-      )}
 
-      {/* ข้อมูลสำหรับคำสั่งซื้อ Custom */}
-      {order.status === "Custom" && (
-        <div className="mt-4 text-left">
-          <p className="font-semibold text-gray-700">น้ำหอม: {order.perfumeName}</p>
-          <p className="text-gray-600">กลิ่น: {order.fragrance}</p>
-          <p className="text-gray-600">ความเข้มข้น: {order.concentration}</p>
-          <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
-          <p className="text-gray-600">คำอธิบาย: {order.description}</p>
-        </div>
-      )}
+      {/* ข้อมูลสินค้า */}
+      <div className="mt-4 text-left">
+        <p className="font-semibold text-gray-700">สินค้า: {order.productName}</p>
 
-      {/* แสดงหลักฐานการโอนเงิน */}
-      <div className="mt-4 text-center">
-        <p className="text-gray-600 text-sm">หลักฐานการโอนเงิน:</p>
-        <img src={order.slip} alt="สลิปโอนเงิน" className="mt-2 rounded-lg shadow-md w-full" key={order.slip} />
+        {/* แสดงข้อมูล Custom */}
+        {order.status === "Custom" ? (
+          <>
+            <p className="text-gray-600">
+              กลิ่น: {order.fragrances ? order.fragrances.join(", ") : "ไม่มีข้อมูล"}
+            </p>
+            <p className="text-gray-600">รายละเอียด: {order.description}</p>
+            <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity} %</p>
+            <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
+            <p className="text-gray-600">Tester: {order.tester ? "Yes" : "No"}</p>
+            <div className="mt-4">
+              <label className="block font-semibold text-gray-700">กำหนดราคา (บาท)</label>
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(parseFloat(e.target.value))}
+                className="mt-2 p-2 border rounded-lg w-full"
+                placeholder="ระบุราคา"
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-gray-600">จำนวน: {order.quantity} ชิ้น</p>
+            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.address}</p>
+            <p className="text-gray-600">ราคา: {order.price} บาท</p>
+          </>
+        )}
       </div>
 
-      {/* ปุ่มยืนยันและยกเลิกสำหรับคำสั่งซื้อ Custom */}
+      {/* ปุ่มสำหรับ Custom */}
       {order.status === "Custom" && (
         <div className="mt-4 flex space-x-2">
-          <Button
-            className="w-1/2 bg-red-500 text-white hover:bg-red-600"
-            onClick={() => {
-              if (window.confirm("คุณต้องการยกเลิกคำสั่งซื้อนี้ใช่หรือไม่?")) {
-                customCancelOrder(order.orderId);
-              }
-            }}
-          >
+          <Button className="w-1/2 bg-red-500 text-white hover:bg-red-600" onClick={() => customCancelOrder(order.orderId)}>
             ยกเลิกคำสั่งซื้อ
           </Button>
 
           <Button
             className="w-1/2 bg-green-600 text-white hover:bg-green-700"
-            onClick={() => {
-              if (window.confirm("ยืนยันการสั่งซื้อและตรวจสอบการโอนเงินเรียบร้อยแล้ว?")) {
-                customConfirmOrder(order.orderId);
-              }
-            }}
+            onClick={() => customConfirmOrder(order.orderId, price)}
           >
             ยืนยันคำสั่งซื้อ
           </Button>
         </div>
       )}
 
-      {/* ปุ่มยืนยันและยกเลิกสำหรับคำสั่งซื้อรอยืนยัน */}
+      {/* ปุ่มสำหรับ รอยืนยัน */}
       {order.status === "รอยืนยัน" && (
         <div className="mt-4 flex space-x-2">
-          <Button
-            className="w-1/2 bg-red-500 text-white hover:bg-red-600"
-            onClick={() => {
-              if (window.confirm("คุณต้องการยกเลิกคำสั่งซือนี้ใช่หรือไม่?")) {
-                cancelOrder(order.orderId);
-              }
-            }}
-          >
-            ยกเลิกคำสั่งซื้อ
+          <Button className="w-1/2 bg-red-500 text-white hover:bg-red-600" onClick={() => cancelOrder(order.orderId)}>
+            ยกเลิก
           </Button>
-
-          <Button
-            className="w-1/2 bg-green-600 text-white hover:bg-green-700"
-            onClick={() => {
-              if (window.confirm("ยืนยันการสั่งซื้อและตรวจสอบการโอนเงินเรียบร้อยแล้ว?")) {
-                confirmOrder(order.orderId);
-              }
-            }}
-          >
-            ยืนยันคำสั่งซื้อ
+          <Button className="w-1/2 bg-green-600 text-white hover:bg-green-700" onClick={() => confirmOrder(order.orderId)}>
+            ยืนยัน
           </Button>
         </div>
       )}
@@ -104,107 +110,56 @@ const OrderCard = ({ order, confirmOrder, cancelOrder, customConfirmOrder, custo
   );
 };
 
-
 const OrderConfirmation = () => {
   const [selectedTab, setSelectedTab] = useState("รอยืนยัน");
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
     setOrders([
-      {
-        shopName: "User 1",
-        orderId: "order-1",
-        productName: "สินค้า 1",
-        price: 500,
-        quantity: 1,
-        status: "รอยืนยัน",
-        slip: "/images/slip1.jpg",
-        productImage: "/images/product1.jpg",
-        address: "ที่อยู่ 1",
-      },
-      {
-        shopName: "User 2",
-        orderId: "order-2",
-        productName: "สินค้า 2",
-        price: 1200,
-        quantity: 2,
-        status: "รอยืนยัน",
-        slip: "/images/slip2.jpg",
-        productImage: "/images/product2.jpg",
-        address: "ที่อยู่ 2",
-      },
-      {
-        shopName: "User 3",
-        orderId: "order-3",
-        productName: "สินค้า 3",
-        price: 1200,
-        quantity: 2,
-        status: "ยืนยันแล้ว",
-        slip: "/images/slip2.jpg",
-        productImage: "/images/product2.jpg",
-        address: "ที่อยู่ 2",
-      },
-      {
+      { shopName: "User 1", orderId: "order-1", productName: "น้ำหอม A", price: 1000, quantity: 2, status: "รอยืนยัน", address: "ที่อยู่ 1" },
+      { shopName: "User 2", orderId: "order-2", productName: "น้ำหอม B", price: 1200, quantity: 1, status: "ยืนยันแล้ว", address: "ที่อยู่ 2" },
+      { shopName: "User 3", orderId: "order-3", productName: "น้ำหอม C", price: 800, quantity: 3, status: "ยกเลิกแล้ว", address: "ที่อยู่ 3" },
+      { 
         shopName: "User 4",
         orderId: "order-4",
-        productName: "สินค้า 4",
-        price: 1200,
-        quantity: 2,
-        status: "ยกเลิกแล้ว",
-        slip: "/images/slip2.jpg",
-        productImage: "/images/product2.jpg",
-        address: "ที่อยู่ 2",
-      },
-      {
-        shopName: "User 5",
-        orderId: "order-5",
         productName: "น้ำหอม Custom",
-        price: 1500,
-        quantity: 5,
+        price: 0,
+        quantity: 1,
         status: "Custom",
-        slip: "/images/slip5.jpg",
-        productImage: "/images/product5.jpg",
-        perfumeName: "น้ำหอมหอมหวาน",
-        fragrance: "กลิ่นดอกไม้",
-        concentration: "เข้มข้น 20%",
-        volume: 50,
-        description: "น้ำหอมกลิ่นดอกไม้สดชื่น เหมาะสำหรับทุกโอกาส",
-        address: "ที่อยู่ 5",
+        address: "ที่อยู่ 4",
+        fragrances: ["วานิลลา", "ลาเวนเดอร์", "มะลิ"], 
+        description: "น้ำหอมสูตรพิเศษ ผสมกลิ่นหอมหวานและสดชื่น",
+        intensity: 50,
+        volume: 75,
+        tester: true
       },
     ]);
   }, []);
 
-  const confirmOrder = (orderId) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.orderId === orderId ? { ...order, status: "ยืนยันแล้ว" } : order
-      )
-    );
+  const confirmOrder = (orderId : string) => {
+    alert("ยืนยันคำสั่งซื้อ: " + orderId);
+    console.log("ยืนยันคำสั่งซื้อ", orderId);
+    // คุณสามารถทำการอัพเดตสถานะหรือส่งคำขอไปที่ server ที่นี่
   };
-
-  const cancelOrder = (orderId) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.orderId === orderId ? { ...order, status: "ยกเลิกแล้ว" } : order
-      )
-    );
+  
+  const cancelOrder = (orderId : string) => {
+    alert("ยกเลิกคำสั่งซื้อ: " + orderId);
+    console.log("ยกเลิกคำสั่งซื้อ", orderId);
+    // อัพเดตสถานะคำสั่งซื้อเป็นยกเลิกหรือส่งคำขอไปที่ server ที่นี่
   };
-
-  const customConfirmOrder = (orderId) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.orderId === orderId ? { ...order, status: "ยืนยันแล้ว" } : order
-      )
-    );
+  
+  const customConfirmOrder = (orderId : string, price : number) => {
+    alert("ยืนยันคำสั่งซื้อ Custom: " + orderId + " ราคา: " + price);
+    console.log("ยืนยันคำสั่งซื้อ Custom", orderId, price);
+    // อัพเดตสถานะคำสั่งซื้อเป็นยืนยันแล้วและกำหนดราคา
   };
-
-  const customCancelOrder = (orderId) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.orderId === orderId ? { ...order, status: "ยกเลิกแล้ว" } : order
-      )
-    );
+  
+  const customCancelOrder = (orderId : string) => {
+    alert("ยกเลิกคำสั่งซื้อ Custom: " + orderId);
+    console.log("ยกเลิกคำสั่งซื้อ Custom", orderId);
+    // อัพเดตสถานะคำสั่งซื้อเป็นยกเลิกแล้ว
   };
+  
 
   const filteredOrders = orders.filter((order) => order.status === selectedTab);
 
@@ -212,12 +167,9 @@ const OrderConfirmation = () => {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="min-h-screen bg-gray-100 flex">
-        
-        {/* Sidebar */}
-        <SideBarShop className="w-1/4 bg-gray-800 text-white p-6" />
+        <SideBarShop />
 
         <div className="flex-1">
-          
           <div className="max-w-screen-xl mx-auto px-4 py-6">
             <div className="bg-white p-6 rounded-2xl shadow-lg text-center">
               <h1 className="text-2xl font-bold mb-4">การยืนยันคำสั่งซื้อ</h1>
@@ -256,5 +208,6 @@ const OrderConfirmation = () => {
     </div>
   );
 };
+
 
 export default OrderConfirmation;
