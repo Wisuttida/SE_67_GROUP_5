@@ -10,9 +10,9 @@ import {
 import {
   Select,
   SelectContent,
-  SelectGroup,
+
   SelectItem,
-  SelectLabel,
+
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -22,10 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from 'axios';
-import { ArrowLeft, User } from "lucide-react";
-import { join } from "path";
-import { json } from "stream/consumers";
-import BankSelect from "./BankSelections";
+
 
 function RegisterShop() {
   const router = useRouter();
@@ -51,13 +48,14 @@ function RegisterShop() {
     }
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type, checked } = e.target as HTMLInputElement; // Type assertion here
     setFormData({
       ...formData,
       [name]: type === 'checkbox' ? checked : value, // Handle checkbox differently
     });
   };
+  
 
   useEffect(() => {
     const fetchCsrfToken = async () => {
@@ -102,10 +100,14 @@ function RegisterShop() {
             localStorage.setItem('roles_name', JSON.stringify(response.data.data.rolesName));
             router.push('/profileShop');
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Registration error:', error);
-        const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
-        setMessage(errorMessage);
+        if (axios.isAxiosError(error)) {
+          const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+          setMessage(errorMessage);
+        } else {
+          setMessage('An unexpected error occurred.');
+        }
     }
   };
 
@@ -121,7 +123,7 @@ function RegisterShop() {
     { value: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)', label: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)' },
     { value: 'ธนาคารออมสิน (GSB)', label: 'ธนาคารออมสิน (GSB)' },
   ];
-  const bankSelect = (value) => {
+  const bankSelect = (value : string) => {
     setFormData({ ...formData, bank_name: value });
   };
 
@@ -199,7 +201,12 @@ function RegisterShop() {
                 Accepting customize from customer
               </Label>
             </div>
-
+            {/* แสดงข้อความ error หากมี */}
+            {message && (
+              <div className="text-red-500 text-sm mt-2">
+                {message}
+              </div>
+            )}
             <CardFooter className="flex justify-between">
               {/* ปุ่มย้อนกลับ */}
               <Button variant="outline" onClick={() => router.back()}>
