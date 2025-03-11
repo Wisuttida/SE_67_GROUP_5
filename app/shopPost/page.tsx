@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import SideBarShop from '@/components/SideBarShop';
 import { useState } from "react";
 import { FiMoreVertical } from "react-icons/fi";
+import { ChangeEvent, FormEvent } from "react";
 
 const ShopPost = () => {
   const [posts, setPosts] = useState([
@@ -33,13 +34,13 @@ const ShopPost = () => {
     description: "",
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e : ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e : FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setPosts([...posts, { ...form, id: Date.now(), status: "Buy" }]);
+    setPosts([...posts, { ...form, id: Date.now() }]);
     setForm({ name: "", price: "", unit: "", amount: "", description: "" });
   };
 
