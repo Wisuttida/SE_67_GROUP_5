@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit, Store, Truck, User, ClipboardList, Droplets, Inbox, Check, Package, Plus, X } from 'lucide-react';
+import { Edit, Store, Truck, User, ClipboardList, UserRoundSearch , Inbox, Check,  Boxes, Plus, X, PackageOpen } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -18,10 +18,11 @@ export default function ProfileUser() {
   const menuItems = [
     { name: "โปรไฟล์ผู้ใช้", icon: <User size={32} />, path: "/ProfileUser" },
     { name: "ร้านของฉัน", icon: <Store size={32} />, path: "/profileShop" },
-    { name: "คลังสินค้า", icon: <Package size={32} />, path: "/myProductShop" },
+    { name: "คลังสินค้า", icon: < Boxes size={32} />, path: "/myProductShop" },
     { name: "คำสั่งซื้อ", icon: <ClipboardList size={32} />, path: "/shopOrder" },
     { name: "เพิ่มสินค้า", icon: <Plus size={32} />, path: "/addProduct" },
-    { name: "ซื้อวัตถุดิบ", icon: <Droplets size={32} />, path: "/profileShop" },
+    { name: "รับซื้อวัตถุดิบ", icon: <PackageOpen  size={32} />, path: "/profileShop" },
+    { name: "ซื้อวัตถุดิบ", icon: <UserRoundSearch  size={32} />, path: "/profileShop" },
     { name: "การขนส่ง", icon: <Truck size={32} />, path: "/shopToShip" },
     { name: "ที่ต้องได้รับ", icon: <Inbox size={32} />, path: "/profileShop" },
   ];
