@@ -10,6 +10,8 @@ export const testDatabase = [
     shopImage: "/shop1.jpg",
     gender_target: "Female",
     fragrance_strength: "Eau de Parfum (EDP)",
+    quantity: 1,
+    shop_id: "1",
   },
   {
     product_id: 2,
@@ -22,6 +24,8 @@ export const testDatabase = [
     shopImage: "/shop2.jpg",
     gender_target: "Male",
     fragrance_strength: "Extrait de Parfum",
+    quantity: 1,
+    shop_id: "1",
   },
   {
     product_id: 3,
@@ -34,6 +38,8 @@ export const testDatabase = [
     shopImage: "/shop3.jpg",
     gender_target: "Unisex",
     fragrance_strength: "Eau de Toilette (EDT)",
+    quantity: 1,
+    shop_id: "1",
   },
   {
     product_id: 4,
@@ -46,6 +52,8 @@ export const testDatabase = [
     shopImage: "/shop4.jpg",
     gender_target: "Female",
     fragrance_strength: "Eau Fraiche/mists",
+    quantity: 1,
+    shop_id: "1",
   },
   {
     product_id: 5,
@@ -58,5 +66,7 @@ export const testDatabase = [
     shopImage: "/shop5.jpg",
     gender_target: "Male",
     fragrance_strength: "Eau de Cologne (EDC)",
+    quantity: 1,
+    shop_id: "1",
   },
 ];

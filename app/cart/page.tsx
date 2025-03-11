@@ -18,38 +18,53 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"; // ✅ นำเข้า Dialog จาก ShadCN UI
+} from "@/components/ui/dialog"; // ✅ ใช้ Dialog จาก ShadCN UI
+import axios from "axios";
 
-interface Product {
-  product_id: number;
-  name: string;
-  price: number; // or number, depending on how you want to handle prices
-  image_url: string | null; // assuming image_url can be null
-  image: string;
-  stock_quantity: number,
+interface Cart {
+  price: number;
+  stock_quantity: number;
   quantity: number;
-  gender_target: string;
-  fragrance_strength: string;
-  shopName: string;
-  shopImage: string;
+  product: { 
+    product_id: number; 
+    name: string; 
+    shop: {
+      shop_name: string;
+      shop_image: string | null;
+    }};
 }
 
+const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/cart/items`; // URL ของ API
+const csrfApi = "http://localhost:8000/sanctum/csrf-cookie"; // API ดึง CSRF Token
+
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState<Product[]>([]);
+  const [cartItems, setCartItems] = useState<Cart[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [selectedShop, setSelectedShop] = useState<string>("all");
-  const [orderSuccess, setOrderSuccess] = useState(false); // ✅ state ควบคุม Dialog
+  const [orderSuccess, setOrderSuccess] = useState(false);
 
+  // ✅ ดึงสินค้าจาก Backend
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      setCartItems(JSON.parse(storedCart));
-    }
+    const fetchCartItems = async () => {
+      try {
+        await axios.get(csrfApi, { withCredentials: true });
+
+        const response = await axios.get(apiUrl, { withCredentials: true });
+
+        if (response.data.cart_items) {
+          console.log(response.data.cart_items); // ตรวจสอบข้อมูลที่ได้จาก API
+          setCartItems(response.data.cart_items);
+        }
+      } catch (error) {
+        console.error("Error fetching cart items:", error);
+      }
+    };
+
+    fetchCartItems();
   }, []);
 
-  const updateCart = (updatedCart: Product[]) => {
+  const updateCart = (updatedCart: Cart[]) => {
     setCartItems(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
 
   const toggleSelectItem = (productId: number) => {
@@ -62,7 +77,7 @@ const CartPage = () => {
 
   const removeFromCart = (productId: number) => {
     const updatedCart = cartItems.filter(
-      (item) => item.product_id !== productId
+      (item) => item.product.product_id !== productId
     );
     updateCart(updatedCart);
     setSelectedItems(selectedItems.filter((id) => id !== productId));
@@ -70,7 +85,7 @@ const CartPage = () => {
 
   const increaseQuantity = (productId: number) => {
     const updatedCart = cartItems.map((item) =>
-      item.product_id === productId
+      item.product.product_id === productId
         ? { ...item, quantity: item.quantity + 1 }
         : item
     );
@@ -79,7 +94,7 @@ const CartPage = () => {
 
   const decreaseQuantity = (productId: number) => {
     const updatedCart = cartItems.map((item) =>
-      item.product_id === productId && item.quantity > 1
+      item.product.product_id === productId && item.quantity > 1
         ? { ...item, quantity: item.quantity - 1 }
         : item
     );
@@ -88,22 +103,18 @@ const CartPage = () => {
 
   const calculateTotal = () => {
     return cartItems
-      .filter((item) => selectedItems.includes(item.product_id))
+      .filter((item) => selectedItems.includes(item.product.product_id))
       .reduce((total, item) => total + item.price * item.quantity, 0)
       .toFixed(2);
   };
 
   const handlePlaceOrder = () => {
     if (selectedItems.length === 0) return;
-
-    // ✅ แสดง Dialog แจ้งเตือน
     setOrderSuccess(true);
-
-    // ✅ ล้างสินค้าที่เลือกหลังจากกดสั่งซื้อ
     setSelectedItems([]);
   };
 
-  const shopList = ["all", ...new Set(cartItems.map((item) => item.shopName))];
+  const shopList = ["all", ...new Set(cartItems.map((item) => item.product.shop.shop_name).filter(Boolean))];
 
   return (
     <>
@@ -120,12 +131,13 @@ const CartPage = () => {
               <SelectValue placeholder="Select a shop" />
             </SelectTrigger>
             <SelectContent>
-              {shopList.map((shop) => (
-                <SelectItem key={shop} value={shop}>
+              {shopList.map((shop, index) => (
+                <SelectItem key={shop ? shop : `shop-${index}`} value={shop}>
                   {shop === "all" ? "All Shops" : shop}
                 </SelectItem>
               ))}
             </SelectContent>
+
           </Select>
         </div>
 
@@ -134,33 +146,29 @@ const CartPage = () => {
             <p>Your cart is empty</p>
           ) : (
             cartItems
-              .filter(
-                (item) => selectedShop === "all" || item.shopName === selectedShop
-              )
-              .map((item) => (
-                <div
-                  key={item.product_id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
+              .filter((item) => selectedShop === "all" || item.product.shop.shop_name === selectedShop)
+              .map((item, index) => (
+                <div key={item.product.product_id ?? `product-${index}`} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center">
                     <input
                       type="checkbox"
                       className="mr-3 w-5 h-5"
-                      checked={selectedItems.includes(item.product_id)}
-                      onChange={() => toggleSelectItem(item.product_id)}
+                      checked={selectedItems.includes(item.product.product_id)}
+                      onChange={() => toggleSelectItem(item.product.product_id)}
                     />
 
                     <img
-                      src={item.image_url || "/path/to/default-image.jpg"}
-                      alt={item.shopName}
+                      src={item.product.shop.shop_image || "/path/to/default-image.jpg"}
+                      alt={item.product.shop.shop_name}
                       className="w-10 h-10 rounded-full mr-3"
                     />
 
                     <div>
-                      <h2 className="font-semibold">{item.name}</h2>
+                      {/* แสดงชื่อสินค้า */}
+                      <h2 className="font-semibold">{item.product.name}</h2>
                       <p className="text-gray-500">Price: ${item.price}</p>
                       <p className="text-sm text-gray-600">
-                        Shop: {item.shopName}
+                        Shop: {item.product.shop.shop_name}
                       </p>
                     </div>
                   </div>
@@ -168,20 +176,20 @@ const CartPage = () => {
                   <div className="flex items-center space-x-4">
                     <Button
                       variant="outline"
-                      onClick={() => decreaseQuantity(item.product_id)}
+                      onClick={() => decreaseQuantity(item.product.product_id)}
                     >
                       -
                     </Button>
                     <span>{item.quantity}</span>
                     <Button
                       variant="outline"
-                      onClick={() => increaseQuantity(item.product_id)}
+                      onClick={() => increaseQuantity(item.product.product_id)}
                     >
                       +
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => removeFromCart(item.product_id)}
+                      onClick={() => removeFromCart(item.product.product_id)}
                     >
                       Remove
                     </Button>
@@ -190,17 +198,14 @@ const CartPage = () => {
               ))
           )}
         </div>
+
       </div>
 
       {selectedItems.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-t z-50">
           <div className="container mx-auto flex justify-between items-center">
             <h2 className="text-xl font-bold">Total: ${calculateTotal()}</h2>
-            <Button
-              variant="outline"
-              className="flex items-center gap-2"
-              onClick={handlePlaceOrder} // ✅ กดแล้วเปิด Dialog
-            >
+            <Button variant="outline" onClick={handlePlaceOrder}>
               <ShoppingCart size={20} />
               Place Order
             </Button>
