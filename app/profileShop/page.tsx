@@ -4,37 +4,55 @@ import Navbar from '@/components/Navbar';
 import SideBarShop from '@/components/SideBarShop';
 import { useState } from 'react';
 
+interface AddressInfo {
+  ชื่อ: string;
+  นามสกุล: string;
+  เบอร์: string;
+  บ้านเลขที่: string;
+  ถนน: string;
+  ตำบล: string;
+  อำเภอ: string;
+  จังหวัด: string;
+  รหัสไปรษณีย์: string;
+}
+
+interface BankInfo {
+  ธนาคาร: string;
+  เลขบัญชี: string;
+  ชื่อ: string;
+}
+
 const ProfileShop = () => {
   const [isAddressEditing, setIsAddressEditing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
 
   // เก็บค่าก่อนแก้ไข
-  const [tempAddressInfo, setTempAddressInfo] = useState(null);
+  const [tempAddressInfo, setTempAddressInfo] = useState<AddressInfo | null>(null);
   const [tempDescription, setTempDescription] = useState('');
-  const [tempBankInfo, setTempBankInfo] = useState(null);
+  const [tempBankInfo, setTempBankInfo] = useState<BankInfo | null>(null);
 
-  const [addressInfo, setAddressInfo] = useState({
-    ชื่อ : '',
-    นามสกุล : '',
-    เบอร์ : '',
-    บ้านเลขที่ : '',
-    ถนน : '',
-    ตำบล : '',
-    อำเภอ : '',
-    จังหวัด : '',
-    รหัสไปรสณีย์ : '',
+  const [addressInfo, setAddressInfo] = useState<AddressInfo>({
+    ชื่อ: '',
+    นามสกุล: '',
+    เบอร์: '',
+    บ้านเลขที่: '',
+    ถนน: '',
+    ตำบล: '',
+    อำเภอ: '',
+    จังหวัด: '',
+    รหัสไปรษณีย์: '',
   });
 
   const [description, setDescription] = useState('');
-  const [bankInfo, setBankInfo] = useState({
-    ธนาคาร : '',
-    เลขบัญชี : '',
-    ชื่อ : '',
+  const [bankInfo, setBankInfo] = useState<BankInfo>({
+    ธนาคาร: '',
+    เลขบัญชี: '',
+    ชื่อ: '',
   });
 
   // เปิดโหมดแก้ไขและเก็บค่าก่อนหน้า
-  const handleEditAddress = () => {
+   const handleEditAddress = () => {
     setTempAddressInfo({ ...addressInfo });
     setIsAddressEditing(true);
   };
@@ -51,7 +69,9 @@ const ProfileShop = () => {
 
   // ยกเลิกการแก้ไข (คืนค่ากลับ)
   const handleCancelAddressEdit = () => {
-    setAddressInfo(tempAddressInfo);
+    if (tempAddressInfo) {
+      setAddressInfo(tempAddressInfo);
+    }
     setIsAddressEditing(false);
   };
 
@@ -61,11 +81,14 @@ const ProfileShop = () => {
   };
 
   const handleCancelBankEdit = () => {
-    setBankInfo(tempBankInfo);
-    setIsEditing(false);
+    if (tempBankInfo) {
+      setBankInfo(tempBankInfo); // คืนค่าที่แก้ไขกลับไป
+    }
+    setIsEditing(false); // ปิดโหมดแก้ไข
   };
+  
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setBankInfo((prev) => ({ ...prev, [name]: value }));
   };
@@ -80,7 +103,7 @@ const ProfileShop = () => {
     setIsDescriptionEditing(false);
   };
 
-  const handleAddressChange = (e) => {
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setAddressInfo((prev) => ({ ...prev, [name]: value }));
   };
