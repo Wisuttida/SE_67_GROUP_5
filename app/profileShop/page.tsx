@@ -15,21 +15,22 @@ const ProfileShop = () => {
   const [tempBankInfo, setTempBankInfo] = useState(null);
 
   const [addressInfo, setAddressInfo] = useState({
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-    houseNumber: '',
-    subDistrict: '',
-    district: '',
-    province: '',
-    postalCode: '',
+    ชื่อ : '',
+    นามสกุล : '',
+    เบอร์ : '',
+    บ้านเลขที่ : '',
+    ถนน : '',
+    ตำบล : '',
+    อำเภอ : '',
+    จังหวัด : '',
+    รหัสไปรสณีย์ : '',
   });
 
   const [description, setDescription] = useState('');
   const [bankInfo, setBankInfo] = useState({
-    bankName: '',
-    accountNumber: '',
-    accountName: '',
+    ธนาคาร : '',
+    เลขบัญชี : '',
+    ชื่อ : '',
   });
 
   // เปิดโหมดแก้ไขและเก็บค่าก่อนหน้า
