@@ -51,9 +51,16 @@ export default function ProfileUser() {
       {/* Sidebar */}
       <div className="w-64 bg-gray-300 text-black p-6"> {/* เปลี่ยนเป็น bg-gray-200 */}
         <div className="flex items-center justify-center mb-8">
-          <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 shadow-md border">
-            <Image src={profileImage} alt="Profile" width={96} height={96} className="object-cover" />
-          </div>
+        <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 shadow-md border">
+          <Image 
+            src={profileImage} 
+            alt="Profile" 
+            width={96} 
+            height={96} 
+            className="object-cover w-full h-full" 
+          />
+        </div>
+
         </div>
         <div className="text-center mb-6">
           <h2 className="text-lg font-semibold">{username}</h2>
