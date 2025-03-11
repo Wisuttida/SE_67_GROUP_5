@@ -23,13 +23,15 @@ interface Product {
   shop_image: string;
   volume: number;
   description: string;
+  shop_id: number;
+  fragrance_tones: { fragrance_tone_id: number; fragrance_tone_name: string }[];
 }
 
 function ProductDetailPage({ params }: Params) {
   const resolvedParams = React.use(params); // ใช้ React.use() เพื่อแกะค่าออกจาก Promise
   const productId = resolvedParams?.productId; // productId จาก params ที่ถูกแกะออกมา
 
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
   const [cart, setCart] = useState<Product[]>([]);
   const [product, setProduct] = useState<Product | null>(null);
 
@@ -89,6 +91,26 @@ function ProductDetailPage({ params }: Params) {
               <div>
                 <h2 className="text-3xl font-bold">{product?.name}</h2>
                 <p className="text-2xl text-gray-700 mt-2">฿{product?.price}</p>
+
+                <h3 className="text-xl font-semibold mt-5">Product Specifications</h3>
+                <ul className="mt-1">
+
+                  <li className="text-lg text-gray-700">
+                    <span className="font-semibold">Gender:</span> {product?.gender_target}
+                  </li>
+                  <li className="text-lg text-gray-700">
+                    <span className="font-semibold">Fragrance Strength:</span> {product?.fragrance_strength}
+                  </li>
+                  <li className="text-lg text-gray-700">
+                    <span className="font-semibold">Volume:</span> {product?.volume}
+                  </li>
+                  <li className="text-lg text-gray-700">
+                    <span className="font-semibold">Fragrance Tone:</span>
+                    {product?.fragrance_tones.map((tone) => tone.fragrance_tone_name).join(', ')}
+                  </li>
+
+
+                </ul>
               </div>
 
               {/* ปุ่ม Add to Cart */}
@@ -102,7 +124,7 @@ function ProductDetailPage({ params }: Params) {
         {/* ข้อมูลร้านค้า */}
         {product && (
           <div className="bg-white p-3 rounded-lg shadow-lg flex items-center mt-4">
-            <Link href={`/shop/${product.shop_name}`} className="flex items-center">
+            <Link href={`/shop/${product.shop_id}`} className="flex items-center">
               <img
                 src={product.shop_image}
                 alt={product.shop_name}
@@ -114,14 +136,14 @@ function ProductDetailPage({ params }: Params) {
         )}
 
         {/* ปุ่มแสดงรายละเอียด */}
-        <Button variant="outline" className="mt-4 w-full" onClick={() => setShowDetails(!showDetails)}>
-          {showDetails ? "Hide Details" : "Show Details"}
+        <Button variant="outline" className="mt-4 w-full" onClick={() => setShowDescription(!showDescription)}>
+          {showDescription ? "Hide Product Description" : "Show Product Description"}
         </Button>
 
         {/* กล่องรายละเอียดสินค้า (ซ่อน/แสดงได้) */}
-        {showDetails && product && (
+        {showDescription && product && (
           <div className="mt-4 p-4 bg-gray-100 rounded-lg transition-all">
-            <h3 className="text-lg font-semibold">Product Details</h3>
+            <h3 className="text-lg font-semibold">Product Description</h3>
             <p className="text-gray-700 mt-2">{product.description}</p>
           </div>
         )}

@@ -1,13 +1,11 @@
 "use client";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from 'react';
-import  CartButton  from "@/components/CartButton";
+import CartButton from "@/components/CartButton";
 import SearchBar from "./SearchBar";
 import axios from 'axios';
 
@@ -17,7 +15,7 @@ const Navbar = () => {
   const [hasShop, setHasShop] = useState(false);
   const [hasFarm, setHasFarm] = useState(false);
   const [csrfToken, setCsrfToken] = useState('');
-  
+
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
@@ -37,21 +35,21 @@ const Navbar = () => {
       setIsLoggedIn(true);
     }
     const shopGet = localStorage.getItem('shop');
-    if(shopGet && shopGet !== 'undefined') {
+    if (shopGet && shopGet !== 'undefined') {
       const shop = JSON.parse(shopGet);
       if (shop.shop_id) {
         setHasShop(true);
       }
     }
     const farmGet = localStorage.getItem('farm');
-    if(farmGet && farmGet !== 'undefined') {
+    if (farmGet && farmGet !== 'undefined') {
       const farm = JSON.parse(farmGet);
       if (farm.farm_id) {
         setHasFarm(true);
       }
     }
   }, []);
-  
+
   const handleLogout = async () => {
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {}, {
@@ -61,7 +59,7 @@ const Navbar = () => {
         },
         withCredentials: true,
       });
-      
+
       if (response.status === 200) {
         localStorage.clear();
         router.push('/');
@@ -78,7 +76,7 @@ const Navbar = () => {
           Perfume Thai
         </Link>
 
-        <SearchBar/>
+        <SearchBar />
 
         <NavigationMenu>
           <NavigationMenuList className="hidden md:flex space-x-4">
@@ -88,14 +86,21 @@ const Navbar = () => {
             <NavigationMenuItem>
               <Link href="/product" className="hover:text-gray-600">Product</Link>
             </NavigationMenuItem>
+            <NavigationMenuItem>
+              {!isLoggedIn ? (
+                <></>
+              ) : (
+                <Link href="/custom" className="hover:text-gray-600">Custom</Link>
+              )}
+            </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
 
         <div className="flex items-center gap-4">
           {!isLoggedIn ? (
             <></>
-          ):(
-            <CartButton/>
+          ) : (
+            <CartButton />
           )}
 
           <DropdownMenu>
@@ -103,48 +108,48 @@ const Navbar = () => {
               <Button variant="outline">Account</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                  {!isLoggedIn && (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link href="/login">Login</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/register">Register</Link>
-                      </DropdownMenuItem>
-                    </>
+              {!isLoggedIn && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/login">Login</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/register">Register</Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+              {isLoggedIn && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/ProfileUser">User Profile</Link>
+                  </DropdownMenuItem>
+                  {hasShop && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/profileShop">Shop Profile</Link>
+                    </DropdownMenuItem>
                   )}
-                  {isLoggedIn && (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link href="/ProfileUser">User Profile</Link>
-                      </DropdownMenuItem>
-                      {hasShop && (
-                        <DropdownMenuItem asChild>
-                          <Link href="/profileShop">Shop Profile</Link>
-                        </DropdownMenuItem>
-                      )}
-                      {!hasShop && (
-                        <DropdownMenuItem asChild>
-                          <Link href="/registerShop">Register Shop</Link>
-                        </DropdownMenuItem>
-                      )}
-                      {hasFarm && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/farm">Farm Profile</Link>
-                      </DropdownMenuItem>
-                      )}
-                      {!hasFarm && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/registerFarm">Register Farm</Link>
-                      </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem>
-                        <button onClick={handleLogout} className="w-full text-left">
-                          Logout
-                        </button>
-                      </DropdownMenuItem>
-                    </>
+                  {!hasShop && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/registerShop">Register Shop</Link>
+                    </DropdownMenuItem>
                   )}
+                  {hasFarm && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/farm">Farm Profile</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {!hasFarm && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/registerFarm">Register Farm</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem>
+                    <button onClick={handleLogout} className="w-full text-left">
+                      Logout
+                    </button>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

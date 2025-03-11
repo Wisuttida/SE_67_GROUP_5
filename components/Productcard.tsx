@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface Product {
@@ -28,6 +29,8 @@ interface ProductCardProps {
 
 const Productcard: React.FC<ProductCardProps> = ({ productEach }) => {
   const [cart, setCart] = useState<CartProduct[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
 
   // ✅ โหลดตะกร้าจาก localStorage ตอน component mount
   useEffect(() => {
@@ -39,10 +42,22 @@ const Productcard: React.FC<ProductCardProps> = ({ productEach }) => {
 
   // ✅ อัปเดต localStorage ทุกครั้งที่ `cart` เปลี่ยน
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
   const addToCart = () => {
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+    
     // ✅ อ่านค่า cart ล่าสุดจาก localStorage
     const storedCart = localStorage.getItem("cart");
     const currentCart: CartProduct[] = storedCart ? JSON.parse(storedCart) : [];
@@ -69,7 +84,7 @@ const Productcard: React.FC<ProductCardProps> = ({ productEach }) => {
   
 
   return (
-    <div className="bg-gray-100 p-4 rounded-lg shadow-lg" id={`${productEach.product_id}`}>
+    <div className="bg-gray-100 p-4 rounded-lg shadow-lg" id={`${productEach.product_id}` }>
       <Link href={`/product/${productEach.product_id}`}>
         <img
           src={productEach.image_url || "/path/to/default-image.jpg"}

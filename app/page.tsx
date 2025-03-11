@@ -52,9 +52,7 @@ const HomePage = () => {
         {/* Product Showcase (รายการสินค้าตัวอย่าง) */}
         <section className="grid grid-cols-3 gap-8">
           {products.map((product,index) => (
-            <div>
               <Productcard key={`${product.product_id}-${index}`} productEach={product}/>
-            </div>
           ))}
         </section>
 

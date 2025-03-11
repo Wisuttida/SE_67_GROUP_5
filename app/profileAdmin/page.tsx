@@ -72,94 +72,6 @@ export default function ProfileUser() {
     { icon: <Truck className="w-6 h-6" />, label: "To Receive", href: "/userToReceive" }
   ];
 
-  const validatePhoneNumber = (phone: string) => {
-    const phoneRegex = /^[0-9]{3}-[0-9]{3}-[0-9]{4}$/;
-    return phoneRegex.test(phone);
-  };
-
-  const getEmptyAddress = (): AddressData => ({
-    id: `addr-${Date.now()}`,
-    firstname: '',
-    lastname: '',
-    phone: '',
-    province: '',
-    district: '',
-    subDistrict: '',
-    postalCode: '',
-    streetName: '',
-    building: '',
-    houseNumber: '',
-    isDefault: false
-  });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setCurrentAddress(prev => {
-      if (!prev) return getEmptyAddress();
-      return { ...prev, [name]: value };
-    });
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setCurrentAddress(prev => {
-      if (!prev) return getEmptyAddress();
-      return { ...prev, [name]: value };
-    });
-  };
-
-  const handleAddAddress = () => {
-    setCurrentAddress(getEmptyAddress());
-    setIsEditing(false);
-    setIsAddressDialogOpen(true);
-  };
-
-  const handleEditAddress = (address: AddressData) => {
-    setCurrentAddress({ ...address });
-    setIsEditing(true);
-    setIsAddressDialogOpen(true);
-  };
-
-  const handleDeleteAddress = async (id: string) => {
-    try {
-      if (confirm("คุณต้องการลบที่อยู่นี้ใช่หรือไม่?")) {
-        setIsLoading(true);
-        const updatedAddresses = addresses.filter(addr => addr.id !== id);
-        setAddresses(updatedAddresses);
-        toast("ลบที่อยู่เรียบร้อยแล้ว");
-      }
-    } catch (error) {
-      toast("ไม่สามารถลบที่อยู่ได้ กรุณาลองใหม่อีกครั้ง");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSetDefaultAddress = async (id: string) => {
-    try {
-      setIsLoading(true);
-      const updatedAddresses = addresses.map(address => ({
-        ...address,
-        isDefault: address.id === id
-      }));
-      setAddresses(updatedAddresses);
-      toast("ตั้งเป็นที่อยู่หลักเรียบร้อยแล้ว");
-    } catch (error) {
-      toast("ไม่สามารถตั้งค่าที่อยู่หลักได้ กรุณาลองใหม่อีกครั้ง");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSaveAddress = async (event: React.FormEvent) => {
-    event.preventDefault();
-    
-    if (!currentAddress) return;
-
-    if (!validatePhoneNumber(currentAddress.phone)) {
-      toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณากรอกในรูปแบบ 0XX-XXX-XXXX");
-      return;
-    }
-
     try {
       setIsLoading(true);
       if (isEditing) {
@@ -181,13 +93,6 @@ export default function ProfileUser() {
       setIsLoading(false);
     }
   };
-
-  const filteredAddresses = addresses.filter(address => 
-    address.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    address.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    address.province.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    address.district.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <div className="max-w-screen-xl mx-auto px-4">
