@@ -7,6 +7,7 @@ import { FiMoreVertical } from "react-icons/fi";
 import { ChangeEvent, FormEvent } from "react";
 
 const ShopPost = () => {
+  const [activeTab, setActiveTab] = useState("MyPost");
   const [posts, setPosts] = useState([
     {
       id: 1,
@@ -34,14 +35,44 @@ const ShopPost = () => {
     description: "",
   });
 
-  const handleChange = (e : ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const [editForm, setEditForm] = useState({
+    id: null,
+    name: "",
+    price: "",
+    unit: "",
+    amount: "",
+    description: "",
+  });
+
+  const [showPopup, setShowPopup] = useState(false);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e : FormEvent<HTMLFormElement>) => {
+  const handleEditChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setPosts([...posts, { ...form, id: Date.now() }]);
     setForm({ name: "", price: "", unit: "", amount: "", description: "" });
+  };
+
+  const handleEditSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPosts(posts.map(post => post.id === editForm.id ? { ...editForm } : post));
+    setShowPopup(false);
+  };
+
+  const handleEdit = (post: any) => {
+    setEditForm({ ...post }); // Ensure all fields are populated correctly
+    setShowPopup(true);
+  };
+
+  const handleCancel = (id: number) => {
+    setPosts(posts.filter(post => post.id !== id));
   };
 
   return (
@@ -55,55 +86,65 @@ const ShopPost = () => {
           <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-4">Create a Post</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-gray-700">Product Name</label>
-                <input name="name" placeholder="Enter product name" className="w-full p-2 border rounded" onChange={handleChange} value={form.name} />
-              </div>
-              <div className="flex space-x-2">
-                <div className="w-1/2">
-                  <label className="block text-gray-700">Price</label>
-                  <input name="price" placeholder="Enter price" className="w-full p-2 border rounded" onChange={handleChange} value={form.price} />
-                </div>
-                <div className="w-1/2">
-                  <label className="block text-gray-700">Unit</label>
-                  <input name="unit" placeholder="Enter unit" className="w-full p-2 border rounded" onChange={handleChange} value={form.unit} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-gray-700">Amount</label>
-                <input name="amount" placeholder="Enter amount" className="w-full p-2 border rounded" onChange={handleChange} value={form.amount} />
-              </div>
-              <div>
-                <label className="block text-gray-700">Description</label>
-                <textarea name="description" placeholder="Enter description" className="w-full p-2 border rounded" onChange={handleChange} value={form.description} />
-              </div>
+              <input name="name" placeholder="Enter product name" className="w-full p-2 border rounded" onChange={handleChange} value={form.name} />
+              <input name="price" placeholder="Enter price" className="w-full p-2 border rounded" onChange={handleChange} value={form.price} />
+              <input name="unit" placeholder="Enter unit" className="w-full p-2 border rounded" onChange={handleChange} value={form.unit} />
+              <input name="amount" placeholder="Enter amount" className="w-full p-2 border rounded" onChange={handleChange} value={form.amount} />
+              <textarea name="description" placeholder="Enter description" className="w-full p-2 border rounded" onChange={handleChange} value={form.description} />
               <button type="submit" className="w-full bg-black text-white py-2 rounded-md">Post</button>
             </form>
           </div>
-
           <div className="mt-6 max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-3xl font-bold text-center mb-4">My Post</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {posts.map((post) => (
-                <div key={post.id} className="bg-gray-50 p-4 shadow-md rounded-lg border border-gray-200 relative">
-                  <div className="absolute top-2 right-2 cursor-pointer group">
-                    <FiMoreVertical className="text-gray-600" />
-                    <div className="hidden group-hover:block absolute right-0 bg-white shadow-md rounded-lg p-2">
-                      <button className="block text-red-500 px-3 py-1">Cancel</button>
-                      <button className="block text-gray-700 px-3 py-1">Edit</button>
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold mt-2">{post.name}</h3>
-                  <p>${post.price} per {post.unit}</p>
-                  <p>{post.amount} {post.unit}</p>
-                  <p className="text-gray-600">{post.description}</p>
-                </div>
-              ))}
+            <div className="flex border-b">
+              <button className={`p-2 flex-1 ${activeTab === "MyPost" ? "border-b-2 border-black" : ""}`} onClick={() => setActiveTab("MyPost")}>
+                My Post
+              </button>
+              <button className={`p-2 flex-1 ${activeTab === "Buy" ? "border-b-2 border-black" : ""}`} onClick={() => setActiveTab("Buy")}>
+                Buy
+              </button>
             </div>
+
+            {activeTab === "MyPost" && (
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                {posts.map((post) => (
+                  <div key={post.id} className="bg-gray-50 p-4 shadow-md rounded-lg border border-gray-200 relative">
+                    <div className="absolute top-2 right-2 cursor-pointer group">
+                      <FiMoreVertical className="text-gray-600" />
+                      <div className="hidden group-hover:block absolute right-0 bg-white shadow-md rounded-lg p-2">
+                        <button onClick={() => handleCancel(post.id)} className="block text-red-500 px-3 py-1">Cancel</button>
+                        <button onClick={() => handleEdit(post)} className="block text-gray-700 px-3 py-1">Edit</button>
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold mt-2">{post.name}</h3>
+                    <p>${post.price} per {post.unit}</p>
+                    <p>{post.amount} {post.unit}</p>
+                    <p className="text-gray-600">{post.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {showPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-2xl font-bold mb-4">Edit Post</h2>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <input name="name" placeholder="Enter product name" className="w-full p-2 border rounded" onChange={handleEditChange} value={editForm.name} />
+              <input name="price" placeholder="Enter price" className="w-full p-2 border rounded" onChange={handleEditChange} value={editForm.price} />
+              <input name="unit" placeholder="Enter unit" className="w-full p-2 border rounded" onChange={handleEditChange} value={editForm.unit} />
+              <input name="amount" placeholder="Enter amount" className="w-full p-2 border rounded" onChange={handleEditChange} value={editForm.amount} />
+              <textarea name="description" placeholder="Enter description" className="w-full p-2 border rounded" onChange={handleEditChange} value={editForm.description} />
+              <button type="submit" className="w-full bg-black text-white py-2 rounded-md">Update</button>
+              <button type="button" className="w-full bg-gray-300 text-black py-2 rounded-md mt-2" onClick={() => setShowPopup(false)}>Cancel</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
 export default ShopPost;
