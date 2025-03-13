@@ -1,13 +1,12 @@
 "use client";
 
 import Navbar from '@/components/Navbar';
-import SideBarShop from '@/components/SideBarShop';
 import { useState, useEffect } from "react";
 import { FiMoreVertical } from "react-icons/fi";
 import { ChangeEvent} from "react";
 
 
-const ShopPost = () => {
+const FarmPost = () => {
   const [activeTab, setActiveTab] = useState("MyPost");
   interface Post {
     name: string;
@@ -37,7 +36,7 @@ const ShopPost = () => {
       description: "Creamy and delicious avocados, perfect for salads.",
     }
   ]);
-  interface Seller {
+  interface Buyer {
     id: string;
     name: string;
     address : string,
@@ -52,11 +51,11 @@ const ShopPost = () => {
     bankAccountName: string;  // Account holder's name
   }
   
-  const [sellers, setSellers] = useState<Seller[]>([]);
+  const [buyers, setBuyers] = useState<Buyer[]>([]);
 
 useEffect(() => {
   // ตัวอย่างข้อมูลผู้ขาย (อาจดึงจาก API)
-  setSellers([
+  setBuyers([
     {
       id: "1",
       name: "สมชาย ขายดี",
@@ -107,33 +106,19 @@ useEffect(() => {
   });
 
   const [showPopup, setShowPopup] = useState(false);
-  const handleBuy = (sellerId: string) => {
-    const seller = sellers.find(seller => seller.id === sellerId);
-    if (seller) {
-      alert(`ติดต่อผู้ขาย: ${seller.name}\nสินค้า: ${seller.productName}\nสถานที่: ${seller.address}`);
+  const handleBuy = (buyerId: string) => {
+    const buyer = buyers.find(buyer => buyer.id === buyerId);
+    if (buyer) {
+      alert(`ติดต่อผู้ขาย: ${buyer.name}\nสินค้า: ${buyer.productName}\nสถานที่: ${buyer.address}`);
     }
   };
   
-  const handleNotBuy = (sellerId: string) => {
-    const seller = sellers.find(seller => seller.id === sellerId);
-    if (!seller) return;
-    confirm(`คุณแน่ใจหรือไม่ว่าคุณไม่ต้องการซื้อจาก ${seller.name}?`);
+  const handleNotSell = (buyerId: string) => {
+    const buyer = buyers.find(buyer => buyer.id === buyerId);
+    if (!buyer) return;
+    confirm(`คุณแน่ใจหรือไม่ว่าคุณไม่ต้องการขายให้ ${buyer.name}?`);
   
   };
-  
-  const [slipPreviews, setSlipPreviews] = useState<{ [key: string]: string }>({});
-  const handleSlipUpload = (e: React.ChangeEvent<HTMLInputElement>, sellerId: string) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setSlipPreviews(prev => ({ ...prev, [sellerId]: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  
-
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -209,7 +194,7 @@ useEffect(() => {
       <Navbar />
       <div className="flex">
         <div className="w-64 bg-gray-300 text-white p-6 min-h-screen">
-          <SideBarShop />
+          {/* ใส่ Sidebar */}
         </div>
         <div className="flex-1 p-6">
           <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
@@ -282,8 +267,8 @@ useEffect(() => {
               <button className={`p-2 flex-1 ${activeTab === "MyPost" ? "border-b-2 border-black" : ""}`} onClick={() => setActiveTab("MyPost")}>
                 โพสต์ของฉัน
               </button>
-              <button className={`p-2 flex-1 ${activeTab === "Buy" ? "border-b-2 border-black" : ""}`} onClick={() => setActiveTab("Buy")}>
-                รับซื้อ
+              <button className={`p-2 flex-1 ${activeTab === "Sell" ? "border-b-2 border-black" : ""}`} onClick={() => setActiveTab("Sell")}>
+                ขาย
               </button>
             </div>
             {activeTab === "MyPost" && (
@@ -299,83 +284,59 @@ useEffect(() => {
                     </div>
                     <h3 className="text-lg font-semibold mt-2">{post.name}</h3>
                     <p>{post.price} บาท ต่อ {post.unit}</p>
-                    <p>ประกาศรับซื้อ {post.amount} {post.unit}</p>
-                    <p>ซื้อแล้ว {post.amount} {post.unit}</p>
+                    <p>ประกาศขาย {post.amount} {post.unit}</p>
+                    <p>ขายแล้ว {post.amount} {post.unit}</p>
                     <p className="text-gray-600">{post.description}</p>
                   </div>
                 ))}
               </div>
             )}
-            {activeTab === "Buy" && (
+            {activeTab === "Sell" && (
               <div className="grid grid-cols-2 gap-4 mt-4">
-                {sellers.map((seller) => (
-                  <div key={seller.id} className="bg-white p-4 shadow-md rounded-lg border border-gray-200 relative">
-                    {/* รูปโปรไฟล์ + ชื่อผู้ขาย */}
+                {buyers.map((buyer) => (
+                  <div key={buyer.id} className="bg-white p-4 shadow-md rounded-lg border border-gray-200 relative">
+                    {/* รูปโปรไฟล์ + ชื่อผู้ซื้อ */}
                     <div className="flex items-center gap-3">
-                      <img src={seller.profileImage} alt="profile" className="w-12 h-12 rounded-full object-cover border" />
+                      <img src={buyer.profileImage} alt="profile" className="w-12 h-12 rounded-full object-cover border" />
                       <div>
-                        <h3 className="text-lg font-semibold">{seller.name}</h3>
+                        <h3 className="text-lg font-semibold">{buyer.name}</h3>
                       </div>
                     </div>
                     {/* รายละเอียดสินค้า */}
                     <div className="mt-3">
-                      <p className="text-gray-700"><span className="font-medium">วัตถุดิบ:</span> {seller.productName}</p>
-                      <p className="text-gray-700"><span className="font-medium">ปริมาณที่ขาย:</span> {seller.amount} {seller.unit}</p>
-                      <p className="text-gray-700"><span className="font-medium">ราคา:</span> {seller.price} บาท ต่อ {seller.unit}</p>
-                      <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {seller.price*seller.amount} บาท</p>
-                      <p className="text-gray-700"><span className="font-medium">ที่อยู่ฟาร์ม:</span> {seller.address}</p>
-                      {/* ข้อมูลธนาคาร */}
-                      <div className="mt-2 p-3 border rounded bg-gray-100">
-                        <h4 className="text-lg font-semibold">ข้อมูลธนาคาร</h4>
-                        <p className="text-gray-700"><span className="font-medium">ชื่อบัญชี:</span> {seller.bankAccountName}</p>
-                        <p className="text-gray-700"><span className="font-medium">เลขบัญชี:</span> {seller.bankAccountNumber}</p>
-                        <p className="text-gray-700"><span className="font-medium">ธนาคาร:</span> {seller.bankName}</p>
-                      </div>
+                      <p className="text-gray-700"><span className="font-medium">วัตถุดิบ:</span> {buyer.productName}</p>
+                      <p className="text-gray-700"><span className="font-medium">ปริมาณที่ซื้อ:</span> {buyer.amount} {buyer.unit}</p>
+                      <p className="text-gray-700"><span className="font-medium">ราคา:</span> {buyer.price} บาท ต่อ {buyer.unit}</p>
+                      <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {buyer.price*buyer.amount} บาท</p>
+                      <p className="text-gray-700"><span className="font-medium">ที่อยู่ร้าน:</span> {buyer.address}</p>
 
-                      {/* input รับรูปสลิปโอนเงิน */}
-                      <div className="mt-4">
-                        <label className="block text-gray-1000 font-medium mb-2">อัพโหลดสลิปโอนเงิน</label>
-                        
-                        <label className="cursor-pointer flex items-center justify-center border-2 border-dashed border-gray-400 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            className="hidden"
-                            onChange={(e) => handleSlipUpload(e, seller.id)} 
-                          />
-                          <span className="text-gray-600">เลือกไฟล์...</span>
-                        </label>
-
-                        {slipPreviews[seller.id] && (
-                          <div className="mt-3">
-                            <p className="text-gray-700">ตัวอย่างสลิป:</p>
-                            <img 
-                              src={slipPreviews[seller.id]} 
-                              alt="Slip Preview" 
-                              className="w-full h-auto rounded-lg shadow-md border mt-2"
-                            />
-                          </div>
-                        )}
-                      </div>
-
+                      {/* เปลี่ยนเป็นดูสลิปโอนเงินอย่างเดียว ไม่ต้องรับ input */}
+                        <div className="mt-4">
+                        <label className="block text-gray-1000 font-medium mb-2">สลิปโอนเงิน</label>
+                        <img 
+                            src="image" 
+                            alt="Slip Preview" 
+                            className="w-full h-auto rounded-lg shadow-md border mt-2"
+                        />
+                        </div>
                     </div>
 
                     {/* ปุ่ม */}
                     <div className="mt-4 flex gap-4">
-                      {/* ปุ่ม ไม่ซื้อ */}
+                      {/* ปฎิเสธ */}
                       <button 
-                        onClick={() => handleNotBuy(seller.id)} 
+                        onClick={() => handleNotSell(buyer.id)} 
                         className="w-1/2 bg-red-500 text-white py-2 rounded-md text-center"
                       >
-                        ไม่ซื้อ
+                        ปฎิเสธ
                       </button>
 
-                      {/* ปุ่ม รับซื้อ */}
+                      {/* ยืนบัน */}
                       <button 
-                        onClick={() => handleBuy(seller.id)} 
+                        onClick={() => handleBuy(buyer.id)} 
                         className="w-1/2 bg-green-500 text-white py-2 rounded-md text-center"
                       >
-                        รับซื้อ
+                        ยืนบัน
                       </button>
                     </div>
 
@@ -464,4 +425,4 @@ useEffect(() => {
   );
 };
 
-export default ShopPost;
+export default FarmPost;
