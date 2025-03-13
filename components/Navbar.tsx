@@ -87,10 +87,13 @@ const Navbar = () => {
               <Link href="/product" className="hover:text-gray-600">Product</Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              {!isLoggedIn ? (
+              <Link href="/customShop" className="hover:text-gray-600">Custom</Link>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              {!hasShop && !hasFarm ? (
                 <></>
               ) : (
-                <Link href="/custom" className="hover:text-gray-600">Custom</Link>
+                <Link href="/post" className="hover:text-gray-600">Post</Link>
               )}
             </NavigationMenuItem>
           </NavigationMenuList>
