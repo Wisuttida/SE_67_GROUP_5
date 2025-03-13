@@ -86,7 +86,7 @@ const OrderCard = ({
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
             <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity} %</p>
             <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
-
+            <p className="text-gray-600">tester: {order.tester ? "ตัวเทส" : "ตัวจริง"}</p>
             <div className="mt-4">
               <label className="block font-semibold text-gray-700">กำหนดราคา (บาท)</label>
               <input
@@ -105,6 +105,7 @@ const OrderCard = ({
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
             <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity} %</p>
             <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
+            <p className="text-gray-600">tester: {order.tester ? "ตัวเทส" : "ตัวจริง"}</p>
             <p className="text-gray-600">ที่อยู่จัดส่ง: {order.address}</p>
             {order.slipImage && (
               <div className="mt-4">
@@ -120,6 +121,7 @@ const OrderCard = ({
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
             <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity} %</p>
             <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
+            <p className="text-gray-600">tester: {order.tester ? "ตัวเทส" : "ตัวจริง"}</p>
             <p className="text-gray-600">ที่อยู่จัดส่ง: {order.address}</p>
             {order.slipImage && (
               <div className="mt-4">
@@ -135,6 +137,7 @@ const OrderCard = ({
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
             <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity} %</p>
             <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
+            <p className="text-gray-600">tester: {order.tester ? "ตัวเทส" : "ตัวจริง"}</p>
             <p className="text-gray-600">ที่อยู่จัดส่ง: {order.address}</p>
             {order.slipImage && (
               <div className="mt-4">
