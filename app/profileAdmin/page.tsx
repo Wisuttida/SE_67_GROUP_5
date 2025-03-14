@@ -1,5 +1,5 @@
 "use client";
-import { Edit, Search, ShoppingCart, Bell, Store, Tractor, Grid, Clipboard, DollarSign, Upload, Truck, Trash2 } from 'lucide-react';
+import { Edit, Search, ShoppingCart, Bell, Store, Tractor, Grid, Clipboard, DollarSign, Upload, Truck, Trash2,Wrench } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,67 +36,17 @@ interface ProfileMenuItem {
   href: string;
 }
 
-export default function ProfileUser() {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [addresses, setAddresses] = useState<AddressData[]>([
-    {
-      id: "addr-1",
-      firstname: 'John',
-      lastname: 'Doe',
-      phone: '092-123-4567',
-      province: 'Bangkok',
-      district: 'Watthana',
-      subDistrict: 'Khlong Toei Nuea',
-      postalCode: '10110',
-      streetName: 'Sukhumvit Road',
-      building: 'ABC Building',
-      houseNumber: '123/45',
-      isDefault: true
-    }
-  ]);
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
-  const [currentAddress, setCurrentAddress] = useState<AddressData | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+export default function ProfileAdmin() {
 
   const profileMenuItems: ProfileMenuItem[] = [
-    { icon: <Store className="w-6 h-6" />, label: "My Shop", href: "/profileShop" },
-    { icon: <Tractor className="w-6 h-6" />, label: "My Farm", href: "/farm" },
-    { icon: <Grid className="w-6 h-6" />, label: "Order Customize", href: "/customize" },
-    { icon: <ShoppingCart className="w-6 h-6" />, label: "Cart", href: "/cart" },
-    { icon: <Clipboard className="w-6 h-6" />, label: "Order", href: "/userOrder" },
-    { icon: <DollarSign className="w-6 h-6" />, label: "To Pay", href: "/userToPay" },
-    { icon: <Upload className="w-6 h-6" />, label: "To Ship", href: "/userToShip" },
-    { icon: <Truck className="w-6 h-6" />, label: "To Receive", href: "/userToReceive" }
+    { icon: <Wrench className="w-6 h-6" />, label: "User Management", href: "/userManagement" },
   ];
 
-    try {
-      setIsLoading(true);
-      if (isEditing) {
-        const updatedAddresses = addresses.map(addr => 
-          addr.id === currentAddress.id ? currentAddress : addr
-        );
-        setAddresses(updatedAddresses);
-        toast("อัปเดตที่อยู่เรียบร้อยแล้ว");
-      } else {
-        setAddresses(prev => [...prev, currentAddress]);
-        toast("เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว");
-      }
-      
-      setIsAddressDialogOpen(false);
-      setCurrentAddress(null);
-    } catch (error) {
-      toast("ไม่สามารถบันทึกที่อยู่ได้ กรุณาลองใหม่อีกครั้ง");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4">
+    <div>
       <Navbar />
+
 
       {/* Profile Section */}
       <Card className="mt-6">
@@ -135,7 +85,6 @@ export default function ProfileUser() {
           </div>
         </CardContent>
       </Card>
-
 
     </div>
   );

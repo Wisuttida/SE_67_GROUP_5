@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";  // ปุ่มจาก UI Library ของคุณ
-import  Navbar  from "@/components/Navbar";  // คอมโพเนนต์ Navbar
+import Navbar from "@/components/Navbar";  // คอมโพเนนต์ Navbar
 import Productcard from "@/components/Productcard";
 import Banner from "@/components/Banner";
 import axios from "axios";
@@ -51,7 +51,7 @@ const HomePage = () => {
 
         {/* Product Showcase (รายการสินค้าตัวอย่าง) */}
         <section className="grid grid-cols-3 gap-8">
-          {products.map((product,index) => (
+          {products.slice(0, 9).map((product, index) => (
               <Productcard key={`${product.product_id}-${index}`} productEach={product}/>
           ))}
         </section>
@@ -73,5 +73,3 @@ const HomePage = () => {
 };
 
 export default HomePage;
-
-
