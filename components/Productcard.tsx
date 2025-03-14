@@ -1,90 +1,95 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import axios from "axios";
 
 interface Product {
   product_id: number;
   name: string;
   price: string;
   image_url: string | null;
-  image: string;
   stock_quantity: number;
-  quantity: number;
-  gender_target: string;
-  fragrance_strength: string;
-  shopName: string;
-  shopImage: string;
-}
-
-interface CartProduct extends Product {
-  quantity: number;
 }
 
 interface ProductCardProps {
   productEach: Product;
 }
 
-const Productcard: React.FC<ProductCardProps> = ({ productEach }) => {
-  const [cart, setCart] = useState<CartProduct[]>([]);
+const ProductCard: React.FC<ProductCardProps> = ({ productEach }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [csrfToken, setCsrfToken] = useState('');
 
-  // ✅ โหลดตะกร้าจาก localStorage ตอน component mount
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      setCart(JSON.parse(storedCart));
-    }
-  }, []);
-
-  // ✅ อัปเดต localStorage ทุกครั้งที่ `cart` เปลี่ยน
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-    }
+    const token = localStorage.getItem("token");
+    if (token) setIsLoggedIn(true);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/csrf-token');
+        //console.log('CSRF Token:', response.data.csrf_token); // Log the token
+        setCsrfToken(response.data.csrf_token);
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+      }
+    };
 
-  const addToCart = () => {
+    fetchCsrfToken();
+  }, []);
+
+  const addToCart = async () => {
     if (!isLoggedIn) {
-      router.push('/login');
+      router.push("/login");
       return;
     }
-    
-    // ✅ อ่านค่า cart ล่าสุดจาก localStorage
-    const storedCart = localStorage.getItem("cart");
-    const currentCart: CartProduct[] = storedCart ? JSON.parse(storedCart) : [];
-  
-    // ✅ คัดลอกค่ามาแก้ไข
-    let updatedCart = [...currentCart];
-    
-    const existingProductIndex = updatedCart.findIndex(
-      (item) => item.product_id === productEach.product_id
-    );
-  
-    if (existingProductIndex !== -1) {
-      updatedCart[existingProductIndex].quantity += 1;
-    } else {
-      updatedCart.push({ ...productEach, quantity: 1 });
+
+    setLoading(true);
+
+    try {
+      // const token = localStorage.getItem("token");
+      console.log('ADD...');
+      // console.log('Sending request with headers:', {
+      //   'Content-Type': 'application/json',
+      //   'Accept': 'application/json',
+      //   'X-Requested-With': 'XMLHttpRequest',
+      //   'X-CSRF-TOKEN': csrfToken,
+      // });
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/cart/add`,
+        {
+          product_id: productEach.product_id,
+          quantity: 1,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrfToken,
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(response.data);
+      alert("✅ เพิ่มสินค้าในตะกร้าสำเร็จ!");
+    } catch (error: any) {
+      console.error("Error:", error);
+      console.error("Response data:", error.response?.data); // Log the response data
+      alert(`❌ ไม่สามารถเพิ่มสินค้าในตะกร้า: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setLoading(false);
     }
-  
-    // ✅ อัปเดต localStorage
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-  
-    // ✅ อัปเดต state ให้ตรงกับ localStorage
-    setCart(updatedCart);
   };
-  
 
   return (
-    <div className="bg-gray-100 p-4 rounded-lg shadow-lg" id={`${productEach.product_id}` }>
+    <div className="bg-gray-100 p-4 rounded-lg shadow-lg" id={`${productEach.product_id}`}>
       <Link href={`/product/${productEach.product_id}`}>
         <img
           src={productEach.image_url || "/path/to/default-image.jpg"}
@@ -95,11 +100,11 @@ const Productcard: React.FC<ProductCardProps> = ({ productEach }) => {
       <h2 className="text-xl font-semibold mt-4">{productEach.name}</h2>
       <p className="text-gray-700 mt-2">฿{parseFloat(productEach.price).toFixed(2)}</p>
 
-      <Button variant="default" className="mt-4 w-full" onClick={addToCart}>
-        Add to Cart
+      <Button variant="default" className="mt-4 w-full" onClick={addToCart} disabled={loading}>
+        {loading ? "กำลังเพิ่ม..." : "Add to Cart"}
       </Button>
     </div>
   );
 };
 
-export default Productcard;
+export default ProductCard;
