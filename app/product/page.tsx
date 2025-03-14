@@ -31,6 +31,7 @@ const ProductPage = () => {
   useEffect(() => {
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`).then(response => {
       setProducts(response.data);
+      console.log('Products:', JSON.stringify(products));
     })
       .catch(error => {
         console.error("Error fetching products:", error);

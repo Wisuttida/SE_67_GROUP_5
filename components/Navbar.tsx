@@ -51,22 +51,10 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = async () => {
-    try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {}, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'X-CSRF-TOKEN': csrfToken,
-        },
-        withCredentials: true,
-      });
-
-      if (response.status === 200) {
-        localStorage.clear();
-        router.push('/');
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+    localStorage.clear();
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 100);
   };
 
   return (

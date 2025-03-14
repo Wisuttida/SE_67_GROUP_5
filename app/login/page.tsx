@@ -9,7 +9,6 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import axios from 'axios';
 import { useState, useEffect } from 'react';
 
-// Configure axios defaults for Laravel Sanctum
 axios.defaults.withCredentials = true;
 
 const LoginPage = () => {
@@ -75,6 +74,22 @@ const LoginPage = () => {
           status: response.status,
           data: response.data,
         });
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
+          headers: {
+            'Authorization': `Bearer ${response.data.data.token}`,
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrfToken,
+          },
+          withCredentials: true,
+        })
+        .then(res => {
+          localStorage.setItem('addresses', JSON.stringify(res.data.data));
+          router.push('/ProfileUser');
+        })
+        .catch(error => {
+          console.error("Error fetching address:", error);
+        });
 
         if (response.data.data.token) {
             localStorage.setItem('token', response.data.data.token);
@@ -85,7 +100,6 @@ const LoginPage = () => {
             localStorage.setItem('shop', JSON.stringify(response.data.data.shop[0]));
             localStorage.setItem('farm', JSON.stringify(response.data.data.farm[0]));
             console.log('Token stored successfully');
-            router.push('/ProfileUser');
         } else {
             console.warn('No token in response:', response.data);
             setMessage('Login successful but no token received. Please try again.');
