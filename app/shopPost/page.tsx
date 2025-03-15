@@ -17,6 +17,7 @@ const ShopPost = () => {
     BuyAmount? : number;
     description: string;
     id: string | null; // id can be either number or null
+    bought : number;
   }
   
   const [posts, setPosts] = useState([
@@ -27,6 +28,7 @@ const ShopPost = () => {
       unit: "kg",
       amount: 5,
       description: "Sweet and juicy mangoes from organic farms.",
+      bought : 3
     },
     {
       id: "2",
@@ -35,6 +37,7 @@ const ShopPost = () => {
       unit: "kg",
       amount: 2,
       description: "Creamy and delicious avocados, perfect for salads.",
+      bought : 1
     }
   ]);
   interface Seller {
@@ -104,6 +107,7 @@ useEffect(() => {
     amount: 0,
     description: "",
     BuyAmount: 0,  // กำหนดค่าเริ่มต้นสำหรับ BuyAmount
+    bought : 0
   });
 
   const [showPopup, setShowPopup] = useState(false);
@@ -182,10 +186,11 @@ useEffect(() => {
       amount: form.amount,
       description: form.description,
       BuyAmount: 0,
+      bought:0
     };
   
     setPosts([...posts, newPost]); // โพสต์ใหม่มี id ที่ถูกต้อง
-    setForm({ name: "", price: 0, unit: "", amount: 0, description: "" });
+    setForm({ name: "", price: 0, unit: "", amount: 0, description: ""});
   
     alert("โพสต์สำเร็จ!");
   };
@@ -300,7 +305,7 @@ useEffect(() => {
                     <h3 className="text-lg font-semibold mt-2">{post.name}</h3>
                     <p>{post.price} บาท ต่อ {post.unit}</p>
                     <p>ประกาศรับซื้อ {post.amount} {post.unit}</p>
-                    <p>ซื้อแล้ว {post.amount} {post.unit}</p>
+                    <p>ซื้อแล้ว {post.bought} {post.unit}</p>
                     <p className="text-gray-600">{post.description}</p>
                   </div>
                 ))}
