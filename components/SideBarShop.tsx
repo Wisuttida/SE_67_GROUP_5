@@ -24,7 +24,7 @@ export default function ProfileUser() {
     { name: "รับซื้อวัตถุดิบ", icon: <PackageOpen  size={32} />, path: "/shopPost" },
     { name: "ซื้อวัตถุดิบ", icon: <UserRoundSearch  size={32} />, path: "/shopHomePost" },
     { name: "การขนส่ง", icon: <Truck size={32} />, path: "/shopToShip" },
-    { name: "ที่ต้องได้รับ", icon: <Inbox size={32} />, path: "/profileShop" },
+    { name: "ที่ต้องได้รับ", icon: <Inbox size={32} />, path: "/shopToRecieve" },
   ];
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {

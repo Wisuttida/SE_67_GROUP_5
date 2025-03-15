@@ -121,7 +121,7 @@ const ShopHomePost = () => {
       {/* Modal Popup */}
       {selectedFarm && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-    <div className="bg-white p-8 rounded-2xl shadow-2xl w-96">
+    <div className="bg-white p-8 rounded-2xl shadow-2xl w-96 max-h-screen overflow-auto flex flex-col">
       <h2 className="text-2xl font-bold text-center mb-4 text-gray-800">ยืนยันการซื้อ</h2>
       <div className="border-b pb-4 mb-6 text-gray-700">
         <p className="text-sm font-semibold">{selectedFarm.farmName}</p>
@@ -170,7 +170,7 @@ const ShopHomePost = () => {
           </div>
         )}
       </div>
-      <div className="flex justify-end space-x-3">
+      <div className="flex justify-end space-x-3 mt-auto">
         <Button variant="outline" className="hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg" onClick={closeModal}>
           ยกเลิก
         </Button>
@@ -181,6 +181,7 @@ const ShopHomePost = () => {
     </div>
   </div>
 )}
+
 
 
     </div>
