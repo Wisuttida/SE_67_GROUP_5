@@ -5,6 +5,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import SideBarShop from "@/components/SideBarShop";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation"; // ใช้สำหรับเปลี่ยนหน้า
 
 interface Farm {
   farmId: number;
@@ -26,6 +27,7 @@ const ShopHomePost = () => {
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [slip, setSlip] = useState<File | null>(null);
+  const router = useRouter(); // ใช้ router สำหรับเปลี่ยนหน้า
 
   useEffect(() => {
     const fetchFarms = async () => {
@@ -63,7 +65,10 @@ const ShopHomePost = () => {
       alert("กรุณาอัปโหลดสลิปก่อนยืนยันการซื้อ");
       return;
     }else{
-        alert("ยืนยันคำสั่งซื้อ");
+        const userResponse = confirm("ยืนยันคำสั่งซื้อ");
+          if (userResponse) {
+            router.push(`/shopToRecieve`);
+          }
     }
     
   };
