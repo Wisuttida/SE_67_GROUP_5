@@ -22,7 +22,7 @@ export default function ProfileUser() {
     { name: "คำสั่งซื้อ", icon: <ClipboardList size={32} />, path: "/shopOrder" },
     { name: "เพิ่มสินค้า", icon: <Plus size={32} />, path: "/addProduct" },
     { name: "รับซื้อวัตถุดิบ", icon: <PackageOpen  size={32} />, path: "/shopPost" },
-    { name: "ซื้อวัตถุดิบ", icon: <UserRoundSearch  size={32} />, path: "/profileShop" },
+    { name: "ซื้อวัตถุดิบ", icon: <UserRoundSearch  size={32} />, path: "/shopHomePost" },
     { name: "การขนส่ง", icon: <Truck size={32} />, path: "/shopToShip" },
     { name: "ที่ต้องได้รับ", icon: <Inbox size={32} />, path: "/profileShop" },
   ];

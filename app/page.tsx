@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";  // ปุ่มจาก UI Library ของคุณ
 import Navbar from "@/components/Navbar";  // คอมโพเนนต์ Navbar
 import Productcard from "@/components/Productcard";
-import Banner from "@/components/Banner";
+
 import axios from "axios";
 
 interface Product {
