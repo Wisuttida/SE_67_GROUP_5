@@ -14,6 +14,8 @@ export default function ProfileUser() {
   const [isEditing, setIsEditing] = useState(false);
   const [tempUsername, setTempUsername] = useState(username);
   const [tempProfileImage, setTempProfileImage] = useState(profileImage);
+  const [isChecked, setIsChecked] = useState(false);
+  const [tempIsChecked, setTempIsChecked] = useState(isChecked);
 
   const menuItems = [
     { name: "โปรไฟล์ผู้ใช้", icon: <User size={32} />, path: "/ProfileUser" },
@@ -38,12 +40,14 @@ export default function ProfileUser() {
     setUsername(tempUsername);
     setProfileImage(tempProfileImage);
     setIsEditing(false);
+    setIsChecked(tempIsChecked);
   };
 
   const handleCancelEdit = () => {
     setTempUsername(username); // รีเซ็ตค่า username ชั่วคราว
     setTempProfileImage(profileImage); // รีเซ็ตค่าโปรไฟล์
     setIsEditing(false); // ปิดโหมดการแก้ไข
+    setTempIsChecked(isChecked);
   };
 
   return (
@@ -64,6 +68,13 @@ export default function ProfileUser() {
         </div>
         <div className="text-center mb-6">
           <h2 className="text-lg font-semibold">{username}</h2>
+          <div className="mt-2 flex items-center justify-center gap-2">
+            <input type="checkbox" checked={isChecked} disabled className="hidden" />
+            <div className={`w-5 h-5 border-2 border-gray-400 rounded-md flex items-center justify-center ${isChecked ? 'bg-blue-500 border-blue-500' : ''}`}>
+              {isChecked && <Check className="w-4 h-4 text-white" />}
+            </div>
+            <span className="text-sm text-gray-700">รับคำสั่งซื้อ Custom</span>
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -119,6 +130,19 @@ export default function ProfileUser() {
                   className="border rounded-md px-3 py-2 w-full mb-4 focus:ring-2 focus:ring-blue-500 text-black" // เพิ่ม text-black ที่นี่
                 />
 
+              </div>
+              <div className="w-full mb-4 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={tempIsChecked}
+                  onChange={(e) => setTempIsChecked(e.target.checked)}
+                  className="hidden"
+                />
+                <div className={`w-5 h-5 border-2 border-gray-400 rounded-md flex items-center justify-center ${tempIsChecked ? 'bg-blue-500 border-blue-500' : ''}`}
+                onClick={() => setTempIsChecked(!tempIsChecked)}>
+                  {tempIsChecked && <Check className="w-4 h-4 text-white" />}
+                </div>
+                <span className="text-sm text-gray-700">รับคำสั่งซื้อ Custom</span>
               </div>
 
               <div className="flex gap-2">
