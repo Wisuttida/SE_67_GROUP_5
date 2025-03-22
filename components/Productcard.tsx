@@ -24,11 +24,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ productEach }) => {
   const router = useRouter();
   const [csrfToken, setCsrfToken] = useState('');
 
+  // ตรวจสอบสถานะการเข้าสู่ระบบ
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) setIsLoggedIn(true);
+    setIsLoggedIn(!!token);
   }, []);
 
+  // ดึง CSRF Token จาก server
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
@@ -41,25 +43,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ productEach }) => {
     
     fetchCsrfToken();
   }, []);
-  
+
+  // ฟังก์ชันเพิ่มสินค้าในตะกร้า
   const addToCart = async () => {
     if (!isLoggedIn) {
       router.push("/login");
       return;
     }
 
+    if (!csrfToken) {
+      alert("❌ กรุณารอสักครู่ ระบบกำลังโหลดข้อมูล");
+      return; // รอจนกว่า CSRF Token จะถูกโหลด
+    }
+
     setLoading(true);
 
     try {
-      // const token = localStorage.getItem("token");
-      console.log('ADD...');
-      // console.log('Sending request with headers:', {
-      //   'Content-Type': 'application/json',
-      //   'Accept': 'application/json',
-      //   'X-Requested-With': 'XMLHttpRequest',
-      //   'X-CSRF-TOKEN': csrfToken,
-      // });
-
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/cart/add`,
         {
@@ -80,7 +79,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ productEach }) => {
       alert("✅ เพิ่มสินค้าในตะกร้าสำเร็จ!");
     } catch (error: any) {
       console.error("Error:", error);
-      console.error("Response data:", error.response?.data); // Log the response data
+      console.error("Response data:", error.response?.data);
       alert(`❌ ไม่สามารถเพิ่มสินค้าในตะกร้า: ${error.response?.data?.error || error.message}`);
     } finally {
       setLoading(false);
@@ -88,18 +87,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ productEach }) => {
   };
 
   return (
-    <div className="bg-gray-100 p-4 rounded-lg shadow-lg" id={`${productEach.product_id}`}>
+    <div className="bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200" id={`${productEach.product_id}`}>
       <Link href={`/product/${productEach.product_id}`}>
         <img
           src={productEach.image_url || "/path/to/default-image.jpg"}
           alt={productEach.name}
-          className="w-full h-48 object-cover rounded-lg"
+          className="w-full h-48 object-cover rounded-lg mb-4"
         />
-      </Link>
-      <h2 className="text-xl font-semibold mt-4">{productEach.name}</h2>
-      <p className="text-gray-700 mt-2">฿{parseFloat(productEach.price).toFixed(2)}</p>
 
-      <Button variant="default" className="mt-4 w-full" onClick={addToCart} disabled={loading}>
+      <h2 className="text-xl font-semibold text-gray-900">{productEach.name}</h2>
+      <p className="text-gray-700 mt-2">฿{parseFloat(productEach.price).toFixed(2)}</p>
+      </Link>
+
+      {/* ปุ่ม Add to Cart */}
+      <Button
+        variant="default"
+        className="mt-4 w-full py-2"
+        onClick={addToCart}
+        disabled={loading || !csrfToken}
+      >
         {loading ? "กำลังเพิ่ม..." : "Add to Cart"}
       </Button>
     </div>

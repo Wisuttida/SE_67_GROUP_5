@@ -66,7 +66,7 @@ const ProductPage = () => {
         </aside>
 
         {/* Product Showcase */}
-        <section className="grid grid-cols-3 gap-8 w-3/4">
+        <section className="grid grid-cols-4 gap-8 w-3/4">
           {filteredProducts.map((product, index) => (
             <Productcard key={`${product.product_id}-${index}`} productEach={product} />
           ))}
