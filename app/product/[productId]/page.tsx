@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 interface Params {
   params: Promise<{ productId: string }>; // productId มาจาก URL (เป็น Promise)
@@ -32,8 +33,12 @@ function ProductDetailPage({ params }: Params) {
   const productId = resolvedParams?.productId; // productId จาก params ที่ถูกแกะออกมา
 
   const [showDescription, setShowDescription] = useState(false);
-  const [cart, setCart] = useState<Product[]>([]);
   const [product, setProduct] = useState<Product | null>(null);
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [csrfToken, setCsrfToken] = useState('');
 
   // ดึงข้อมูลสินค้า
   useEffect(() => {
@@ -50,23 +55,69 @@ function ProductDetailPage({ params }: Params) {
       });
   }, [productId]);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) setIsLoggedIn(true);
+  }, []);
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/csrf-token');
+        //console.log('CSRF Token:', response.data.csrf_token); // Log the token
+        setCsrfToken(response.data.csrf_token);
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+      }
+    };
+
+    fetchCsrfToken();
+  }, []);
+
   // ฟังก์ชันเพิ่มสินค้าเข้าตะกร้า
-  const addToCart = () => {
-    if (!product) return;
-
-    let updatedCart = [...cart];
-    const existingProductIndex = updatedCart.findIndex(
-      (item) => item.product_id === product.product_id
-    );
-
-    if (existingProductIndex !== -1) {
-      updatedCart[existingProductIndex].quantity! += 1;
-    } else {
-      updatedCart.push({ ...product, quantity: 1 });
+  const addToCart = async () => {
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
     }
 
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    setLoading(true);
+
+    try {
+      // const token = localStorage.getItem("token");
+      console.log('ADD...');
+      // console.log('Sending request with headers:', {
+      //   'Content-Type': 'application/json',
+      //   'Accept': 'application/json',
+      //   'X-Requested-With': 'XMLHttpRequest',
+      //   'X-CSRF-TOKEN': csrfToken,
+      // });
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/cart/add`,
+        {
+          product_id: productId,
+          quantity: 1,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrfToken,
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(response.data);
+      alert("✅ เพิ่มสินค้าในตะกร้าสำเร็จ!");
+    } catch (error: any) {
+      console.error("Error:", error);
+      console.error("Response data:", error.response?.data); // Log the response data
+      alert(`❌ ไม่สามารถเพิ่มสินค้าในตะกร้า: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -108,14 +159,16 @@ function ProductDetailPage({ params }: Params) {
                     <span className="font-semibold">Fragrance Tone:</span>
                     {product?.fragrance_tones.map((tone) => tone.fragrance_tone_name).join(', ')}
                   </li>
-
+                  {/* <li className="text-lg text-gray-700">
+                    <span className="font-semibold">Stock Quantity:</span> {product?.stock_quantity}
+                  </li> */}
 
                 </ul>
               </div>
 
               {/* ปุ่ม Add to Cart */}
-              <Button variant="default" className="mt-6 w-full" onClick={addToCart}>
-                Add to Cart
+              <Button variant="default" className="mt-6 w-full" onClick={addToCart} disabled={loading || !csrfToken}>
+              {loading ? "กำลังเพิ่ม..." : "Add to Cart"}
               </Button>
             </div>
           </section>

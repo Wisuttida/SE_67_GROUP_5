@@ -23,19 +23,24 @@ const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true); // เพิ่มสถานะ loading
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // ดึงข้อมูลสินค้า
   useEffect(() => {
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/products`)
       .then((response) => {
         setProducts(response.data);
+        setLoading(false); // เมื่อโหลดข้อมูลเสร็จ, set loading เป็น false
       })
       .catch((error) => {
         console.error("Error fetching products:", error);
+        setLoading(false); // เมื่อเกิดข้อผิดพลาด, set loading เป็น false
       });
   }, []);
 
+  // การจัดการการคลิกข้างนอกเพื่อปิด dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -48,6 +53,7 @@ const SearchBar = () => {
     };
   }, []);
 
+  // การกรองข้อมูลสินค้า
   const filteredPerfumes = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   ).slice(0, 10);
@@ -73,7 +79,7 @@ const SearchBar = () => {
           {filteredPerfumes.length > 0 ? (
             <ScrollArea className="max-h-60 overflow-y-auto">
               <ul>
-                {filteredPerfumes.slice(0,15).map((product) => (
+                {filteredPerfumes.slice(0, 15).map((product) => (
                   <li
                     key={product.product_id}
                     className="p-2 hover:bg-gray-100 rounded-md cursor-pointer flex items-center gap-2"
@@ -81,7 +87,10 @@ const SearchBar = () => {
                     {product.image_url && (
                       <img src={product.image_url} alt={product.name} className="w-8 h-8 rounded-md" />
                     )}
-                    <Link href={`/product/${product.product_id}`}>
+                    <Link
+                      href={`/product/${product.product_id}`}
+                      className={loading ? "pointer-events-none opacity-50" : ""} // เพิ่มการป้องกันการคลิกเมื่อกำลังโหลด
+                    >
                       <span>{product.name}</span>
                     </Link>
                   </li>

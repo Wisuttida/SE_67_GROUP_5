@@ -77,13 +77,20 @@ const Navbar = () => {
             <NavigationMenuItem>
               <Link href="/customShop" className="hover:text-gray-600">Custom</Link>
             </NavigationMenuItem>
-            <NavigationMenuItem>
-              {!hasShop && !hasFarm ? (
-                <></>
-              ) : (
-                <Link href="/post" className="hover:text-gray-600">Post</Link>
-              )}
-            </NavigationMenuItem>
+            {/* {!hasShop ? (
+              <></>
+            ) : (
+                <NavigationMenuItem>
+                  <Link href="/shopHomePost" className="hover:text-gray-600">Post Shop</Link>
+                </NavigationMenuItem>
+            )}
+            {!hasFarm ? (
+              <></>
+            ) : (
+                <NavigationMenuItem>
+                  <Link href="/farmHomePost" className="hover:text-gray-600">Post Farm</Link>
+                </NavigationMenuItem>
+            )} */}
           </NavigationMenuList>
         </NavigationMenu>
 
