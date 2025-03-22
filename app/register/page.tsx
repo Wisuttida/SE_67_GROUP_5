@@ -37,7 +37,7 @@ const RegisterPage = () => {
 
     fetchCsrfToken();
   }, []);
-
+  
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage(''); // Clear any previous error messages

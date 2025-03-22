@@ -33,16 +33,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ productEach }) => {
     const fetchCsrfToken = async () => {
       try {
         const response = await axios.get('http://localhost:8000/csrf-token');
-        //console.log('CSRF Token:', response.data.csrf_token); // Log the token
         setCsrfToken(response.data.csrf_token);
       } catch (error) {
         console.error('Error fetching CSRF token:', error);
       }
     };
-
+    
     fetchCsrfToken();
   }, []);
-
+  
   const addToCart = async () => {
     if (!isLoggedIn) {
       router.push("/login");
@@ -72,7 +71,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ productEach }) => {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken,
+            'X-CSRF-TOKEN': localStorage.getItem('csrfToken'),
           },
           withCredentials: true,
         }

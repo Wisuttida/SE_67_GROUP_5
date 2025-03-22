@@ -45,6 +45,7 @@ const CartPage = () => {
   useEffect(() => {
     const fetchCartItems = async () => {
       try {
+
         await axios.get('http://localhost:8000/csrf-token', { withCredentials: true });
 
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cart/items`, { withCredentials: true })
@@ -52,7 +53,6 @@ const CartPage = () => {
           console.log(response.data.cart_items); // ตรวจสอบข้อมูลที่ได้จาก API
           setCartItems(response.data.cart_items);
         });
-
       } catch (error) {
         console.error("Error fetching cart items:", error);
       }

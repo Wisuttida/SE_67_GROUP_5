@@ -2,7 +2,7 @@
 
 import Navbar from '@/components/Navbar';
 import SideBarShop from '@/components/SideBarShop';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface AddressInfo {
   ชื่อ: string;
@@ -113,6 +113,41 @@ const ProfileShop = () => {
     setIsAddressEditing(false);
   };
 
+  interface ShopData {
+    shop_id: number;
+    shop_name: string;
+    shop_image: string | null;
+    description: string | null;
+    accepts_custom: number;
+    bank_name: string;
+    bank_account: string;
+    bank_number: string;
+    addresses_address_id: string | null;
+  }
+  const [shop_data, setShopData] = useState<ShopData | undefined>(undefined);
+  useEffect(() => {
+    const shop_dataGet = localStorage.getItem('shop');
+    if (shop_dataGet) {
+      try {
+        const data: ShopData = JSON.parse(shop_dataGet);
+        setShopData(data);
+        setBankInfo(prevState => ({
+          ...prevState,
+          ธนาคาร: data.bank_name,
+          เลขบัญชี: data.bank_number,
+          ชื่อ: data.bank_account,
+        }));
+        if (data.description) {
+          setDescription(data.description);
+        } else {
+          setDescription(''); // Set to an empty string or any default value you prefer
+        }
+      } catch (error) {
+        console.error('Error parsing shop data from localStorage:', error);
+      }
+    }
+  }, []);
+  
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
