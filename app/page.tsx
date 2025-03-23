@@ -16,19 +16,15 @@ interface Product {
   image: string;
   stock_quantity: number,
   quantity: number;
-  gender_target: string;
-  fragrance_strength: string;
-  shopName: string;
-  shopImage: string;
+
 }
 
 const HomePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   // โหลด cart จาก localStorage ตอนโหลดหน้า
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`).then(response => {
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/latest-products`).then(response => {
       setProducts(response.data);
-      //console.log('geeee', response.data);
     })
     .catch(error => {
       console.error("Error fetching products:", error);

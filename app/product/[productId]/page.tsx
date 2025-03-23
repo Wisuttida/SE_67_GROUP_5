@@ -8,7 +8,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 
 interface Params {
-  params: Promise<{ productId: string }>; // productId มาจาก URL (เป็น Promise)
+  params: Promise<{ productId: string }>;
 }
 
 interface Product {
@@ -25,29 +25,26 @@ interface Product {
   volume: number;
   description: string;
   shop_id: number;
+  status: string;
   fragrance_tones: { fragrance_tone_id: number; fragrance_tone_name: string }[];
 }
 
 function ProductDetailPage({ params }: Params) {
-  const resolvedParams = React.use(params); // ใช้ React.use() เพื่อแกะค่าออกจาก Promise
-  const productId = resolvedParams?.productId; // productId จาก params ที่ถูกแกะออกมา
+  const resolvedParams = React.use(params);
+  const productId = resolvedParams?.productId;
 
-  const [showDescription, setShowDescription] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const [csrfToken, setCsrfToken] = useState('');
+  const [cartItems, setCartItems] = useState<any[]>([]); // รายการสินค้าทั้งหมดในตะกร้า
+  const router = useRouter();
 
-  // ดึงข้อมูลสินค้า
   useEffect(() => {
-    if (!productId) return; // ป้องกัน fetch ถ้า productId ยังไม่พร้อม
+    if (!productId) return;
 
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}`)
       .then((response) => {
-        console.log("Product Data:", response.data);
         setProduct(response.data);
       })
       .catch((error) => {
@@ -64,7 +61,6 @@ function ProductDetailPage({ params }: Params) {
     const fetchCsrfToken = async () => {
       try {
         const response = await axios.get('http://localhost:8000/csrf-token');
-        //console.log('CSRF Token:', response.data.csrf_token); // Log the token
         setCsrfToken(response.data.csrf_token);
       } catch (error) {
         console.error('Error fetching CSRF token:', error);
@@ -74,7 +70,24 @@ function ProductDetailPage({ params }: Params) {
     fetchCsrfToken();
   }, []);
 
-  // ฟังก์ชันเพิ่มสินค้าเข้าตะกร้า
+  useEffect(() => {
+    if (isLoggedIn) {
+      // ดึงข้อมูลสินค้าทั้งหมดในตะกร้า
+      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cart/items`, {
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        withCredentials: true,
+      })
+        .then((response) => {
+          setCartItems(response.data.cart_items);
+        })
+        .catch((error) => {
+          console.error("Error fetching cart items:", error);
+        });
+    }
+  }, [isLoggedIn, csrfToken]);
+
   const addToCart = async () => {
     if (!isLoggedIn) {
       router.push("/login");
@@ -83,41 +96,33 @@ function ProductDetailPage({ params }: Params) {
 
     setLoading(true);
 
-    try {
-      // const token = localStorage.getItem("token");
-      console.log('ADD...');
-      // console.log('Sending request with headers:', {
-      //   'Content-Type': 'application/json',
-      //   'Accept': 'application/json',
-      //   'X-Requested-With': 'XMLHttpRequest',
-      //   'X-CSRF-TOKEN': csrfToken,
-      // });
+    // คำนวณจำนวนสินค้าในตะกร้าที่มีอยู่แล้ว
+    const existingItem = cartItems.find((item: any) => item.product.product_id === product?.product_id);
+    const newQuantity = existingItem ? existingItem.quantity + 1 : 1; // เพิ่มจำนวนสินค้า
 
-      const response = await axios.post(
+    try {
+      // ส่งคำขอเพิ่มสินค้าลงตะกร้า
+      await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/cart/add`,
         {
-          product_id: productId,
-          quantity: 1,
+          product_id: product?.product_id,
+          quantity: newQuantity, // จำนวนใหม่ที่เพิ่มขึ้น
+          
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': csrfToken,
           },
           withCredentials: true,
         }
       );
-      console.log(response.data);
       alert("✅ เพิ่มสินค้าในตะกร้าสำเร็จ!");
-    } catch (error: any) {
-      console.error("Error:", error);
-      console.error("Response data:", error.response?.data); // Log the response data
-      alert(`❌ ไม่สามารถเพิ่มสินค้าในตะกร้า: ${error.response?.data?.error || error.message}`);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("❌ ไม่สามารถเพิ่มสินค้าในตะกร้า");
     }
+
+    setLoading(false);
   };
 
   return (
@@ -145,7 +150,6 @@ function ProductDetailPage({ params }: Params) {
 
                 <h3 className="text-xl font-semibold mt-5">Product Specifications</h3>
                 <ul className="mt-1">
-
                   <li className="text-lg text-gray-700">
                     <span className="font-semibold">Gender:</span> {product?.gender_target}
                   </li>
@@ -159,16 +163,15 @@ function ProductDetailPage({ params }: Params) {
                     <span className="font-semibold">Fragrance Tone:</span>
                     {product?.fragrance_tones.map((tone) => tone.fragrance_tone_name).join(', ')}
                   </li>
-                  {/* <li className="text-lg text-gray-700">
-                    <span className="font-semibold">Stock Quantity:</span> {product?.stock_quantity}
-                  </li> */}
-
+                  <li className="text-lg text-gray-700">
+                    <span className="font-semibold">Status:</span> {product?.status}
+                  </li>
                 </ul>
               </div>
 
               {/* ปุ่ม Add to Cart */}
               <Button variant="default" className="mt-6 w-full" onClick={addToCart} disabled={loading || !csrfToken}>
-              {loading ? "กำลังเพิ่ม..." : "Add to Cart"}
+                {loading ? "กำลังเพิ่ม..." : "Add to Cart"}
               </Button>
             </div>
           </section>
@@ -185,19 +188,6 @@ function ProductDetailPage({ params }: Params) {
               />
               <span className="text-lg font-semibold text-black-600">{product.shop_name}</span>
             </Link>
-          </div>
-        )}
-
-        {/* ปุ่มแสดงรายละเอียด */}
-        <Button variant="outline" className="mt-4 w-full" onClick={() => setShowDescription(!showDescription)}>
-          {showDescription ? "Hide Product Description" : "Show Product Description"}
-        </Button>
-
-        {/* กล่องรายละเอียดสินค้า (ซ่อน/แสดงได้) */}
-        {showDescription && product && (
-          <div className="mt-4 p-4 bg-gray-100 rounded-lg transition-all">
-            <h3 className="text-lg font-semibold">Product Description</h3>
-            <p className="text-gray-700 mt-2">{product.description}</p>
           </div>
         )}
       </main>

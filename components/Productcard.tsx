@@ -19,72 +19,72 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ productEach }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const [csrfToken, setCsrfToken] = useState('');
+  // const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // const [loading, setLoading] = useState(false);
+  // const router = useRouter();
+  // const [csrfToken, setCsrfToken] = useState('');
 
   // ตรวจสอบสถานะการเข้าสู่ระบบ
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token);
-  }, []);
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   setIsLoggedIn(!!token);
+  // }, []);
 
-  // ดึง CSRF Token จาก server
-  useEffect(() => {
-    const fetchCsrfToken = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/csrf-token');
-        setCsrfToken(response.data.csrf_token);
-      } catch (error) {
-        console.error('Error fetching CSRF token:', error);
-      }
-    };
+  // // ดึง CSRF Token จาก server
+  // useEffect(() => {
+  //   const fetchCsrfToken = async () => {
+  //     try {
+  //       const response = await axios.get('http://localhost:8000/csrf-token');
+  //       setCsrfToken(response.data.csrf_token);
+  //     } catch (error) {
+  //       console.error('Error fetching CSRF token:', error);
+  //     }
+  //   };
 
-    fetchCsrfToken();
-  }, []);
+  //   fetchCsrfToken();
+  // }, []);
 
-  // ฟังก์ชันเพิ่มสินค้าในตะกร้า
-  const addToCart = async () => {
-    if (!isLoggedIn) {
-      router.push("/login");
-      return;
-    }
+  // // ฟังก์ชันเพิ่มสินค้าในตะกร้า
+  // const addToCart = async () => {
+  //   if (!isLoggedIn) {
+  //     router.push("/login");
+  //     return;
+  //   }
 
-    if (!csrfToken) {
-      alert("❌ กรุณารอสักครู่ ระบบกำลังโหลดข้อมูล");
-      return; // รอจนกว่า CSRF Token จะถูกโหลด
-    }
+  //   if (!csrfToken) {
+  //     alert("❌ กรุณารอสักครู่ ระบบกำลังโหลดข้อมูล");
+  //     return; // รอจนกว่า CSRF Token จะถูกโหลด
+  //   }
 
-    setLoading(true);
+  //   setLoading(true);
 
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/cart/add`,
-        {
-          product_id: productEach.product_id,
-          quantity: 1,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken,
-          },
-          withCredentials: true,
-        }
-      );
-      console.log(response.data);
-      alert("✅ เพิ่มสินค้าในตะกร้าสำเร็จ!");
-    } catch (error: any) {
-      console.error("Error:", error);
-      console.error("Response data:", error.response?.data);
-      alert(`❌ ไม่สามารถเพิ่มสินค้าในตะกร้า: ${error.response?.data?.error || error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   try {
+  //     const response = await axios.post(
+  //       `${process.env.NEXT_PUBLIC_API_URL}/cart/add`,
+  //       {
+  //         product_id: productEach.product_id,
+  //         quantity: 1,
+  //       },
+  //       {
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           'Accept': 'application/json',
+  //           'X-Requested-With': 'XMLHttpRequest',
+  //           'X-CSRF-TOKEN': csrfToken,
+  //         },
+  //         withCredentials: true,
+  //       }
+  //     );
+  //     console.log(response.data);
+  //     alert("✅ เพิ่มสินค้าในตะกร้าสำเร็จ!");
+  //   } catch (error: any) {
+  //     console.error("Error:", error);
+  //     console.error("Response data:", error.response?.data);
+  //     alert(`❌ ไม่สามารถเพิ่มสินค้าในตะกร้า: ${error.response?.data?.error || error.message}`);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200" id={`${productEach.product_id}`}>
@@ -100,14 +100,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ productEach }) => {
       </Link>
 
       {/* ปุ่ม Add to Cart */}
-      <Button
+      {/* <Button
         variant="default"
         className="mt-4 w-full py-2"
         onClick={addToCart}
         disabled={loading || !csrfToken}
       >
         {loading ? "กำลังเพิ่ม..." : "Add to Cart"}
-      </Button>
+      </Button> */}
     </div>
   );
 };
