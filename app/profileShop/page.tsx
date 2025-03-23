@@ -2,6 +2,7 @@
 
 import Navbar from '@/components/Navbar';
 import SideBarShop from '@/components/SideBarShop';
+import axios from 'axios';
 import { useState, useEffect } from 'react';
 
 interface AddressInfo {
@@ -14,6 +15,8 @@ interface AddressInfo {
   อำเภอ: string;
   จังหวัด: string;
   รหัสไปรษณีย์: string;
+  position_id: string;
+  address_id: string;
 }
 
 interface BankInfo {
@@ -33,6 +36,8 @@ const ProfileShop = () => {
   const [tempBankInfo, setTempBankInfo] = useState<BankInfo | null>(null);
 
   const [addressInfo, setAddressInfo] = useState<AddressInfo>({
+    position_id: '',
+    address_id: '',
     ชื่อ: '',
     นามสกุล: '',
     เบอร์: '',
@@ -43,6 +48,19 @@ const ProfileShop = () => {
     จังหวัด: '',
     รหัสไปรษณีย์: '',
   });
+  const [multiaddressInfo, setMultiAddressInfo] = useState<AddressInfo[]>([{
+    position_id: '',
+    address_id: '',
+    ชื่อ: '',
+    นามสกุล: '',
+    เบอร์: '',
+    บ้านเลขที่: '',
+    ถนน: '',
+    ตำบล: '',
+    อำเภอ: '',
+    จังหวัด: '',
+    รหัสไปรษณีย์: '',
+  }]);
 
   const [description, setDescription] = useState('');
   const [bankInfo, setBankInfo] = useState<BankInfo>({
@@ -108,9 +126,50 @@ const ProfileShop = () => {
     setAddressInfo((prev) => ({ ...prev, [name]: value }));
   };
 
+  let csrf = localStorage.getItem('csrfToken');
+  let token = localStorage.getItem('token');
   const handleAddressSave = () => {
     console.log('Address Saved:', addressInfo);
     setIsAddressEditing(false);
+    axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${addressInfo.address_id}`,
+      {
+        fname : addressInfo.ชื่อ,
+        lname : addressInfo.นามสกุล,
+        phonenumber : addressInfo.เบอร์,
+        street_name : addressInfo.ถนน,
+        house_number : addressInfo.บ้านเลขที่,
+        province : addressInfo.จังหวัด,
+        amphoe : addressInfo.อำเภอ,
+        tambon : addressInfo.ตำบล,
+        zipcode : addressInfo.รหัสไปรษณีย์,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        withCredentials: true,
+      }
+    ).catch(error => {
+      console.error('Error saving address:', error.response ? error.response.data : error.message);
+    });
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrf,
+      },
+      withCredentials: true,
+    })
+    .then(res => {
+      localStorage.setItem('addresses', JSON.stringify(res.data.data));
+    })
+    .catch(error => {
+      console.error("Error fetching address:", error);
+    });
   };
 
   interface ShopData {
@@ -146,6 +205,29 @@ const ProfileShop = () => {
         console.error('Error parsing shop data from localStorage:', error);
       }
     }
+    const addressGet = localStorage.getItem('addresses');
+    if (addressGet) {
+      try {
+        const data: AddressInfo[] = JSON.parse(addressGet);
+        const filteredAddresses: AddressInfo[] = data.filter(address => address.position_id === 2);
+        setAddressInfo(prevState => ({
+          ...prevState,
+          ชื่อ: filteredAddresses[0].fname,
+          นามสกุล: filteredAddresses[0].lname,
+          เบอร์: filteredAddresses[0].phonenumber,
+          บ้านเลขที่: filteredAddresses[0].house_number,
+          ถนน: filteredAddresses[0].street_name,
+          ตำบล: filteredAddresses[0].tambon,
+          อำเภอ: filteredAddresses[0].amphoe,
+          จังหวัด: filteredAddresses[0].province,
+          รหัสไปรษณีย์: filteredAddresses[0].zipcode,
+          address_id: filteredAddresses[0].address_id,
+          position_id: filteredAddresses[0].position_id,
+        }));
+      } catch (error) {
+        console.error('Error parsing shop data from localStorage:', error);
+      }
+    }
   }, []);
   
   return (
@@ -165,7 +247,7 @@ const ProfileShop = () => {
           <div className="bg-white p-6 rounded-2xl shadow-lg mt-6">
             <h3 className="text-xl font-semibold mb-4">📍 ที่อยู่ร้าน</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {Object.entries(addressInfo).map(([key, value]) => (
+              {Object.entries(addressInfo).filter(([key]) => key !== 'position_id' && key !== 'address_id').map(([key, value]) => (
                 <div key={key} className="border-b pb-1 capitalize">
                   {key.replace(/([A-Z])/g, ' $1')}: {value || '-'}
                 </div>
@@ -179,7 +261,7 @@ const ProfileShop = () => {
               <div className="bg-white p-8 rounded-2xl shadow-xl w-96">
                 <h2 className="text-2xl font-semibold mb-6">แก้ไขที่อยู่</h2>
                 <div className="grid grid-cols-2 gap-4">
-                  {Object.entries(addressInfo).map(([key, value]) => (
+                  {Object.entries(addressInfo).filter(([key]) => key !== 'position_id' && key !== 'address_id').map(([key, value]) => (
                     <div key={key}>
                       <label className="block mb-1">{key.replace(/([A-Z])/g, ' $1')}</label>
                       <input
