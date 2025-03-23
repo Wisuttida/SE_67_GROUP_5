@@ -10,85 +10,147 @@ interface Product {
   name: string;
   price: string;
   image_url: string | null;
-  volume: string;
-  shop_name: string;
-  shop_image: string;
+  image: string;
   stock_quantity: number;
+  quantity: number;
+  gender_target?: string;
+  fragrance_strength: string;
+  shopName: string;
+  shopImage: string;
 }
+
+const genderOptions = [
+  { label: "ชาย", value: "male" },
+  { label: "หญิง", value: "female" },
+  { label: "ยูนิเซ็กซ์", value: "unisex" },
+];
 
 const ProductPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [genderFilters, setGenderFilters] = useState<string[]>([]);
-  const [search, setSearch] = useState<string>("");
-
-  // ดึงข้อมูลจาก API พร้อม filter
-  const fetchProducts = () => {
-    const params: any = {};
-    if (genderFilters.length > 0) params.gender_target = genderFilters;
-    if (search) params.search = search;
-
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/products`, { params })
-      .then((res) => setProducts(res.data))
-      .catch((err) => console.error(err));
-  };
+  
+  // State สำหรับ filter
+  const [minPrice, setMinPrice] = useState<string>("");
+  const [maxPrice, setMaxPrice] = useState<string>("");
+  const [searchName, setSearchName] = useState<string>("");
+  const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchProducts();
-  }, [genderFilters]);
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`)
+      .then(response => {
+        if (Array.isArray(response.data)) {
+          setProducts(response.data);
+        } else {
+          console.error("ข้อมูลที่ได้รับไม่ใช่ Array:", response.data);
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching products:", error);
+      });
+  }, []);
 
+  // ฟังก์ชันจัดการเปลี่ยนแปลง checkbox สำหรับ gender
   const handleGenderChange = (gender: string) => {
-    setGenderFilters((prev) =>
-      prev.includes(gender)
-        ? prev.filter((g) => g !== gender)
-        : [...prev, gender]
-    );
+    if (selectedGenders.includes(gender)) {
+      setSelectedGenders(selectedGenders.filter(g => g !== gender));
+    } else {
+      setSelectedGenders([...selectedGenders, gender]);
+    }
   };
+
+  // กรองข้อมูลสินค้าตาม filter ที่ระบุ
+  const filteredProducts = products.filter((product) => {
+    const productPrice = parseFloat(product.price);
+
+    // กรองราคาขั้นต่ำ
+    if (minPrice && productPrice < parseFloat(minPrice)) {
+      return false;
+    }
+
+    // กรองราคาขั้นสูง
+    if (maxPrice && productPrice > parseFloat(maxPrice)) {
+      return false;
+    }
+
+    // กรองตามชื่อสินค้า (ไม่คำนึงถึงตัวพิมพ์เล็กใหญ่)
+    if (searchName && !product.name.toLowerCase().includes(searchName.toLowerCase())) {
+      return false;
+    }
+
+    // กรองตามเพศ (gender) แบบ checkbox
+    if (selectedGenders.length > 0) {
+      if (!product.gender_target || !selectedGenders.includes(product.gender_target.toLowerCase())) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   return (
     <div>
       <Navbar />
+
       <main className="max-w-7xl mx-auto p-6 flex gap-8 items-start">
-        {/* Sidebar Filter */}
-        <aside className="w-1/4 p-4 border rounded h-[calc(100vh-64px)] sticky top-16 bg-white">
-          <h2 className="text-xl font-semibold mb-4">Filter</h2>
+        {/* Sidebar สำหรับ filter ด้วยความยาวคงที่ */}
+        <aside className="w-1/4 p-4 border rounded h-[calc(100vh-64px)] sticky top-16">
+          <h2 className="text-xl font-semibold mb-4">กรองสินค้า</h2>
 
-          {/* Search */}
-          <input
-            type="text"
-            placeholder="ค้นหาสินค้า"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border p-2 w-full mb-4"
-          />
-          <button
-            onClick={fetchProducts}
-            className="bg-black text-white py-2 px-4 rounded w-full"
-          >
-            ค้นหา
-          </button>
+          {/* Filter ราคา */}
+          <div className="mb-4">
+            <label className="block mb-1">ราคาขั้นต่ำ:</label>
+            <input
+              type="number"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              className="border p-1 rounded w-full"
+              placeholder="0"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1">ราคาขั้นสูง:</label>
+            <input
+              type="number"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="border p-1 rounded w-full"
+              placeholder="1000"
+            />
+          </div>
 
-          {/* Gender Filter */}
-          <div className="mt-6">
-            <p className="font-semibold mb-2">Gender Target</p>
-            {["Male", "Female", "Unisex"].map((gender) => (
-              <label key={gender} className="block mb-2">
+          {/* Filter ค้นหาชื่อ */}
+          <div className="mb-4">
+            <label className="block mb-1">ค้นหาชื่อ:</label>
+            <input
+              type="text"
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              className="border p-1 rounded w-full"
+              placeholder="ค้นหาสินค้า..."
+            />
+          </div>
+
+          {/* Filter เพศ (gender) แบบ checkbox */}
+          <div>
+            <span className="block mb-1 font-semibold">เพศ:</span>
+            {genderOptions.map((option) => (
+              <div key={option.value} className="flex items-center mb-2">
                 <input
                   type="checkbox"
-                  value={gender}
-                  checked={genderFilters.includes(gender)}
-                  onChange={() => handleGenderChange(gender)}
+                  id={option.value}
+                  value={option.value}
+                  checked={selectedGenders.includes(option.value)}
+                  onChange={() => handleGenderChange(option.value)}
                   className="mr-2"
                 />
-                {gender}
-              </label>
+                <label htmlFor={option.value}>{option.label}</label>
+              </div>
             ))}
           </div>
         </aside>
 
-        {/* Product Section */}
+        {/* ส่วนแสดงสินค้า */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-3/4">
-          {products.map((product, index) => (
+          {filteredProducts.map((product, index) => (
             <Productcard key={`${product.product_id}-${index}`} productEach={product} />
           ))}
         </section>
