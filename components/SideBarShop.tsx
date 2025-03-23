@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, Store, Truck, User, ClipboardList, UserRoundSearch , Inbox, Check,  Boxes, Plus, X, PackageOpen } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -49,6 +49,30 @@ export default function ProfileUser() {
     setIsEditing(false); // ปิดโหมดการแก้ไข
     setTempIsChecked(isChecked);
   };
+  interface ShopData {
+    shop_id: number;
+    shop_name: string;
+    shop_image: string | null;
+    description: string | null;
+    accepts_custom: boolean;
+    bank_name: string;
+    bank_account: string;
+    bank_number: string;
+    addresses_address_id: string | null;
+  }
+  const [shop_data, setShopData] = useState<ShopData | undefined>(undefined);
+  useEffect(() => {
+    const shop_dataGet = localStorage.getItem('shop');
+    if (shop_dataGet) {
+      try {
+        const data: ShopData = JSON.parse(shop_dataGet);
+        setShopData(data);
+        setIsChecked(data.accepts_custom);
+      } catch (error) {
+        console.error('Error parsing shop data from localStorage:', error);
+      }
+    }
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-gray-300"> {/* เปลี่ยนที่นี่ */}
@@ -67,7 +91,7 @@ export default function ProfileUser() {
 
         </div>
         <div className="text-center mb-6">
-          <h2 className="text-lg font-semibold">{username}</h2>
+          <h2 className="text-lg font-semibold">{shop_data?.shop_name}</h2>
           <div className="mt-2 flex items-center justify-center gap-2">
             <input type="checkbox" checked={isChecked} disabled className="hidden" />
             <div className={`w-5 h-5 border-2 border-gray-400 rounded-md flex items-center justify-center ${isChecked ? 'bg-blue-500 border-blue-500' : ''}`}>

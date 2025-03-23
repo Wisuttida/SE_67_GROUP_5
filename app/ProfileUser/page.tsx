@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const DEFAULT_IMAGES = {
   profile: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f3f4f6'/%3E%3Cpath d='M48 48C54.6274 48 60 42.6274 60 36C60 29.3726 54.6274 24 48 24C41.3726 24 36 29.3726 36 36C36 42.6274 41.3726 48 48 48ZM48 52C40.0474 52 33.5 58.5474 33.5 66.5H62.5C62.5 58.5474 55.9526 52 48 52Z' fill='%239ca3af'/%3E%3C/svg%3E"
@@ -189,6 +189,29 @@ export default function ProfileUser() {
     address.district.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  interface UserData {
+    user_id: number;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    profile_image: string | null;
+  }
+  const [user_data, setUserData] = useState<UserData | undefined>(undefined);
+  useEffect(() => {
+    const user_dataGet = localStorage.getItem('user_data');
+    if (user_dataGet) {
+        try {
+            const data: UserData = JSON.parse(user_dataGet);
+            setUserData(data);
+            console.log(data);
+        } catch (error) {
+            console.error('Error parsing user data from localStorage:', error);
+        }
+    }
+  }, []);
+
   return (
     <div>
       <Navbar />
@@ -235,7 +258,7 @@ export default function ProfileUser() {
                   className="object-cover"
                 />
               </div>
-              <p className="mt-2 font-medium">Username</p>
+              <p className="mt-2 font-medium">{user_data?.username}</p>
               <Button variant="ghost" size="sm" className="mt-2">
                 <Edit className="w-4 h-4 mr-1" /> Edit Profile
               </Button>

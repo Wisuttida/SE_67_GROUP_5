@@ -237,7 +237,7 @@ const CartPage = () => {
           </DialogHeader>
           <p className="text-gray-600">กรุณาตรวจสอบการชำระเงินที่หน้า To Pay</p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOrderSuccess(false)}>OK</Button>
+            <Button variant="outline" onClick={() => setOrderSuccess(true)}>OK</Button>
             <Link href="/userToPay">
               <Button>ไปหน้า To Pay</Button>
             </Link>
