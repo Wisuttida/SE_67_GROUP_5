@@ -55,6 +55,14 @@ export default function ProfileUser() {
       isDefault: true
     }
   ]);
+  const [provinces, setProvinces] = useState([]);
+  const [amphures, setAmphures] = useState([]);
+  const [tambons, setTambons] = useState([]);
+  const [selected, setSelected] = useState({
+    province_id: undefined,
+    amphure_id: undefined,
+    tambon_id: undefined,
+  });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
@@ -211,6 +219,63 @@ export default function ProfileUser() {
         }
     }
   }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(
+        'https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json'
+      );
+      const result = await response.json();
+      setProvinces(result);
+    };
+
+    fetchData();
+  }, []);
+
+  const DropdownList = ({
+    label,
+    id,
+    list,
+    child,
+    childsId = [],
+    setChilds = [],
+  }) => {
+    const onChangeHandle = (event) => {
+      setChilds.forEach((setChild) => setChild([]));
+      const entries = childsId.map((child) => [child, undefined]);
+      const unSelectChilds = Object.fromEntries(entries);
+
+      const input = event.target.value;
+      const dependId = input ? Number(input) : undefined;
+      setSelected((prev) => ({ ...prev, ...unSelectChilds, [id]: dependId }));
+
+      if (!input) return;
+
+      if (child) {
+        const parent = list.find((item) => item.id === dependId);
+        const { [child]: childs } = parent;
+        const [setChild] = setChilds;
+        setChild(childs);
+      }
+    };
+
+    return (
+      <>
+        <label htmlFor={label}>{label}</label>
+        <select value={selected[id]} onChange={onChangeHandle} className="w-full px-3 py-2 border rounded-md">
+          <option label="เลือกข้อมูล ..." />
+          {list &&
+            list.map((item) => (
+              <option
+                key={item.id}
+                value={item.id}
+                label={`${item.name_th} - ${item.name_en}`}
+              />
+            ))}
+        </select>
+      </>
+    );
+  };
 
   return (
     <div>
@@ -401,45 +466,34 @@ export default function ProfileUser() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="province">จังหวัด</Label>
-                <select
-                  id="province"
-                  name="province"
-                  className="w-full px-3 py-2 border rounded-md"
-                  value={currentAddress?.province || ''}
-                  onChange={(e) => handleSelectChange('province', e.target.value)}
-                  disabled={isLoading}
-                >
-                  <option value="">เลือกจังหวัด</option>
-                  <option value="Bangkok">กรุงเทพมหานคร</option>
-                  <option value="Chiang Mai">เชียงใหม่</option>
-                  <option value="Phuket">ภูเก็ต</option>
-                  <option value="Chonburi">ชลบุรี</option>
-                </select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="district">เขต/อำเภอ</Label>
-                <Input
-                  id="district"
-                  name="district"
-                  value={currentAddress?.district || ''}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isLoading}
+                <DropdownList
+                  label="จังหวัด"
+                  id="province_id"
+                  list={provinces}
+                  child="amphure"
+                  childsId={["amphure_id", "tambon_id"]}
+                  setChilds={[setAmphures, setTambons]}
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="subDistrict">แขวง/ตำบล</Label>
-                <Input
-                  id="subDistrict"
-                  name="subDistrict"
-                  value={currentAddress?.subDistrict || ''}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isLoading}
+                <DropdownList
+                  label="เขต/อำเภอ"
+                  id="amphure_id"
+                  list={amphures}
+                  child="tambon"
+                  childsId={["tambon_id"]}
+                  setChilds={[setTambons]}
                 />
+              </div>
+              
+              <div className="space-y-2">
+                <DropdownList 
+                  label="แขวง/ตำบล" 
+                  id="tambon_id" 
+                  list={tambons} 
+                />
+                <pre>{JSON.stringify(selected, null, 4)}</pre>
               </div>
               
               <div className="space-y-2">

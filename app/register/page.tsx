@@ -28,7 +28,7 @@ const RegisterPage = () => {
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/csrf-token');
+        const response = await axios.get('http://localhost:8000/csrf-token', { withCredentials: true });
         setCsrfToken(response.data.csrf_token);
       } catch (error) {
         console.error('Error fetching CSRF token:', error);
@@ -37,7 +37,7 @@ const RegisterPage = () => {
 
     fetchCsrfToken();
   }, []);
-  
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage(''); // Clear any previous error messages
