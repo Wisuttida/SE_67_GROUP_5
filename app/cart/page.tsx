@@ -168,7 +168,7 @@ const CartPage = () => {
               {shopList.map((shopId, index) => {
                 const shop = cartItems.find(item => item.product.shop.shop_id === Number(shopId))?.product.shop;
                 return (
-                  <SelectItem key={index} value={shopId}>
+                  <SelectItem key={index} value={String(shopId)}>
                     {shopId === "all" ? "All Shops" : shop?.shop_name}
                   </SelectItem>
                 );

@@ -117,9 +117,9 @@ function ProductDetailPage({ params }: Params) {
         }
       );
       alert("✅ เพิ่มสินค้าในตะกร้าสำเร็จ!");
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error adding to cart:", error);
-      alert("❌ ไม่สามารถเพิ่มสินค้าในตะกร้า");
+      alert(`❌ ไม่สามารถเพิ่มสินค้าในตะกร้า: ${error.response?.data?.error || error.message}`);
     }
 
     setLoading(false);
