@@ -13,7 +13,7 @@ interface Product {
   image: string;
   stock_quantity: number;
   quantity: number;
-  gender_target?: string;
+  gender_target: string;
   fragrance_strength: string;
   shopName: string;
   shopImage: string;
@@ -46,7 +46,7 @@ const ProductPage = () => {
       .catch(error => {
         console.error("Error fetching products:", error);
       });
-  }, []);
+    }, []);
 
   // ฟังก์ชันจัดการเปลี่ยนแปลง checkbox สำหรับ gender
   const handleGenderChange = (gender: string) => {
@@ -77,8 +77,8 @@ const ProductPage = () => {
     }
 
     // กรองตามเพศ (gender) แบบ checkbox
-    if (selectedGenders.length > 0) {
-      if (!product.gender_target || !selectedGenders.includes(product.gender_target.toLowerCase())) {
+    if (selectedGenders) {
+      if (product.gender_target.toLowerCase() === selectedGenders[0]) {
         return false;
       }
     }
@@ -139,7 +139,7 @@ const ProductPage = () => {
                   id={option.value}
                   value={option.value}
                   checked={selectedGenders.includes(option.value)}
-                  onChange={() => handleGenderChange(option.value)}
+                  onChange={(e) => handleGenderChange(option.value)}
                   className="mr-2"
                 />
                 <label htmlFor={option.value}>{option.label}</label>
