@@ -10,7 +10,7 @@ const FarmPost = () => {
   const [activeTab, setActiveTab] = useState("MyPost");
   interface Post {
     name: string;
-    price: number;
+    price_per_unit: number;
     unit: string;
     amount: number;
     BuyAmount? : number;
@@ -22,7 +22,7 @@ const FarmPost = () => {
     {
       id: "1",
       name: "Fresh Mango",
-      price: 2,
+      price_per_unit: 2,
       unit: "kg",
       amount: 5,
       description: "Sweet and juicy mangoes from organic farms.",
@@ -30,7 +30,7 @@ const FarmPost = () => {
     {
       id: "2",
       name: "Organic Avocado",
-      price: 3,
+      price_per_unit: 3,
       unit: "kg",
       amount: 2,
       description: "Creamy and delicious avocados, perfect for salads.",
@@ -42,7 +42,7 @@ const FarmPost = () => {
     address : string,
     profileImage: string;
     productName: string;
-    price: number;
+    price_per_unit: number;
     unit: string;
     amount: number;
     description: string;
@@ -62,7 +62,7 @@ useEffect(() => {
       address : "กรุงเทพ",
       profileImage: "https://via.placeholder.com/50", // ใส่ URL รูปจริง
       productName: "มะนาว",
-      price: 20,
+      price_per_unit: 20,
       unit: "กิโลกรัม",
       amount: 50,
       description: "มะนาวสดจากสวน ปลูกแบบออร์แกนิค",
@@ -76,7 +76,7 @@ useEffect(() => {
       address : "กรุงเทพ",
       profileImage: "https://via.placeholder.com/50",
       productName: "พริกแดง",
-      price: 150,
+      price_per_unit: 150,
       unit: "กิโลกรัม",
       amount: 20,
       description: "พริกแดงแห้งคุณภาพดี เผ็ดสะใจ",
@@ -89,7 +89,7 @@ useEffect(() => {
 
   const [form, setForm] = useState({
     name: "",
-    price: 0,
+    price_per_unit: 0,
     unit: "",
     amount: 0,
     description: "",
@@ -98,7 +98,7 @@ useEffect(() => {
   const [editForm, setEditForm] = useState<Post>({
     id: null,
     name: "",
-    price: 0,
+    price_per_unit: 0,
     unit: "",
     amount: 0,
     description: "",
@@ -130,7 +130,7 @@ useEffect(() => {
     const updatedForm = {
       ...editForm,
       id: String(editForm.id),        // Make sure id is a string
-      price: Number(editForm.price),   // Ensure price is a number
+      price_per_unit: Number(editForm.price_per_unit),   // Ensure price_per_unit is a number
       amount: Number(editForm.amount), // Ensure amount is a number
     };
   
@@ -154,7 +154,7 @@ useEffect(() => {
   };
 
   const handlePost = () => {
-    if (!form.name || !form.price || !form.unit || !form.amount || !form.description) {
+    if (!form.name || !form.price_per_unit || !form.unit || !form.amount || !form.description) {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
     }
@@ -162,7 +162,7 @@ useEffect(() => {
     const newPost = {
       id: "",
       name: form.name,
-      price: form.price,
+      price_per_unit: form.price_per_unit,
       unit: form.unit,
       amount: form.amount,
       description: form.description,
@@ -170,7 +170,7 @@ useEffect(() => {
     };
   
     setPosts([...posts, newPost]); // โพสต์ใหม่มี id ที่ถูกต้อง
-    setForm({ name: "", price: 0, unit: "", amount: 0, description: "" });
+    setForm({ name: "", price_per_unit: 0, unit: "", amount: 0, description: "" });
   
     alert("โพสต์สำเร็จ!");
   };
@@ -214,11 +214,11 @@ useEffect(() => {
                 <div>
                   <label className="block text-gray-1000 font-medium">ราคา(บาท) ต่อหน่วย</label>
                   <input 
-                    name="price" 
+                    name="price_per_unit" 
                     placeholder="ใส่ราคา (บาท)" 
                     className="w-full p-2 border rounded bg-gray-100 placeholder-gray-600"
                     onChange={handleChange} 
-                    value={form.price} 
+                    value={form.price_per_unit} 
                   />
                 </div>
                 <div>
@@ -283,7 +283,7 @@ useEffect(() => {
                       </div>
                     </div>
                     <h3 className="text-lg font-semibold mt-2">{post.name}</h3>
-                    <p>{post.price} บาท ต่อ {post.unit}</p>
+                    <p>{post.price_per_unit} บาท ต่อ {post.unit}</p>
                     <p>ประกาศขาย {post.amount} {post.unit}</p>
                     <p>ขายแล้ว {post.amount} {post.unit}</p>
                     <p className="text-gray-600">{post.description}</p>
@@ -306,8 +306,8 @@ useEffect(() => {
                     <div className="mt-3">
                       <p className="text-gray-700"><span className="font-medium">วัตถุดิบ:</span> {buyer.productName}</p>
                       <p className="text-gray-700"><span className="font-medium">ปริมาณที่ซื้อ:</span> {buyer.amount} {buyer.unit}</p>
-                      <p className="text-gray-700"><span className="font-medium">ราคา:</span> {buyer.price} บาท ต่อ {buyer.unit}</p>
-                      <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {buyer.price*buyer.amount} บาท</p>
+                      <p className="text-gray-700"><span className="font-medium">ราคา:</span> {buyer.price_per_unit} บาท ต่อ {buyer.unit}</p>
+                      <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {buyer.price_per_unit*buyer.amount} บาท</p>
                       <p className="text-gray-700"><span className="font-medium">ที่อยู่ร้าน:</span> {buyer.address}</p>
 
                       {/* เปลี่ยนเป็นดูสลิปโอนเงินอย่างเดียว ไม่ต้องรับ input */}
@@ -365,14 +365,14 @@ useEffect(() => {
                 />
               </div>
               <div>
-                <label htmlFor="price" className="block text-sm font-semibold">Price</label>
+                <label htmlFor="price_per_unit" className="block text-sm font-semibold">Price_per_unit</label>
                 <input
-                  id="price"
-                  name="price"
-                  placeholder="Enter price"
+                  id="price_per_unit"
+                  name="price_per_unit"
+                  placeholder="Enter price_per_unit"
                   className="w-full p-2 border rounded"
                   onChange={handleEditChange}
-                  value={editForm.price}
+                  value={editForm.price_per_unit}
                 />
               </div>
               <div>

@@ -12,14 +12,14 @@ interface Farm {
   farmName: string;
   farmImage: string;
   productName: string;
-  price: number;
+  price_per_unit: number;
   unit: string;
   amount: number;
   description: string;
   sold: number;
-  bankAccount: string;
-  bankNumber: string;
-  bankName: string;
+  bank_account: string;
+  bank_number: string;
+  bank_name: string;
 }
 
 const ShopHomePost = () => {
@@ -36,14 +36,14 @@ const ShopHomePost = () => {
         farmName: `Farm${i + 1}`,
         farmImage: "/placeholder-profile.jpg",
         productName: "ชื่อวัตถุดิบ",
-        price: 50,
+        price_per_unit: 50,
         unit: "Kg",
         amount: 10,
         description: "รายละเอียด",
         sold: 2,
-        bankAccount: "ธนาคารกรุงไทย",
-        bankNumber: "123-456-7890",
-        bankName: "สมชาย รักษาคน",
+        bank_account: "ธนาคารกรุงไทย",
+        bank_number: "123-456-7890",
+        bank_name: "สมชาย รักษาคน",
       }));
       setFarms(dummyFarms);
     };
@@ -101,7 +101,7 @@ const ShopHomePost = () => {
                 </div>
                 <div className="text-left text-black">
                   <p className="text-sm">{farm.productName}</p>
-                  <p className="text-md font-semibold">{farm.price} ต่อ {farm.unit}</p>
+                  <p className="text-md font-semibold">{farm.price_per_unit} ต่อ {farm.unit}</p>
                   <p className="text-sm">ประกาศขาย {farm.amount} {farm.unit}</p>
                   <p className="text-sm">ขายแล้ว {farm.sold} {farm.unit}</p>
                 </div>
@@ -125,11 +125,11 @@ const ShopHomePost = () => {
       <h2 className="text-2xl font-bold text-center mb-4 text-gray-800">ยืนยันการซื้อ</h2>
       <div className="border-b pb-4 mb-6 text-gray-700">
         <p className="text-sm font-semibold">{selectedFarm.farmName}</p>
-        <p className="text-sm">บัญชีธนาคาร: <span className="font-semibold">{selectedFarm.bankAccount}</span></p>
-        <p className="text-sm">เลขบัญชี: <span className="font-semibold">{selectedFarm.bankNumber}</span></p>
-        <p className="text-sm">ชื่อ: <span className="font-semibold">{selectedFarm.bankName}</span></p>
+        <p className="text-sm">บัญชีธนาคาร: <span className="font-semibold">{selectedFarm.bank_account}</span></p>
+        <p className="text-sm">เลขบัญชี: <span className="font-semibold">{selectedFarm.bank_number}</span></p>
+        <p className="text-sm">ชื่อ: <span className="font-semibold">{selectedFarm.bank_name}</span></p>
         <p className="text-sm">สินค้า: <span className="font-semibold">{selectedFarm.productName}</span></p>
-        <p className="text-base font-bold text-gray-750">{selectedFarm.price} ต่อ {selectedFarm.unit}</p>
+        <p className="text-base font-bold text-gray-750">{selectedFarm.price_per_unit} ต่อ {selectedFarm.unit}</p>
       </div>
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700">จำนวนที่ต้องการซื้อ</label>
@@ -141,7 +141,7 @@ const ShopHomePost = () => {
           onChange={(e) => setQuantity(Number(e.target.value))} 
           className="w-full p-3 border rounded-lg mt-2 focus:outline-none focus:ring-2 focus:ring-green-400"
         />
-        <p className="text-sm mt-2 font-semibold text-red-500">ราคารวม: {selectedFarm.price * quantity} บาท</p>
+        <p className="text-sm mt-2 font-semibold text-red-500">ราคารวม: {selectedFarm.price_per_unit * quantity} บาท</p>
       </div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700">อัปโหลดสลิปโอนเงิน</label>

@@ -11,7 +11,7 @@ interface Shop {
   shopName: string;
   shopImage: string;
   productName: string;
-  price: number;
+  price_per_unit: number;
   unit: string;
   amount: number;
   description: string;
@@ -30,7 +30,7 @@ const ShopHomePost = () => {
         shopName: `Shop${i + 1}`,
         shopImage: "/placeholder-profile.jpg",
         productName: "ชื่อวัตถุดิบ",
-        price: 50,
+        price_per_unit: 50,
         unit: "Kg",
         amount: 10,
         description: "รายละเอียด",
@@ -85,7 +85,7 @@ const ShopHomePost = () => {
                 </div>
                 <div className="text-left text-black">
                   <p className="text-sm">{shop.productName}</p>
-                  <p className="text-md font-semibold">{shop.price} ต่อ {shop.unit}</p>
+                  <p className="text-md font-semibold">{shop.price_per_unit} ต่อ {shop.unit}</p>
                   <p className="text-sm">{shop.description}</p>
                   <p className="text-sm">รับซื้อ {shop.amount} {shop.unit}</p>
                   <p className="text-sm">ซื้อแล้ว {shop.Bought} {shop.unit}</p>
@@ -110,7 +110,7 @@ const ShopHomePost = () => {
       <h2 className="text-2xl font-bold text-center mb-4 text-gray-800">ยืนยันการขาย</h2>
       <div className="border-b pb-4 mb-6 text-gray-700">
         <p className="text-sm font-semibold">สินค้า: <span className="font-semibold">{selectedShop.productName}</span></p>
-        <p className="text-base font-bold text-gray-900">{selectedShop.price} ต่อ {selectedShop.unit}</p>
+        <p className="text-base font-bold text-gray-900">{selectedShop.price_per_unit} ต่อ {selectedShop.unit}</p>
       </div>
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700">จำนวนที่ต้องการขาย ({selectedShop.unit})</label>
@@ -122,7 +122,7 @@ const ShopHomePost = () => {
           onChange={(e) => setQuantity(Number(e.target.value))} 
           className="w-full p-3 border rounded-lg mt-2 focus:outline-none focus:ring-2 focus:ring-green-400"
         />
-        <p className="text-sm mt-2 font-semibold text-red-500">ราคารวม: {selectedShop.price * quantity} บาท</p>
+        <p className="text-sm mt-2 font-semibold text-red-500">ราคารวม: {selectedShop.price_per_unit * quantity} บาท</p>
       </div>
       <div className="flex justify-end space-x-3">
         <Button variant="outline" className="hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg" onClick={closeModal}>

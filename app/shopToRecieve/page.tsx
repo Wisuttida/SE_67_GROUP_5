@@ -9,16 +9,16 @@ import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
 
 interface Product {
-    id: string;
+    product_id: string;
     name: string;
     description: string;
     amount: number;
     unit: string;
-    totalPrice: number;
+    total_amount: number;
     isReceived: boolean;
     farm: {
-        name: string;
-        avatar: string;
+        farm_name: string;
+        farm_image: string;
     };
 }
 
@@ -29,16 +29,16 @@ const ShopToRecieve = () => {
     // Sample product data
     const [products, setProducts] = useState<Product[]>([
         {
-            id: '1',
+            product_id: '1',
             name: 'ชื่อวัตถุดิบ',
             description: 'รายละเอียด',
             amount: 1,
             unit:"Kg",
-            totalPrice: 499,
+            total_amount: 499,
             isReceived: false,
             farm: {
-                name: 'Farm1',
-                avatar: '/profile-placeholder.png'
+                farm_name: 'Farm1',
+                farm_image: '/profile-placeholder.png'
             }
         },
         
@@ -49,7 +49,7 @@ const ShopToRecieve = () => {
         setIsLoading(true);
         try {
             setProducts(prev => prev.map(product => 
-                product.id === productId 
+                product.product_id === productId 
                     ? { ...product, isReceived: true }
                     : product
             ));
@@ -80,7 +80,7 @@ const ShopToRecieve = () => {
         </div>
     ) : (
         products.map((product) => (
-            <Card key={product.id} className="overflow-hidden shadow-lg rounded-lg p-4">
+            <Card key={product.product_id} className="overflow-hidden shadow-lg rounded-lg p-4">
                 <CardContent className="flex flex-col gap-4">
                     
                     {/* ฟาร์ม & สถานะ */}
@@ -88,14 +88,14 @@ const ShopToRecieve = () => {
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-gray-200 rounded-full overflow-hidden">
                                 <Image 
-                                    src={product.farm.avatar}
-                                    alt={product.farm.name}
+                                    src={product.farm.farm_image}
+                                    alt={product.farm.farm_name}
                                     width={48}
                                     height={48}
                                     className="object-cover"
                                 />
                             </div>
-                            <span className="font-medium text-lg">{product.farm.name}</span>
+                            <span className="font-medium text-lg">{product.farm.farm_name}</span>
                         </div>
                         <span className={`px-3 py-1 rounded-full text-sm ${
                             product.isReceived 
@@ -111,14 +111,14 @@ const ShopToRecieve = () => {
                         <h3 className="font-semibold text-xl">{product.name}</h3>
                         <p className="text-gray-600 text-sm">{product.description}</p>
                         <p className="text-sm text-gray-600">จำนวน: {product.amount} {product.unit}</p>
-                        <p className="text-sm text-gray-600 mb-3">ราคารวม: ฿{product.totalPrice.toLocaleString()}</p>
+                        <p className="text-sm text-gray-600 mb-3">ราคารวม: ฿{product.total_amount.toLocaleString()}</p>
                     </div>
 
                     {/* ปุ่มยืนยันรับสินค้า */}
                     {!product.isReceived && (
                         <Button
                             className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg"
-                            onClick={() => handleMarkAsReceived(product.id)}
+                            onClick={() => handleMarkAsReceived(product.product_id)}
                             disabled={isLoading}
                         >
                             {isLoading ? 'กำลังดำเนินการ...' : 'ยืนยันการรับสินค้า'}

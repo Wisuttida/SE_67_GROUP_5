@@ -6,21 +6,27 @@ import SideBarShop from "@/components/SideBarShop";
 
 
 interface Order {
-  orderId: string;
+  order_id: string;
   userName: string;
-  productName: string;
-  price: number;
+  name: string;
+  total_amount: number;
   quantity: number;
   status: string;
-  address: string;
-  fragrances?: string[];  
+  street_name: string;
+  building: string;
+  house_number: string;
+  province: string;
+  amphoe: string;
+  tambon: string;
+  zipcode: string;
+  fragrance_name?: string[];  
   description?: string;   
-  intensity?: number;     
-  volume?: number;        
-  tester?: boolean;       
-  slipImage?: string;
-  productImage? : string;
-  profileImage? : string;
+  intensity_level?: number;     
+  volume_ml?: number;        
+  is_tester?: boolean;         
+  payment_proof_url?: string;
+  image_url? : string;
+  profile_image? : string;
 }
 
 
@@ -34,19 +40,19 @@ const OrderCard = ({
   customCancelOrder,
 }: {
   order: Order;  // ระบุประเภทของ order เป็น Order ที่สร้างไว้
-  confirmOrder: (orderId: string) => void;
-  cancelOrder: (orderId: string) => void;
-  customConfirmOrder: (orderId: string, price: number) => void;
-  customCancelOrder: (orderId: string) => void;
+  confirmOrder: (order_id: string) => void;
+  cancelOrder: (order_id: string) => void;
+  customConfirmOrder: (order_id: string, total_amount: number) => void;
+  customCancelOrder: (order_id: string) => void;
 }) => {
-  const [price, setPrice] = useState(order.price || 0);
+  const [total_amount, setTotal_amount] = useState(order.total_amount || 0);
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-md mx-auto">
       <div className="flex items-center justify-between">
-        {order.profileImage && (
+        {order.profile_image && (
           <img
-            src={order.profileImage}
+            src={order.profile_image}
             alt="Profile"
             className="w-10 h-10 rounded-full mr-3"
           />
@@ -61,38 +67,38 @@ const OrderCard = ({
       <div className="mt-4 text-left">
         {order.status === "รอยืนยัน" ? (
           <>
-            {order.productImage && (
+            {order.image_url && (
               <div className="mt-4">
-                <img src={order.productImage} alt="ProductImage" className="mt-2 w-full rounded-lg" />
+                <img src={order.image_url} alt="image_url" className="mt-2 w-full rounded-lg" />
               </div>
             )}
-            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.productName}</p>
+            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.name}</p>
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
-            <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
+            <p className="text-gray-600">ปริมาณ: {order.volume_ml} ml</p>
             <p className="text-gray-600">จำนวน: {order.quantity} ชิ้น</p>
-            <p className="text-gray-600">ราคา: {order.price} บาท</p>
-            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.address}</p>
-            {order.slipImage && (
+            <p className="text-gray-600">ราคา: {order.total_amount} บาท</p>
+            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.house_number} {order.street_name} {order.building} {order.amphoe} {order.tambon}{order.province} {order.zipcode}</p>
+            {order.payment_proof_url && (
               <div className="mt-4">
                 <p className="font-semibold text-gray-700">หลักฐานการโอน:</p>
-                <img src={order.slipImage} alt="Slip" className="mt-2 w-full rounded-lg" />
+                <img src={order.payment_proof_url} alt="Slip" className="mt-2 w-full rounded-lg" />
               </div>
             )}
           </>
         ) : order.status === "Custom" ? (
           <>
-            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.productName}</p>
-            <p className="text-gray-600">กลิ่น: {order.fragrances ? order.fragrances.join(", ") : "ไม่มีข้อมูล"}</p>
+            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.name}</p>
+            <p className="text-gray-600">กลิ่น: {order.fragrance_name ? order.fragrance_name.join(", ") : "ไม่มีข้อมูล"}</p>
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
-            <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity} %</p>
-            <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
-            <p className="text-gray-600">tester: {order.tester ? "ตัวเทส" : "ตัวจริง"}</p>
+            <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity_level} %</p>
+            <p className="text-gray-600">ปริมาณ: {order.volume_ml} ml</p>
+            <p className="text-gray-600">is_tester: {order.is_tester ? "ตัวเทส" : "ตัวจริง"}</p>
             <div className="mt-4">
               <label className="block font-semibold text-gray-700">กำหนดราคา (บาท)</label>
               <input
                 type="number"
-                value={price}
-                onChange={(e) => setPrice(parseFloat(e.target.value))}
+                value={total_amount}
+                onChange={(e) => setTotal_amount(parseFloat(e.target.value))}
                 className="mt-2 p-2 border rounded-lg w-full"
                 placeholder="ระบุราคา"
               />
@@ -100,89 +106,91 @@ const OrderCard = ({
           </>
         ) : order.status === "รอยืนยัน Custom" ? (
           <>
-            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.productName}</p>
-            <p className="text-gray-600">กลิ่น: {order.fragrances ? order.fragrances.join(", ") : "ไม่มีข้อมูล"}</p>
+            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.name}</p>
+            <p className="text-gray-600">กลิ่น: {order.fragrance_name ? order.fragrance_name.join(", ") : "ไม่มีข้อมูล"}</p>
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
-            <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity} %</p>
-            <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
-            <p className="text-gray-600">tester: {order.tester ? "ตัวเทส" : "ตัวจริง"}</p>
-            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.address}</p>
-            {order.slipImage && (
+            <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity_level} %</p>
+            <p className="text-gray-600">ปริมาณ: {order.volume_ml} ml</p>
+            <p className="text-gray-600">is_tester: {order.is_tester ? "ตัวเทส" : "ตัวจริง"}</p>
+            <p className="text-gray-600">ราคา: {order.total_amount} ml</p>
+            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.house_number} {order.street_name} {order.building} {order.amphoe} {order.tambon}{order.province} {order.zipcode}</p>
+            {order.payment_proof_url && (
               <div className="mt-4">
                 <p className="font-semibold text-gray-700">หลักฐานการโอน:</p>
-                <img src={order.slipImage} alt="Slip" className="mt-2 w-full rounded-lg" />
+                <img src={order.payment_proof_url} alt="Slip" className="mt-2 w-full rounded-lg" />
               </div>
             )}
           </>
         ) : order.status === "Custom ยืนยันแล้ว" ?  (
           <>
-            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.productName}</p>
-            <p className="text-gray-600">กลิ่น: {order.fragrances ? order.fragrances.join(", ") : "ไม่มีข้อมูล"}</p>
+            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.name}</p>
+            <p className="text-gray-600">กลิ่น: {order.fragrance_name ? order.fragrance_name.join(", ") : "ไม่มีข้อมูล"}</p>
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
-            <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity} %</p>
-            <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
-            <p className="text-gray-600">tester: {order.tester ? "ตัวเทส" : "ตัวจริง"}</p>
-            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.address}</p>
-            {order.slipImage && (
+            <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity_level} %</p>
+            <p className="text-gray-600">ปริมาณ: {order.volume_ml} ml</p>
+            <p className="text-gray-600">is_tester: {order.is_tester ? "ตัวเทส" : "ตัวจริง"}</p>
+            <p className="text-gray-600">ราคา: {order.total_amount} ml</p>
+            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.house_number} {order.street_name} {order.building} {order.amphoe} {order.tambon}{order.province} {order.zipcode}</p>
+            {order.payment_proof_url && (
               <div className="mt-4">
                 <p className="font-semibold text-gray-700">หลักฐานการโอน:</p>
-                <img src={order.slipImage} alt="Slip" className="mt-2 w-full rounded-lg" />
+                <img src={order.payment_proof_url} alt="Slip" className="mt-2 w-full rounded-lg" />
               </div>
             )}
           </>
         ) : order.status === "ยกเลิก Custom" ? (
           <>
-            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.productName}</p>
-            <p className="text-gray-600">กลิ่น: {order.fragrances ? order.fragrances.join(", ") : "ไม่มีข้อมูล"}</p>
+            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.name}</p>
+            <p className="text-gray-600">กลิ่น: {order.fragrance_name ? order.fragrance_name.join(", ") : "ไม่มีข้อมูล"}</p>
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
-            <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity} %</p>
-            <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
-            <p className="text-gray-600">tester: {order.tester ? "ตัวเทส" : "ตัวจริง"}</p>
-            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.address}</p>
-            {order.slipImage && (
+            <p className="text-gray-600">ระดับความเข้มข้น: {order.intensity_level} %</p>
+            <p className="text-gray-600">ปริมาณ: {order.volume_ml} ml</p>
+            <p className="text-gray-600">is_tester: {order.is_tester ? "ตัวเทส" : "ตัวจริง"}</p>
+            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.house_number} {order.street_name} {order.building} {order.amphoe} {order.tambon}{order.province} {order.zipcode}</p>
+            {order.payment_proof_url && (
               <div className="mt-4">
                 <p className="font-semibold text-gray-700">หลักฐานการโอน:</p>
-                <img src={order.slipImage} alt="Slip" className="mt-2 w-full rounded-lg" />
+                <img src={order.payment_proof_url} alt="Slip" className="mt-2 w-full rounded-lg" />
               </div>
             )}
           </>
         ) : order.status === "ยืนยันแล้ว" ? (
           <>
-            {order.productImage && (
+            {order.image_url && (
               <div className="mt-4">
-                <img src={order.productImage} alt="ProductImage" className="mt-2 w-full rounded-lg" />
+                <img src={order.image_url} alt="image_url" className="mt-2 w-full rounded-lg" />
               </div>
             )}
-            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.productName}</p>
+            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.name}</p>
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
-            <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
+            <p className="text-gray-600">ปริมาณ: {order.volume_ml} ml</p>
             <p className="text-gray-600">จำนวน: {order.quantity} ชิ้น</p>
-            <p className="text-gray-600">ราคา: {order.price} บาท</p>
-            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.address}</p>
-            {order.slipImage && (
+            <p className="text-gray-600">ราคา: {order.total_amount} บาท</p>
+            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.house_number} {order.street_name} {order.building} {order.amphoe} {order.tambon}{order.province} {order.zipcode}</p>
+            {order.payment_proof_url && (
               <div className="mt-4">
                 <p className="font-semibold text-gray-700">หลักฐานการโอน:</p>
-                <img src={order.slipImage} alt="Slip" className="mt-2 w-full rounded-lg" />
+                <img src={order.payment_proof_url} alt="Slip" className="mt-2 w-full rounded-lg" />
               </div>
             )}
           </>
         ) : (
           <>
-            {order.productImage && (
+            {order.image_url && (
               <div className="mt-4">
-                <img src={order.productImage} alt="ProductImage" className="mt-2 w-full rounded-lg" />
+                <img src={order.image_url} alt="image_url" className="mt-2 w-full rounded-lg" />
               </div>
             )}
-            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.productName}</p>
+            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.name}</p>
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
-            <p className="text-gray-600">ปริมาณ: {order.volume} ml</p>
+            <p className="text-gray-600">ปริมาณ: {order.volume_ml} ml</p>
             <p className="text-gray-600">จำนวน: {order.quantity} ชิ้น</p>
-            <p className="text-gray-600">ราคา: {order.price} บาท</p>
-            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.address}</p>
-            {order.slipImage && (
+            <p className="text-gray-600">ราคา: {order.total_amount} บาท</p>
+            <p className="text-gray-600">ที่อยู่จัดส่ง: {order.house_number} {order.street_name} {order.building} {order.amphoe} {order.tambon}{order.province} {order.zipcode}</p>
+            {order.payment_proof_url && (
               <div className="mt-4">
                 <p className="font-semibold text-gray-700">หลักฐานการโอน:</p>
-                <img src={order.slipImage} alt="Slip" className="mt-2 w-full rounded-lg" />
+                <img src={order.payment_proof_url} alt="Slip" className="mt-2 w-full rounded-lg" />
               </div>
             )}
           </>
@@ -192,13 +200,13 @@ const OrderCard = ({
       {/* ปุ่มสำหรับ Custom */}
       {order.status === "Custom" && (
         <div className="mt-4 flex space-x-2">
-          <Button className="w-1/2 bg-red-500 text-white hover:bg-red-600" onClick={() => customCancelOrder(order.orderId)}>
+          <Button className="w-1/2 bg-red-500 text-white hover:bg-red-600" onClick={() => customCancelOrder(order.order_id)}>
             ยกเลิกคำสั่งซื้อ
           </Button>
 
           <Button
             className="w-1/2 bg-green-600 text-white hover:bg-green-700"
-            onClick={() => customConfirmOrder(order.orderId, price)}
+            onClick={() => customConfirmOrder(order.order_id, total_amount)}
           >
             ยืนยันราคา
           </Button>
@@ -208,10 +216,10 @@ const OrderCard = ({
       {/* ปุ่มสำหรับ รอยืนยัน */}
       {(order.status === "รอยืนยัน" || order.status === "รอยืนยัน Custom") && (
         <div className="mt-4 flex space-x-2">
-          <Button className="w-1/2 bg-red-500 text-white hover:bg-red-600" onClick={() => cancelOrder(order.orderId)}>
+          <Button className="w-1/2 bg-red-500 text-white hover:bg-red-600" onClick={() => cancelOrder(order.order_id)}>
             ยกเลิก
           </Button>
-          <Button className="w-1/2 bg-green-600 text-white hover:bg-green-700" onClick={() => confirmOrder(order.orderId)}>
+          <Button className="w-1/2 bg-green-600 text-white hover:bg-green-700" onClick={() => confirmOrder(order.order_id)}>
             ยืนยัน
           </Button>
         </div>
@@ -227,148 +235,190 @@ const OrderConfirmation = () => {
   useEffect(() => {
     setOrders([
       {
-        orderId: "order-1",
+        order_id: "order-1",
         userName: "whoami",
-        productName: "น้ำลูกเหม็น",
-        price: 500,
+        name: "น้ำลูกเหม็น",
+        total_amount: 500,
         quantity: 1,
         status: "รอยืนยัน",
-        address: "ม.เกษตร กำแพงแสน",
-        fragrances: [""], 
+        street_name: "ถนน",
+        building: "อาคาร",
+        house_number: "บ้านเลขที่",
+        province: "จังหวัด",
+        amphoe: "อำเภอ",
+        tambon: "ตำบล",
+        zipcode: "ไปรสนี",
+        fragrance_name: [""], 
         description: "เหม็นใช้ได้",   
-        intensity: 100,     
-        volume: 1000 ,       
-        tester: false,       
-        slipImage: "image",
-        productImage : "image",
-        profileImage : "image",
+        intensity_level: 100,     
+        volume_ml: 1000 ,       
+        is_tester: false,       
+        payment_proof_url: "image",
+        image_url : "image",
+        profile_image : "image",
       },
       {
-        orderId: "order-2",
+        order_id: "order-2",
         userName: "My name is Name",
-        productName: "น้ำหอม...ไหม",
-        price: 500,
+        name: "น้ำหอม...ไหม",
+        total_amount: 500,
         quantity: 1,
         status: "ยืนยันแล้ว",
-        address: "ม.เกษตร กำแพงแสน",
-        fragrances: [""], 
+        street_name: "ถนน",
+        building: "อาคาร",
+        house_number: "บ้านเลขที่",
+        province: "จังหวัด",
+        amphoe: "อำเภอ",
+        tambon: "ตำบล",
+        zipcode: "ไปรสนี",
+        fragrance_name: [""], 
         description: "อาจจะหอม",   
-        intensity: 100,     
-        volume: 1000 ,       
-        tester: false,       
-        slipImage: "image",
-        productImage : "image",
-        profileImage : "image",
+        intensity_level: 100,     
+        volume_ml: 1000 ,       
+        is_tester: false,       
+        payment_proof_url: "image",
+        image_url : "image",
+        profile_image : "image",
       },
       {
-        orderId: "order-3",
+        order_id: "order-3",
         userName: "John doe",
-        productName: "ไม่หอม",
-        price: 500,
+        name: "ไม่หอม",
+        total_amount: 500,
         quantity: 1,
         status: "ยกเลิกแล้ว",
-        address: "ม.เกษตร กำแพงแสน",
-        fragrances: [""], 
+        street_name: "ถนน",
+        building: "อาคาร",
+        house_number: "บ้านเลขที่",
+        province: "จังหวัด",
+        amphoe: "อำเภอ",
+        tambon: "ตำบล",
+        zipcode: "ไปรสนี",
+        fragrance_name: [""], 
         description: "เหม็น",   
-        intensity: 100,     
-        volume: 1000 ,       
-        tester: false,       
-        slipImage: "image",
-        productImage : "image",
-        profileImage : "image",
+        intensity_level: 100,     
+        volume_ml: 1000 ,       
+        is_tester: false,       
+        payment_proof_url: "image",
+        image_url : "image",
+        profile_image : "image",
       },
       {
-        orderId: "order-4",
+        order_id: "order-4",
         userName: "John smith",
-        productName: "เลือกไปก่อน เดี๋ยวหอมเอง",
-        price: 500,
+        name: "เลือกไปก่อน เดี๋ยวหอมเอง",
+        total_amount: 500,
         quantity: 1,
         status: "Custom",
-        address: "ม.เกษตร กำแพงแสน",
-        fragrances: ["กระเทียม","รากผักชี","พริกไทย"], 
+        street_name: "ถนน",
+        building: "อาคาร",
+        house_number: "บ้านเลขที่",
+        province: "จังหวัด",
+        amphoe: "อำเภอ",
+        tambon: "ตำบล",
+        zipcode: "ไปรสนี",
+        fragrance_name: ["กระเทียม","รากผักชี","พริกไทย"], 
         description: "มั่วเอา ไม่หอมโทษร้าน",   
-        intensity: 100,     
-        volume: 1000 ,       
-        tester: false,       
-        slipImage: "image",
-        productImage : "image",
-        profileImage : "image",
+        intensity_level: 100,     
+        volume_ml: 1000 ,       
+        is_tester: false,       
+        payment_proof_url: "image",
+        image_url : "image",
+        profile_image : "image",
       },
       {
-        orderId: "order-4",
+        order_id: "order-4",
         userName: "John smith",
-        productName: "เลือกไปก่อน เดี๋ยวหอมเอง",
-        price: 500,
+        name: "เลือกไปก่อน เดี๋ยวหอมเอง",
+        total_amount: 500,
         quantity: 1,
         status: "รอยืนยัน Custom",
-        address: "ม.เกษตร กำแพงแสน",
-        fragrances: ["กระเทียม","รากผักชี","พริกไทย"], 
+        street_name: "ถนน",
+        building: "อาคาร",
+        house_number: "บ้านเลขที่",
+        province: "จังหวัด",
+        amphoe: "อำเภอ",
+        tambon: "ตำบล",
+        zipcode: "ไปรสนี",
+        fragrance_name: ["กระเทียม","รากผักชี","พริกไทย"], 
         description: "มั่วเอา ไม่หอมโทษร้าน",   
-        intensity: 100,     
-        volume: 1000 ,       
-        tester: false,       
-        slipImage: "image",
-        productImage : "image",
-        profileImage : "image",
+        intensity_level: 100,     
+        volume_ml: 1000 ,       
+        is_tester: false,       
+        payment_proof_url: "image",
+        image_url : "image",
+        profile_image : "image",
       },
       {
-        orderId: "order-4",
+        order_id: "order-4",
         userName: "John smith",
-        productName: "เลือกไปก่อน เดี๋ยวหอมเอง",
-        price: 500,
+        name: "เลือกไปก่อน เดี๋ยวหอมเอง",
+        total_amount: 500,
         quantity: 1,
         status: "ยกเลิก Custom",
-        address: "ม.เกษตร กำแพงแสน",
-        fragrances: ["กระเทียม","รากผักชี","พริกไทย"], 
+        street_name: "ถนน",
+        building: "อาคาร",
+        house_number: "บ้านเลขที่",
+        province: "จังหวัด",
+        amphoe: "อำเภอ",
+        tambon: "ตำบล",
+        zipcode: "ไปรสนี",
+        fragrance_name: ["กระเทียม","รากผักชี","พริกไทย"], 
         description: "มั่วเอา ไม่หอมโทษร้าน",   
-        intensity: 100,     
-        volume: 1000 ,       
-        tester: false,       
-        slipImage: "image",
-        productImage : "image",
-        profileImage : "image",
+        intensity_level: 100,     
+        volume_ml: 1000 ,       
+        is_tester: false,       
+        payment_proof_url: "image",
+        image_url : "image",
+        profile_image : "image",
       },
       {
-        orderId: "order-5",
+        order_id: "order-5",
         userName: "Lorla",
-        productName: "หอมสดชื่น by Lorla",
-        price: 500,
+        name: "หอมสดชื่น by Lorla",
+        total_amount: 500,
         quantity: 1,
         status: "Custom ยืนยันแล้ว",
-        address: "ม.เกษตร กำแพงแสน",
-        fragrances: ["มะลิ","กุหลาบ","ลาเวนเดอร์"], 
+        street_name: "ถนน",
+        building: "อาคาร",
+        house_number: "บ้านเลขที่",
+        province: "จังหวัด",
+        amphoe: "อำเภอ",
+        tambon: "ตำบล",
+        zipcode: "ไปรสนี",
+        fragrance_name: ["มะลิ","กุหลาบ","ลาเวนเดอร์"], 
         description: "มะลิจางๆ กุหลาบอ่อนๆ เน้นความสดชื่นจากลาเวนเดอร์",   
-        intensity: 100,     
-        volume: 1000 ,       
-        tester: false,       
-        slipImage: "image",
-        productImage : "image",
-        profileImage : "image",
+        intensity_level: 100,     
+        volume_ml: 1000 ,       
+        is_tester: false,       
+        payment_proof_url: "image",
+        image_url : "image",
+        profile_image : "image",
       }
     ]);
   }, []);
 
-  const confirmOrder = (orderId : string) => {
-    alert("ยืนยันคำสั่งซื้อ: " + orderId);
-    console.log("ยืนยันคำสั่งซื้อ", orderId);
+  const confirmOrder = (order_id : string) => {
+    alert("ยืนยันคำสั่งซื้อ: " + order_id);
+    console.log("ยืนยันคำสั่งซื้อ", order_id);
     // คุณสามารถทำการอัพเดตสถานะหรือส่งคำขอไปที่ server ที่นี่
   };
   
-  const cancelOrder = (orderId : string) => {
-    alert("ยกเลิกคำสั่งซื้อ: " + orderId);
-    console.log("ยกเลิกคำสั่งซื้อ", orderId);
+  const cancelOrder = (order_id : string) => {
+    alert("ยกเลิกคำสั่งซื้อ: " + order_id);
+    console.log("ยกเลิกคำสั่งซื้อ", order_id);
     // อัพเดตสถานะคำสั่งซื้อเป็นยกเลิกหรือส่งคำขอไปที่ server ที่นี่
   };
   
-  const customConfirmOrder = (orderId : string, price : number) => {
-    alert("ยืนยันคำสั่งซื้อ Custom: " + orderId + " ราคา: " + price);
-    console.log("ยืนยันคำสั่งซื้อ Custom", orderId, price);
+  const customConfirmOrder = (order_id : string, total_amount : number) => {
+    alert("ยืนยันคำสั่งซื้อ Custom: " + order_id + " ราคา: " + total_amount);
+    console.log("ยืนยันคำสั่งซื้อ Custom", order_id, total_amount);
     // อัพเดตสถานะคำสั่งซื้อเป็นยืนยันแล้วและกำหนดราคา
   };
   
-  const customCancelOrder = (orderId : string) => {
-    alert("ยกเลิกคำสั่งซื้อ Custom: " + orderId);
-    console.log("ยกเลิกคำสั่งซื้อ Custom", orderId);
+  const customCancelOrder = (order_id : string) => {
+    alert("ยกเลิกคำสั่งซื้อ Custom: " + order_id);
+    console.log("ยกเลิกคำสั่งซื้อ Custom", order_id);
     // อัพเดตสถานะคำสั่งซื้อเป็นยกเลิกแล้ว
   };
   
