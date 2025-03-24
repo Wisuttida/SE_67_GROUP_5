@@ -40,10 +40,21 @@ export default function ProfileUser() {
   };
 
   const handleSaveProfile = () => {
-    // setUsername(shop);
+    const updatedShopData = {
+      ...shop_data,
+      shop_name: tempUsername,
+      accepts_custom: isChecked,
+    };
+  
+    // อัปเดต State
+    setShopData(updatedShopData); 
+    
+    // อัปเดต LocalStorage
+    localStorage.setItem('shop', JSON.stringify(updatedShopData)); 
+    setUsername(tempUsername); // อัปเดต username หลัก
     setProfileImage(tempProfileImage);
-    setIsEditing(false);
     setIsChecked(isChecked);
+    setIsEditing(false);
     axios.put(`${process.env.NEXT_PUBLIC_API_URL}/shop/updateProfile`,
       {
         shop_name : shop_data?.shop_name,
@@ -71,7 +82,10 @@ export default function ProfileUser() {
       withCredentials: true,
     })
     .then(res => {
+      const updatedShop = res.data.data.shop[0];
       localStorage.setItem('shop', JSON.stringify(res.data.data.shop[0]));
+      setShopData(updatedShop); // อัปเดตข้อมูล shop_data หลังเซฟ
+      setUsername(updatedShop.shop_name); // อัปเดต username หลัก
     })
     .catch(error => {
       console.error("Error fetching address:", error);
@@ -103,11 +117,15 @@ export default function ProfileUser() {
         const data: ShopData = JSON.parse(shop_dataGet);
         setShopData(data);
         setIsChecked(data.accepts_custom);
+        setUsername(data.shop_name);
+        setTempUsername(data.shop_name); // ตั้งค่า username ชั่วคราวสำหรับ input
       } catch (error) {
         console.error('Error parsing shop data from localStorage:', error);
       }
     }
   }, []);
+  
+
 
   return (
     <div className="flex min-h-screen bg-gray-300"> {/* เปลี่ยนที่นี่ */}
@@ -184,11 +202,10 @@ export default function ProfileUser() {
                 <input
                   id="username"
                   type="text"
-                  value={shop_data?.shop_name} // ใช้ tempUsername ที่สามารถแก้ไขได้
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="border rounded-md px-3 py-2 w-full mb-4 focus:ring-2 focus:ring-blue-500 text-black" // เพิ่ม text-black ที่นี่
+                  value={tempUsername} // ใช้ tempUsername แทน
+                  onChange={(e) => setTempUsername(e.target.value)} // อัปเดต tempUsername
+                  className="border rounded-md px-3 py-2 w-full mb-4 focus:ring-2 focus:ring-blue-500 text-black"
                 />
-
               </div>
               <div className="w-full mb-4 flex items-center gap-2">
                 <input
