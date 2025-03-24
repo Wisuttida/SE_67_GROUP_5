@@ -40,11 +40,10 @@ interface Cart {
 const CartPage = () => {
   const [cartItems, setCartItems] = useState<Cart[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const [selectedShop, setSelectedShop] = useState<string>("all"); // ใช้เป็น string เท่านั้น
+  const [selectedShop, setSelectedShop] = useState<string>("all");
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
 
-  // ดึง CSRF Token + ข้อมูลสินค้าจากตะกร้า
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -57,34 +56,24 @@ const CartPage = () => {
         console.error("❌ Error fetching data:", error);
       }
     };
+    fetchData();
+  }, []);
 
-    const fetchItemsByShop = async (shopId: number) => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/cart/items/shop/${shopId}`,
-          { withCredentials: true }
-        );
-        setCartItems(response.data.cart_items);
-      } catch (error) {
-        console.error("❌ Error fetching items by shop:", error);
+  const toggleSelectItem = (productId: number, shopId: number) => {
+    // หากเลือกสินค้าจากร้านหนึ่งแล้วไม่ให้เลือกสินค้าจากร้านอื่น
+    if (selectedItems.length > 0) {
+      const selectedShopId = cartItems.find(item => item.product.product_id === selectedItems[0])?.product.shop.shop_id;
+      if (selectedShopId !== shopId) {
+        alert("คุณสามารถเลือกสินค้าจากร้านเดียวเท่านั้น");
+        return;
       }
-    };
-
-    if (selectedShop !== "all") {
-      fetchItemsByShop(Number(selectedShop)); // แปลง selectedShop เป็นตัวเลข
-    } else {
-      fetchData();
     }
-  }, [selectedShop]);
 
-  // เลือกสินค้า
-  const toggleSelectItem = (productId: number) => {
     setSelectedItems(prev =>
       prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]
     );
   };
 
-  // ลบสินค้าออกจากตะกร้า
   const removeItemFromCart = async (cart_item_id: number) => {
     try {
       await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/cart/remove/${cart_item_id}`, {
@@ -105,7 +94,6 @@ const CartPage = () => {
     }
   };
 
-  // อัปเดตจำนวนสินค้า
   const updateQuantity = async (cart_item_id: number, newQty: number) => {
     setCartItems(prev =>
       prev.map(item =>
@@ -134,22 +122,26 @@ const CartPage = () => {
     }
   };
 
-  // คำนวณยอดรวม
   const calculateTotal = () =>
     cartItems
       .filter(item => selectedItems.includes(item.product.product_id))
       .reduce((total, item) => total + item.price * item.quantity, 0)
       .toFixed(2);
 
-  // สั่งซื้อ
   const handlePlaceOrder = () => {
     if (selectedItems.length === 0) return;
     
     setOrderSuccess(true);
     setSelectedItems([]);
   };
-  // รายชื่อร้านค้า
-  const shopList = ["all", ...new Set(cartItems.map(item => item.product.shop.shop_id))];
+
+  // ดึงชื่อร้านค้าไม่ซ้ำกันจาก cartItems
+  const shopList = Array.from(new Set(cartItems.map(item => `${item.product.shop.shop_id}|${item.product.shop.shop_name}`)));
+
+  // Filter cart ตามร้านค้าที่เลือก
+  const filteredItems = selectedShop === "all"
+    ? cartItems
+    : cartItems.filter(item => item.product.shop.shop_id === Number(selectedShop));
 
   return (
     <>
@@ -158,18 +150,19 @@ const CartPage = () => {
         <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
 
         {/* Filter by Shop */}
-        <div className="mb-4">
+        <div className="mb-6">
           <label className="block text-gray-700 font-semibold mb-2">Filter by Shop</label>
           <Select value={selectedShop} onValueChange={setSelectedShop}>
             <SelectTrigger className="w-64">
               <SelectValue placeholder="Select a shop" />
             </SelectTrigger>
             <SelectContent>
-              {shopList.map((shopId, index) => {
-                const shop = cartItems.find(item => item.product.shop.shop_id === Number(shopId))?.product.shop;
+              <SelectItem value="all">All Shops</SelectItem>
+              {shopList.map((shopString, index) => {
+                const [shopId, shopName] = shopString.split("|");
                 return (
-                  <SelectItem key={index} value={String(shopId)}>
-                    {shopId === "all" ? "All Shops" : shop?.shop_name}
+                  <SelectItem key={index} value={shopId}>
+                    {shopName}
                   </SelectItem>
                 );
               })}
@@ -179,55 +172,51 @@ const CartPage = () => {
 
         {/* Cart Items */}
         <div className="space-y-4">
-          {cartItems.length === 0 ? (
+          {filteredItems.length === 0 ? (
             <p>Your cart is empty</p>
           ) : (
-            cartItems
-              .filter(item => selectedShop === "all" || item.product.shop.shop_id === Number(selectedShop)) // แปลง selectedShop เป็นตัวเลขในการกรอง
-              .map(item => (
-                <div key={item.product.product_id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className="mr-3 w-5 h-5"
-                      checked={selectedItems.includes(item.product.product_id)}
-                      onChange={() => toggleSelectItem(item.product.product_id)}
-                    />
-                    <img
-                      src={item.product.shop.shop_image || "/path/to/default-image.jpg"}
-                      alt={item.product.shop.shop_name}
-                      className="w-10 h-10 rounded-full mr-3"
-                    />
-                    <div>
-                      <h2 className="font-semibold">{item.product.name}</h2>
-                      <p className="text-gray-500">Price: ฿{item.price}</p>
-                      <p className="text-sm text-gray-600">Shop: {item.product.shop.shop_name}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4">
-                    <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity - 1)} disabled={item.quantity <= 1}>-</Button>
-                    <span>{item.quantity}</span>
-                    <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity + 1)}>+</Button>
-                    <Button variant="outline" onClick={() => removeItemFromCart(item.cart_item_id)}>Remove</Button>
+            filteredItems.map(item => (
+              <div key={item.product.product_id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-3 w-5 h-5"
+                    checked={selectedItems.includes(item.product.product_id)}
+                    onChange={() => toggleSelectItem(item.product.product_id, item.product.shop.shop_id)}
+                  />
+                  <img
+                    src={item.product.shop.shop_image || "/path/to/default-image.jpg"}
+                    alt={item.product.shop.shop_name}
+                    className="w-10 h-10 rounded-full mr-3"
+                  />
+                  <div>
+                    <h2 className="font-semibold">{item.product.name}</h2>
+                    <p className="text-gray-500">Price: ${item.price}</p>
+                    <p className="text-sm text-gray-600">Shop: {item.product.shop.shop_name}</p>
                   </div>
                 </div>
-              ))
+
+                <div className="flex items-center space-x-4">
+                  <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity - 1)} disabled={item.quantity <= 1}>-</Button>
+                  <span>{item.quantity}</span>
+                  <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity + 1)}>+</Button>
+                  <Button variant="outline" onClick={() => removeItemFromCart(item.cart_item_id)}>Remove</Button>
+                </div>
+              </div>
+            ))
           )}
         </div>
       </div>
 
       {/* Total & Place Order */}
-      {selectedItems.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-t z-50">
-          <div className="container mx-auto flex justify-between items-center">
-            <h2 className="text-xl font-bold">Total: ฿{calculateTotal()}</h2>
-            <Button variant="outline" onClick={handlePlaceOrder}>
-              <ShoppingCart size={20} className="mr-2" /> Place Order
-            </Button>
-          </div>
+      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-t z-50">
+        <div className="container mx-auto flex justify-between items-center">
+          <h2 className="text-xl font-bold">Total: ${calculateTotal()}</h2>
+          <Button variant="outline" onClick={handlePlaceOrder}>
+            <ShoppingCart size={20} className="mr-2" /> Place Order
+          </Button>
         </div>
-      )}
+      </div>
 
       {/* Order Success Dialog */}
       <Dialog open={orderSuccess} onOpenChange={setOrderSuccess}>
