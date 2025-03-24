@@ -4,21 +4,22 @@ import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import { useRouter } from 'next/navigation';
 import SideBarShop from '@/components/SideBarShop';
+import axios from 'axios';
 
 const AddProduct = () => {
     const router = useRouter();
 
     const [product, setProduct] = useState({
-        productName: '',
+        name: '',
         price: 0,
-        stock: 0,
+        stock_quantity: 0,
         quantity: 1,
-        fragrance: '',
-        strengths: '',
+        fragrance_tone_name: '',
+        fragrance_strength: '',
         volume: 0,
-        gender: '',
+        gender_target: '',
         description: '',
-        image: null,
+        image_url: null,
     });
 
     const handleChange = (e) => {
@@ -30,14 +31,52 @@ const AddProduct = () => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setProduct((prev) => ({ ...prev, image: URL.createObjectURL(file) }));
+            setProduct((prev) => ({ ...prev, image_url: URL.createObjectURL(file) }));
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Product Added:', product);
-        router.push('/myProductShop');
+
+        // ตรวจสอบข้อมูลที่เก็บใน state
+        const formData = new FormData();
+        formData.append('name', product.name);
+        formData.append('price', product.price.toString());
+        formData.append('stock_quantity', product.stock_quantity.toString());
+        formData.append('quantity', product.quantity.toString());
+        formData.append('fragrance_tone_name', product.fragrance_tone_name);
+        formData.append('fragrance_strength', product.fragrance_strength);
+        formData.append('volume', product.volume.toString());
+        formData.append('gender_target', product.gender_target);
+        formData.append('description', product.description);
+
+        // ถ้ามีการเลือกไฟล์รูปภาพ
+        if (product.image_url) {
+            const imageFile = product.image_url.split(',')[1]; // ตัด URL ของรูปภาพที่เก็บใน state
+            const fileBlob = new Blob([new Uint8Array(atob(imageFile).split('').map(c => c.charCodeAt(0)))], { type: 'image/jpeg' });
+            formData.append('image', fileBlob, 'product-image.jpg');
+        }
+
+        try {
+            // ส่งข้อมูลไปยัง backend
+            const response = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/products/add`,  // ปรับ URL API ของคุณให้ตรง
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',  // กำหนด Content-Type สำหรับการส่งไฟล์
+                    },
+                    withCredentials: true,  // ส่งคุกกี้สำหรับการยืนยัน
+                }
+            );
+
+            // ถ้าส่งข้อมูลสำเร็จ
+            alert("✅ เพิ่มสินค้าในร้านสำเร็จ!");
+            router.push("/myProductShop"); // ไปยังหน้าที่แสดงสินค้าของร้าน
+        } catch (error) {
+            console.error("Error adding product:", error);
+            alert("❌ ไม่สามารถเพิ่มสินค้า: " + (error.response?.data?.error || error.message));
+        }
     };
 
     return (
@@ -53,9 +92,9 @@ const AddProduct = () => {
                         <div className="mt-6 bg-white p-6 rounded-lg shadow-md flex">
                             <div className="flex flex-col items-center p-4">
                                 <div className="w-64 h-64 bg-gray-200 flex items-center justify-center rounded-lg mb-4 relative">
-                                    {product.image ? (
+                                    {product.image_url ? (
                                         <>
-                                            <img src={product.image} alt="Product" className="w-full h-full object-cover rounded-lg" />
+                                            <img src={product.image_url} alt="Product" className="w-full h-full object-cover rounded-lg" />
                                             <label className="absolute bottom-2 right-2 bg-black text-white p-1 rounded cursor-pointer">
                                                 Change Image
                                                 <input
@@ -76,9 +115,9 @@ const AddProduct = () => {
                             </div>
 
                             <div className="flex-1 grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-                                {[{ name: 'productName', label: 'ชื่อสินค้า', type: 'text' },
+                                {[{ name: 'name', label: 'ชื่อสินค้า', type: 'text' },
                                 { name: 'price', label: 'ราคา', type: 'number', min: 0 },
-                                { name: 'stock', label: 'จำนวนในคลัง', type: 'number', min: 0 },
+                                { name: 'stock_quantity', label: 'จำนวนในคลัง', type: 'number', min: 0 },
                                 { name: 'quantity', label: 'ขั้นต่ำในการสั่งซื้อ', type: 'number', min: 1 }].map(({ name, label, type, min }) => (
                                     <div key={name}>
                                         <label className="block mb-1 text-sm font-medium text-gray-700">{label}</label>
@@ -97,8 +136,8 @@ const AddProduct = () => {
                                 <div>
                                     <label className="block mb-1 text-sm font-medium text-gray-700">ความเข้มข้นของน้ำหอม</label>
                                     <select
-                                        name="strengths"
-                                        value={product.strengths}
+                                        name="fragrance_strength"
+                                        value={product.fragrance_strength}
                                         onChange={handleChange}
                                         className="p-2 border rounded-lg w-full"
                                     >
@@ -112,8 +151,8 @@ const AddProduct = () => {
                                 <div>
                                     <label className="block mb-1 text-sm font-medium text-gray-700">เพศ</label>
                                     <select
-                                        name="gender"
-                                        value={product.gender}
+                                        name="gender_target"
+                                        value={product.gender_target}
                                         onChange={handleChange}
                                         className="p-2 border rounded-lg w-full"
                                     >
@@ -127,8 +166,8 @@ const AddProduct = () => {
                                 <div>
                                     <label className="block mb-1 text-sm font-medium text-gray-700">กลิ่น</label>
                                     <select
-                                        name="fragrance"
-                                        value={product.fragrance}
+                                        name="fragrance_tone_name"
+                                        value={product.fragrance_tone_name}
                                         onChange={handleChange}
                                         className="p-2 border rounded-lg w-full"
                                     >
