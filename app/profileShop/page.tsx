@@ -4,6 +4,13 @@ import Navbar from '@/components/Navbar';
 import SideBarShop from '@/components/SideBarShop';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface AddressInfo {
   ชื่อ: string;
@@ -116,6 +123,39 @@ const ProfileShop = () => {
   const handleSave = () => {
     console.log('Bank Info Saved:', bankInfo);
     setIsEditing(false);
+    axios.put(`${process.env.NEXT_PUBLIC_API_URL}/shop/updateBank`,
+      {
+        bank_name : bankInfo.ธนาคาร,
+        bank_account : bankInfo.ชื่อ,
+        bank_number : bankInfo.เลขบัญชี,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        withCredentials: true,
+      }
+    ).catch(error => {
+      console.error('Error saving address:', error.response ? error.response.data : error.message);
+    });
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/shop/get`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrf,
+      },
+      withCredentials: true,
+    })
+    .then(res => {
+      localStorage.setItem('shop', JSON.stringify(res.data.data.shop[0]));
+    })
+    .catch(error => {
+      console.error("Error fetching address:", error);
+    });
   };
 
   const handleDescriptionSave = () => {
@@ -230,6 +270,25 @@ const ProfileShop = () => {
     }
   }, []);
   
+  const bankOptions = [
+    { value: 'ธนาคารกรุงเทพ (BBL)', label: 'ธนาคารกรุงเทพ (BBL)' },
+    { value: 'ธนาคารกสิกรไทย (KBANK)', label: 'ธนาคารกสิกรไทย (KBANK)' },
+    { value: 'ธนาคารไทยพาณิชย์ (SCB)', label: 'ธนาคารไทยพาณิชย์ (SCB)' },
+    { value: 'ธนาคารกรุงไทย (KTB)', label: 'ธนาคารกรุงไทย (KTB)' },
+    { value: 'ธนาคารกรุงศรีอยุธยา (BAY)', label: 'ธนาคารกรุงศรีอยุธยา (BAY)' },
+    { value: 'ธนาคารทหารไทยธนชาต (TTB)', label: 'ธนาคารทหารไทยธนชาต (TTB)' },
+    { value: 'ธนาคารซีไอเอ็มบี ไทย (CIMBT)', label: 'ธนาคารซีไอเอ็มบี ไทย (CIMBT)' },
+    { value: 'ธนาคารยูโอบี (UOB Thailand)', label: 'ธนาคารยูโอบี (UOB Thailand)' },
+    { value: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)', label: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)' },
+    { value: 'ธนาคารออมสิน (GSB)', label: 'ธนาคารออมสิน (GSB)' },
+  ];
+  const bankSelect = (value : string) => {
+    setBankInfo(prevState => ({
+      ...prevState,
+      ธนาคาร: value,
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
@@ -313,13 +372,28 @@ const ProfileShop = () => {
                 {Object.entries(bankInfo).map(([key, value]) => (
                   <div key={key}>
                     <label className="block mb-1">{key.replace(/([A-Z])/g, ' $1')}</label>
-                    <input
-                      name={key}
-                      value={value}
-                      onChange={handleChange}
-                      className="p-2 border rounded-lg w-full"
-                      placeholder={key}
-                    />
+                    {key === 'ธนาคาร' ? (
+                      <Select onValueChange={bankSelect} defaultValue={value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a bank" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {bankOptions.map((bank) => (
+                            <SelectItem key={bank.value} value={bank.value}>
+                              {bank.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <input
+                        name={key}
+                        value={value}
+                        onChange={handleChange}
+                        className="p-2 border rounded-lg w-full"
+                        placeholder={key}
+                      />
+                    )}
                   </div>
                 ))}
                 <div className="flex justify-end mt-4 space-x-4">
