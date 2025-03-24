@@ -213,7 +213,6 @@ export default function ProfileUser() {
         try {
             const data: UserData = JSON.parse(user_dataGet);
             setUserData(data);
-            console.log(data);
         } catch (error) {
             console.error('Error parsing user data from localStorage:', error);
         }
