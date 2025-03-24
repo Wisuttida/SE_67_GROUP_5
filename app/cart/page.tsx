@@ -144,10 +144,10 @@ const CartPage = () => {
   // สั่งซื้อ
   const handlePlaceOrder = () => {
     if (selectedItems.length === 0) return;
+    
     setOrderSuccess(true);
     setSelectedItems([]);
   };
-
   // รายชื่อร้านค้า
   const shopList = ["all", ...new Set(cartItems.map(item => item.product.shop.shop_id))];
 
@@ -200,7 +200,7 @@ const CartPage = () => {
                     />
                     <div>
                       <h2 className="font-semibold">{item.product.name}</h2>
-                      <p className="text-gray-500">Price: ${item.price}</p>
+                      <p className="text-gray-500">Price: ฿{item.price}</p>
                       <p className="text-sm text-gray-600">Shop: {item.product.shop.shop_name}</p>
                     </div>
                   </div>
@@ -221,7 +221,7 @@ const CartPage = () => {
       {selectedItems.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-t z-50">
           <div className="container mx-auto flex justify-between items-center">
-            <h2 className="text-xl font-bold">Total: ${calculateTotal()}</h2>
+            <h2 className="text-xl font-bold">Total: ฿{calculateTotal()}</h2>
             <Button variant="outline" onClick={handlePlaceOrder}>
               <ShoppingCart size={20} className="mr-2" /> Place Order
             </Button>

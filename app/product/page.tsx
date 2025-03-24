@@ -47,7 +47,6 @@ const ProductPage = () => {
         console.error("Error fetching products:", error);
       });
     }, []);
-
   // ฟังก์ชันจัดการเปลี่ยนแปลง checkbox สำหรับ gender
   const handleGenderChange = (gender: string) => {
     if (selectedGenders.includes(gender)) {

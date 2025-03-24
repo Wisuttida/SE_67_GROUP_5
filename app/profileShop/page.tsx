@@ -26,6 +26,8 @@ interface BankInfo {
 }
 
 const ProfileShop = () => {
+  let csrf = localStorage.getItem('csrfToken');
+  let token = localStorage.getItem('token');
   const [isAddressEditing, setIsAddressEditing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
@@ -126,8 +128,6 @@ const ProfileShop = () => {
     setAddressInfo((prev) => ({ ...prev, [name]: value }));
   };
 
-  let csrf = localStorage.getItem('csrfToken');
-  let token = localStorage.getItem('token');
   const handleAddressSave = () => {
     console.log('Address Saved:', addressInfo);
     setIsAddressEditing(false);
