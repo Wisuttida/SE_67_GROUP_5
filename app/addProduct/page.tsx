@@ -57,26 +57,26 @@ const AddProduct = () => {
             formData.append('image', fileBlob, 'product-image.jpg');
         }
 
-        try {
-            // ส่งข้อมูลไปยัง backend
-            const response = await axios.post(
-                `${process.env.NEXT_PUBLIC_API_URL}/products/add`,  // ปรับ URL API ของคุณให้ตรง
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',  // กำหนด Content-Type สำหรับการส่งไฟล์
-                    },
-                    withCredentials: true,  // ส่งคุกกี้สำหรับการยืนยัน
-                }
-            );
+        // try {
+        //     // ส่งข้อมูลไปยัง backend
+        //     const response = await axios.post(
+        //         `${process.env.NEXT_PUBLIC_API_URL}/products/add`,  // ปรับ URL API ของคุณให้ตรง
+        //         formData,
+        //         {
+        //             headers: {
+        //                 'Content-Type': 'multipart/form-data',  // กำหนด Content-Type สำหรับการส่งไฟล์
+        //             },
+        //             withCredentials: true,  // ส่งคุกกี้สำหรับการยืนยัน
+        //         }
+        //     );
 
-            // ถ้าส่งข้อมูลสำเร็จ
-            alert("✅ เพิ่มสินค้าในร้านสำเร็จ!");
-            router.push("/myProductShop"); // ไปยังหน้าที่แสดงสินค้าของร้าน
-        } catch (error) {
-            console.error("Error adding product:", error);
-            alert("❌ ไม่สามารถเพิ่มสินค้า: " + (error.response?.data?.error || error.message));
-        }
+        //     // ถ้าส่งข้อมูลสำเร็จ
+        //     alert("✅ เพิ่มสินค้าในร้านสำเร็จ!");
+        //     router.push("/myProductShop"); // ไปยังหน้าที่แสดงสินค้าของร้าน
+        // } catch (error) {
+        //     console.error("Error adding product:", error);
+        //     alert("❌ ไม่สามารถเพิ่มสินค้า: " + (error.response?.data?.error || error.message));
+        // }
     };
 
     return (
