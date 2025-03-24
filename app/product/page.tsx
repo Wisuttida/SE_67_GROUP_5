@@ -17,6 +17,7 @@ interface Product {
   fragrance_strength: string;
   shopName: string;
   shopImage: string;
+  fragrance_tones: { fragrance_tone_id: number; fragrance_tone_name: string }[];
 }
 
 const genderOptions = [
@@ -25,14 +26,24 @@ const genderOptions = [
   { label: "ยูนิเซ็กซ์", value: "unisex" },
 ];
 
+const strengthOptions = [
+  { label: "Extrait de Parfum", value: "extrait de parfum"},
+  { label: "Eau de Parfum (EDP)", value: "eau de parfum (edp)"},
+  { label: "Eau de Toilette (EDT)", value: "eau de toilette (edt)"},
+  { label: "Eau de Cologne (EDC)", value: "eau de cologne (edc)"},
+  { label: "Eau Fraiche/mists", value: "eau fraiche/mists"},
+];
+
 const ProductPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  
+
   // State สำหรับ filter
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [searchName, setSearchName] = useState<string>("");
   const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
+
+  const [selectedStrengths, setSelectedStrengths] = useState<string[]>([]);
 
   useEffect(() => {
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`)
@@ -46,7 +57,7 @@ const ProductPage = () => {
       .catch(error => {
         console.error("Error fetching products:", error);
       });
-    }, []);
+  }, []);
 
   // ฟังก์ชันจัดการเปลี่ยนแปลง checkbox สำหรับ gender
   const handleGenderChange = (gender: string) => {
@@ -57,10 +68,19 @@ const ProductPage = () => {
     }
   };
 
+  const handleStrengthChange = (strength: string) => {
+    if (selectedStrengths.includes(strength)) {
+      setSelectedStrengths(selectedStrengths.filter(s => s !== strength));
+    } else {
+      setSelectedStrengths([...selectedStrengths, strength]);
+    }
+  };
+
+
   // กรองข้อมูลสินค้าตาม filter ที่ระบุ
   const filteredProducts = products.filter((product) => {
     const productPrice = parseFloat(product.price);
-
+    
     // กรองราคาขั้นต่ำ
     if (minPrice && productPrice < parseFloat(minPrice)) {
       return false;
@@ -76,9 +96,16 @@ const ProductPage = () => {
       return false;
     }
 
-    // กรองตามเพศ (gender) แบบ checkbox
-    if (selectedGenders) {
-      if (product.gender_target.toLowerCase() === selectedGenders[0]) {
+    // กรองตามเพศ (gender) แบบ checkbox (แก้ให้รองรับหลาย gender)
+    if (selectedGenders.length > 0) {
+      if (!selectedGenders.includes(product.gender_target.toLowerCase())) {
+        return false;
+      }
+    }
+
+    // Filter Fragrance Strength
+    if (selectedStrengths.length > 0) {
+      if (!selectedStrengths.includes(product.fragrance_strength.toLowerCase())) {
         return false;
       }
     }
@@ -132,20 +159,39 @@ const ProductPage = () => {
           {/* Filter เพศ (gender) แบบ checkbox */}
           <div>
             <span className="block mb-1 font-semibold">เพศ:</span>
-            {genderOptions.map((option) => (
-              <div key={option.value} className="flex items-center mb-2">
+            {genderOptions.map((gender) => (
+              <div key={gender.value} className="flex items-center mb-2">
                 <input
                   type="checkbox"
-                  id={option.value}
-                  value={option.value}
-                  checked={selectedGenders.includes(option.value)}
-                  onChange={(e) => handleGenderChange(option.value)}
+                  id={gender.value}
+                  value={gender.value}
+                  checked={selectedGenders.includes(gender.value)}
+                  onChange={(e) => handleGenderChange(gender.value)}
                   className="mr-2"
                 />
-                <label htmlFor={option.value}>{option.label}</label>
+                <label htmlFor={gender.value}>{gender.label}</label>
               </div>
             ))}
           </div>
+
+          {/* Filter Fragrance Strength */}
+          <div className="mb-4">
+            <span className="block mb-1 font-semibold">Fragrance Strength:</span>
+            {strengthOptions.map((strength) => (
+              <div key={strength.value} className="flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  id={strength.value}
+                  value={strength.value}
+                  checked={selectedStrengths.includes(strength.value)}
+                  onChange={() => handleStrengthChange(strength.value)}
+                  className="mr-2"
+                />
+                <label htmlFor={strength.value}>{strength.label}</label>
+              </div>
+            ))}
+          </div>
+
         </aside>
 
         {/* ส่วนแสดงสินค้า */}
