@@ -55,10 +55,10 @@ const CartPage = () => {
           axios.get(`http://localhost:8000/csrf-token`, { withCredentials: true }),
           axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cart/items`, { withCredentials: true }),
         ]);
-  
+
         setCsrfToken(csrfResponse.data.csrf_token);
         setCartItems(cartResponse.data.cart_items);
-  
+
         // ✅ ดึง address จาก localStorage แทน API
         const addressFromStorage = localStorage.getItem('addresses');
         if (addressFromStorage) {
@@ -67,7 +67,7 @@ const CartPage = () => {
             (a: any, b: any) => b.is_default - a.is_default
           );
           setAddresses(sortedAddresses);
-  
+
           // ✅ auto select default address
           if (sortedAddresses.length > 0) {
             setSelectedAddress(sortedAddresses[0].address_id.toString());
@@ -76,15 +76,15 @@ const CartPage = () => {
         } else {
           console.warn("⚠️ No address data found in localStorage");
         }
-  
+
       } catch (error) {
         console.error("❌ Error fetching data:", error);
       }
     };
-  
+
     fetchData();
   }, []);
-  
+
 
   useEffect(() => {
     // Check if the order was placed and open the dialog
@@ -98,7 +98,7 @@ const CartPage = () => {
   useEffect(() => {
     console.log("✅ Address Selected:", selectedAddress);
   }, [selectedAddress]);
-  
+
   const toggleSelectItem = (productId: number, shopId: number) => {
     // หากเลือกสินค้าจากร้านหนึ่งแล้วไม่ให้เลือกสินค้าจากร้านอื่น
     if (selectedItems.length > 0) {
@@ -294,10 +294,39 @@ const CartPage = () => {
                 </div>
 
                 <div className="flex items-center space-x-4">
-                  <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity - 1)} disabled={item.quantity <= 1}>-</Button>
-                  <span>{item.quantity}</span>
-                  <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity + 1)}>+</Button>
-                  <Button variant="outline" onClick={() => removeItemFromCart(item.cart_item_id)}>Remove</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => updateQuantity(item.cart_item_id, item.quantity - 1)}
+                    disabled={item.quantity <= 1}
+                  >
+                    -
+                  </Button>
+
+                  <input
+                    type="number"
+                    min={1}
+                    max={item.stock_quantity}
+                    value={item.quantity}
+                    onChange={(e) => {
+                      let newQty = parseInt(e.target.value);
+                      if (isNaN(newQty) || newQty < 1) newQty = 1;
+                      if (newQty > item.stock_quantity) newQty = item.stock_quantity;
+                      updateQuantity(item.cart_item_id, newQty);
+                    }}
+                    className="w-16 text-center border rounded px-2 py-1 no-spinner"
+                  />
+
+                  <Button
+                    variant="outline"
+                    onClick={() => updateQuantity(item.cart_item_id, item.quantity + 1)}
+                    disabled={item.quantity >= item.stock_quantity}
+                  >
+                    +
+                  </Button>
+
+                  <Button variant="outline" onClick={() => removeItemFromCart(item.cart_item_id)}>
+                    Remove
+                  </Button>
                 </div>
               </div>
             ))
