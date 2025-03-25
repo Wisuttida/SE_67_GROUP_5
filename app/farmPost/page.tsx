@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import { useState, useEffect } from "react";
 import { FiMoreVertical } from "react-icons/fi";
 import { ChangeEvent} from "react";
+import SideBarFarm from '@/components/SideBarFarm';
 
 
 const FarmPost = () => {
@@ -190,7 +191,9 @@ useEffect(() => {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="flex">
-        {/* ใส่ sidebar farm ตรงนี้ */}
+        <div>
+        <SideBarFarm/>
+        </div>
         <div className="flex-1 p-6">
           <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold mb-4 text-center">สร้างโพสต์</h2>
