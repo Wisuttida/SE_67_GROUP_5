@@ -414,11 +414,6 @@ const ProfileShop = () => {
                       }
                       return null; // Return null for keys that should not be rendered
                   })}
-                  {/* {Object.entries(addressInfo).filter(([key]) => key !== 'position_id' && key !== 'address_id').map(([key, value]) => (
-                    <div key={key}>
-                      <label className="block mb-1">{key.replace(/([A-Z])/g, ' $1')}</label>
-                    </div>
-                  ))} */}
                 </div>
                 <div className="flex justify-end mt-6 space-x-4">
                   <button onClick={handleCancelAddressEdit} className="bg-gray-300 px-4 py-2 rounded-lg">ยกเลิก</button>
