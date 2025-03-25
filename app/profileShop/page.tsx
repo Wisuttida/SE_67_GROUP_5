@@ -35,10 +35,12 @@ interface BankInfo {
 const ProfileShop = () => {
   let csrf = localStorage.getItem('csrfToken');
   let token = localStorage.getItem('token');
+  let shopData = localStorage.getItem('shop');
   const [isAddressEditing, setIsAddressEditing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [description, setDescription] = useState('');
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
-
+  
   // เก็บค่าก่อนแก้ไข
   const [tempAddressInfo, setTempAddressInfo] = useState<AddressInfo | null>(null);
   const [tempDescription, setTempDescription] = useState('');
@@ -71,7 +73,6 @@ const ProfileShop = () => {
     รหัสไปรษณีย์: '',
   }]);
 
-  const [description, setDescription] = useState('');
   const [bankInfo, setBankInfo] = useState<BankInfo>({
     ธนาคาร: '',
     เลขบัญชี: '',
@@ -161,6 +162,37 @@ const ProfileShop = () => {
   const handleDescriptionSave = () => {
     console.log('Description Saved:', description);
     setIsDescriptionEditing(false);
+    axios.put(`${process.env.NEXT_PUBLIC_API_URL}/shop/updateDescription`,
+      {
+        description : description,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        withCredentials: true,
+      }
+    ).catch(error => {
+      console.error('Error saving address:', error.response ? error.response.data : error.message);
+    });
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/shop/get`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrf,
+      },
+      withCredentials: true,
+    })
+    .then(res => {
+      localStorage.setItem('shop', JSON.stringify(res.data.data.shop[0]));
+    })
+    .catch(error => {
+      console.error("Error fetching address:", error);
+    });
   };
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {

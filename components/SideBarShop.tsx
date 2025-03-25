@@ -47,7 +47,7 @@ export default function ProfileUser() {
     };
   
     // อัปเดต State
-    setShopData(updatedShopData); 
+    //setShopData(updatedShopData.shop_name); 
     
     // อัปเดต LocalStorage
     localStorage.setItem('shop', JSON.stringify(updatedShopData)); 
@@ -57,7 +57,7 @@ export default function ProfileUser() {
     setIsEditing(false);
     axios.put(`${process.env.NEXT_PUBLIC_API_URL}/shop/updateProfile`,
       {
-        shop_name : shop_data?.shop_name,
+        shop_name : updatedShopData.shop_name,
         accepts_custom : isChecked
       },
       {
@@ -70,7 +70,7 @@ export default function ProfileUser() {
         withCredentials: true,
       }
     ).catch(error => {
-      console.error('Error saving address:', error.response ? error.response.data : error.message);
+      console.error('Error saving profile:', error.response ? error.response.data : error.message);
     });
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/shop/get`, {
       headers: {
