@@ -4,12 +4,15 @@ import { useState, useEffect } from "react";
 import { Edit, Store, Truck, User, ClipboardList, UserRoundSearch , Inbox, Check,  Boxes, Plus, X, PackageOpen } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import axios from 'axios';
 import Image from "next/image";
 
 const DEFAULT_PROFILE_IMAGE = "/default-profile.png"; // รูปโปรไฟล์เริ่มต้น
 
 export default function ProfileUser() {
-  const [username, setUsername] = useState("Username");
+  let csrf = localStorage.getItem('csrfToken');
+  let token = localStorage.getItem('token');
+  const [username, setUsername] = useState('');
   const [profileImage, setProfileImage] = useState(DEFAULT_PROFILE_IMAGE);
   const [isEditing, setIsEditing] = useState(false);
   const [tempUsername, setTempUsername] = useState(username);
@@ -37,10 +40,56 @@ export default function ProfileUser() {
   };
 
   const handleSaveProfile = () => {
-    setUsername(tempUsername);
+    const updatedShopData = {
+      ...shop_data,
+      shop_name: tempUsername,
+      accepts_custom: isChecked,
+    };
+  
+    // อัปเดต State
+    setShopData(updatedShopData); 
+    
+    // อัปเดต LocalStorage
+    localStorage.setItem('shop', JSON.stringify(updatedShopData)); 
+    setUsername(tempUsername); // อัปเดต username หลัก
     setProfileImage(tempProfileImage);
+    setIsChecked(isChecked);
     setIsEditing(false);
-    setIsChecked(tempIsChecked);
+    axios.put(`${process.env.NEXT_PUBLIC_API_URL}/shop/updateProfile`,
+      {
+        shop_name : shop_data?.shop_name,
+        accepts_custom : isChecked
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        withCredentials: true,
+      }
+    ).catch(error => {
+      console.error('Error saving address:', error.response ? error.response.data : error.message);
+    });
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/shop/get`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrf,
+      },
+      withCredentials: true,
+    })
+    .then(res => {
+      const updatedShop = res.data.data.shop[0];
+      localStorage.setItem('shop', JSON.stringify(res.data.data.shop[0]));
+      setShopData(updatedShop); // อัปเดตข้อมูล shop_data หลังเซฟ
+      setUsername(updatedShop.shop_name); // อัปเดต username หลัก
+    })
+    .catch(error => {
+      console.error("Error fetching address:", error);
+    });
   };
 
   const handleCancelEdit = () => {
@@ -68,11 +117,15 @@ export default function ProfileUser() {
         const data: ShopData = JSON.parse(shop_dataGet);
         setShopData(data);
         setIsChecked(data.accepts_custom);
+        setUsername(data.shop_name);
+        setTempUsername(data.shop_name); // ตั้งค่า username ชั่วคราวสำหรับ input
       } catch (error) {
         console.error('Error parsing shop data from localStorage:', error);
       }
     }
   }, []);
+  
+
 
   return (
     <div className="flex min-h-screen bg-gray-300"> {/* เปลี่ยนที่นี่ */}
@@ -95,7 +148,7 @@ export default function ProfileUser() {
           <div className="mt-2 flex items-center justify-center gap-2">
             <input type="checkbox" checked={isChecked} disabled className="hidden" />
             <div className={`w-5 h-5 border-2 border-gray-400 rounded-md flex items-center justify-center ${isChecked ? 'bg-blue-500 border-blue-500' : ''}`}>
-              {isChecked && <Check className="w-4 h-4 text-white" />}
+              {shop_data?.accepts_custom && isChecked ? <Check className="w-4 h-4 text-white" /> : null}
             </div>
             <span className="text-sm text-gray-700">รับคำสั่งซื้อ Custom</span>
           </div>
@@ -149,22 +202,21 @@ export default function ProfileUser() {
                 <input
                   id="username"
                   type="text"
-                  value={tempUsername} // ใช้ tempUsername ที่สามารถแก้ไขได้
-                  onChange={(e) => setTempUsername(e.target.value)}
-                  className="border rounded-md px-3 py-2 w-full mb-4 focus:ring-2 focus:ring-blue-500 text-black" // เพิ่ม text-black ที่นี่
+                  value={tempUsername} // ใช้ tempUsername แทน
+                  onChange={(e) => setTempUsername(e.target.value)} // อัปเดต tempUsername
+                  className="border rounded-md px-3 py-2 w-full mb-4 focus:ring-2 focus:ring-blue-500 text-black"
                 />
-
               </div>
               <div className="w-full mb-4 flex items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={tempIsChecked}
-                  onChange={(e) => setTempIsChecked(e.target.checked)}
+                  checked={shop_data?.accepts_custom}
+                  onChange={(e) => setIsChecked(e.target.checked)}
                   className="hidden"
                 />
-                <div className={`w-5 h-5 border-2 border-gray-400 rounded-md flex items-center justify-center ${tempIsChecked ? 'bg-blue-500 border-blue-500' : ''}`}
-                onClick={() => setTempIsChecked(!tempIsChecked)}>
-                  {tempIsChecked && <Check className="w-4 h-4 text-white" />}
+                <div className={`w-5 h-5 border-2 border-gray-400 rounded-md flex items-center justify-center ${isChecked ? 'bg-blue-500 border-blue-500' : ''}`}
+                onClick={() => setIsChecked(!isChecked)}>
+                  {isChecked && <Check className="w-4 h-4 text-white" />}
                 </div>
                 <span className="text-sm text-gray-700">รับคำสั่งซื้อ Custom</span>
               </div>

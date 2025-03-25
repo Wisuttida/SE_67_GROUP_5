@@ -209,6 +209,63 @@ export default function ProfileUser() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(
+        'https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json'
+      );
+      const result = await response.json();
+      setProvinces(result);
+    };
+
+    fetchData();
+  }, []);
+
+  const DropdownList = ({
+    label,
+    id,
+    list,
+    child,
+    childsId = [],
+    setChilds = [],
+  }) => {
+    const onChangeHandle = (event) => {
+      setChilds.forEach((setChild) => setChild([]));
+      const entries = childsId.map((child) => [child, undefined]);
+      const unSelectChilds = Object.fromEntries(entries);
+
+      const input = event.target.value;
+      const dependId = input ? Number(input) : undefined;
+      setSelected((prev) => ({ ...prev, ...unSelectChilds, [id]: dependId }));
+
+      if (!input) return;
+
+      if (child) {
+        const parent = list.find((item) => item.id === dependId);
+        const { [child]: childs } = parent;
+        const [setChild] = setChilds;
+        setChild(childs);
+      }
+    };
+
+    return (
+      <>
+        <label htmlFor={label}>{label}</label>
+        <select value={selected[id]} onChange={onChangeHandle} className="w-full px-3 py-2 border rounded-md">
+          <option label="เลือกข้อมูล ..." />
+          {list &&
+            list.map((item) => (
+              <option
+                key={item.id}
+                value={item.id}
+                label={`${item.name_th} - ${item.name_en}`}
+              />
+            ))}
+        </select>
+      </>
+    );
+  };
+
   return (
     <div>
       <Navbar />
@@ -426,6 +483,14 @@ export default function ProfileUser() {
                   selected={selected}
                   setSelected={setSelected}
                 />
+                <DropdownList
+                  label="จังหวัด"
+                  id="province_id"
+                  list={provinces}
+                  child="amphure"
+                  childsId={["amphure_id", "tambon_id"]}
+                  setChilds={[setAmphures, setTambons]}
+                />
               </div>
               
               <div className="space-y-2">
@@ -438,6 +503,13 @@ export default function ProfileUser() {
                   setChilds={[setTambons]}
                   selected={selected}
                   setSelected={setSelected}
+                <DropdownList
+                  label="เขต/อำเภอ"
+                  id="amphure_id"
+                  list={amphures}
+                  child="tambon"
+                  childsId={["tambon_id"]}
+                  setChilds={[setTambons]}
                 />
               </div>
               
@@ -449,6 +521,21 @@ export default function ProfileUser() {
                   selected={selected}
                   setSelected={setSelected}
                 />
+                <DropdownList 
+                  label="แขวง/ตำบล" 
+                  id="tambon_id" 
+                  list={tambons} 
+                />
+                <pre>{JSON.stringify(selected, null, 4)}</pre>
+              </div>
+              
+              <div className="space-y-2">
+                <DropdownList 
+                  label="แขวง/ตำบล" 
+                  id="tambon_id" 
+                  list={tambons} 
+                />
+                <pre>{JSON.stringify(selected, null, 4)}</pre>
               </div>
               
               <div className="space-y-2">

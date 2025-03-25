@@ -10,9 +10,7 @@ import {
 import {
   Select,
   SelectContent,
-
   SelectItem,
-
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -60,7 +58,7 @@ function RegisterShop() {
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/csrf-token');
+        const response = await axios.get('http://localhost:8000/csrf-token', { withCredentials: true });
         setCsrfToken(response.data.csrf_token);
       } catch (error) {
         console.error('Error fetching CSRF token:', error);

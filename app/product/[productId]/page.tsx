@@ -60,7 +60,7 @@ function ProductDetailPage({ params }: Params) {
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/csrf-token');
+        const response = await axios.get('http://localhost:8000/csrf-token', { withCredentials: true });
         setCsrfToken(response.data.csrf_token);
       } catch (error) {
         console.error('Error fetching CSRF token:', error);
@@ -117,9 +117,9 @@ function ProductDetailPage({ params }: Params) {
         }
       );
       alert("✅ เพิ่มสินค้าในตะกร้าสำเร็จ!");
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error adding to cart:", error);
-      alert("❌ ไม่สามารถเพิ่มสินค้าในตะกร้า");
+      alert(`❌ ไม่สามารถเพิ่มสินค้าในตะกร้า: ${error.response?.data?.error || error.message}`);
     }
 
     setLoading(false);

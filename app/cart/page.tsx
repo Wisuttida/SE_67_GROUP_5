@@ -29,6 +29,7 @@ interface Cart {
   product: {
     product_id: number;
     name: string;
+    image_url: string | null;
     shop: {
       shop_id: number;
       shop_name: string;
@@ -40,51 +41,68 @@ interface Cart {
 const CartPage = () => {
   const [cartItems, setCartItems] = useState<Cart[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const [selectedShop, setSelectedShop] = useState<string>("all"); // ใช้เป็น string เท่านั้น
-  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [selectedShop, setSelectedShop] = useState<string>("all");
+  const [openDialog, setOpenDialog] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<string>("");
 
-  // ดึง CSRF Token + ข้อมูลสินค้าจากตะกร้า
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const csrf = await axios.get(`http://localhost:8000/csrf-token`, { withCredentials: true });
-        setCsrfToken(csrf.data.csrf_token);
+        // Fetch csrf-token and cart items in parallel
+        const [csrfResponse, cartResponse, addressResponse] = await Promise.all([
+          axios.get(`http://localhost:8000/csrf-token`, { withCredentials: true }),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cart/items`, { withCredentials: true }),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, { withCredentials: true }),
+        ]);
 
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cart/items`, { withCredentials: true });
-        setCartItems(response.data.cart_items);
+        // Set csrf-token
+        setCsrfToken(csrfResponse.data.csrf_token);
+
+        // Set cart items
+        setCartItems(cartResponse.data.cart_items);
+
+        // Set addresses and select the default one
+        const sortedAddresses = addressResponse.data.data.sort(
+          (a: any, b: any) => b.is_default - a.is_default
+        );
+        setAddresses(sortedAddresses);
+        if (sortedAddresses.length > 0) {
+          setSelectedAddress(sortedAddresses[0].address_id.toString()); // Auto select the first address
+        }
       } catch (error) {
         console.error("❌ Error fetching data:", error);
       }
     };
 
-    const fetchItemsByShop = async (shopId: number) => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/cart/items/shop/${shopId}`,
-          { withCredentials: true }
-        );
-        setCartItems(response.data.cart_items);
-      } catch (error) {
-        console.error("❌ Error fetching items by shop:", error);
-      }
-    };
+    fetchData();
+  }, []);
 
-    if (selectedShop !== "all") {
-      fetchItemsByShop(Number(selectedShop)); // แปลง selectedShop เป็นตัวเลข
-    } else {
-      fetchData();
+  useEffect(() => {
+    // Check if the order was placed and open the dialog
+    const orderStatus = localStorage.getItem('orderPlaced');
+    if (orderStatus) {
+      setOpenDialog(true);
+      localStorage.removeItem('orderPlaced'); // Clear the status
     }
-  }, [selectedShop]);
+  }, []);
+  
+  const toggleSelectItem = (productId: number, shopId: number) => {
+    // หากเลือกสินค้าจากร้านหนึ่งแล้วไม่ให้เลือกสินค้าจากร้านอื่น
+    if (selectedItems.length > 0) {
+      const selectedShopId = cartItems.find(item => item.product.product_id === selectedItems[0])?.product.shop.shop_id;
+      if (selectedShopId !== shopId) {
+        alert("คุณสามารถเลือกสินค้าจากร้านเดียวเท่านั้น");
+        return;
+      }
+    }
 
-  // เลือกสินค้า
-  const toggleSelectItem = (productId: number) => {
     setSelectedItems(prev =>
       prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]
     );
   };
 
-  // ลบสินค้าออกจากตะกร้า
   const removeItemFromCart = async (cart_item_id: number) => {
     try {
       await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/cart/remove/${cart_item_id}`, {
@@ -105,7 +123,6 @@ const CartPage = () => {
     }
   };
 
-  // อัปเดตจำนวนสินค้า
   const updateQuantity = async (cart_item_id: number, newQty: number) => {
     setCartItems(prev =>
       prev.map(item =>
@@ -134,22 +151,62 @@ const CartPage = () => {
     }
   };
 
-  // คำนวณยอดรวม
   const calculateTotal = () =>
     cartItems
       .filter(item => selectedItems.includes(item.product.product_id))
       .reduce((total, item) => total + item.price * item.quantity, 0)
       .toFixed(2);
 
-  // สั่งซื้อ
-  const handlePlaceOrder = () => {
-    if (selectedItems.length === 0) return;
-    setOrderSuccess(true);
-    setSelectedItems([]);
+  const handlePlaceOrder = async () => {
+    if (selectedItems.length === 0) {
+      alert("กรุณาเลือกสินค้าอย่างน้อย 1 รายการ");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/orders/select-item`,
+        {
+          cart_item_ids: cartItems
+            .filter(item => selectedItems.includes(item.product.product_id))
+            .map(item => item.cart_item_id),
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+          },
+          withCredentials: true,
+        }
+      );
+
+      console.log("✅ Order placed:", response.data);
+      // เก็บ status order ว่าสำเร็จ
+      localStorage.setItem('orderPlaced', 'true');
+      // Reload หน้าหลังจากสั่งซื้อเสร็จ
+      window.location.reload();
+    } catch (error: any) {
+      if (axios.isAxiosError(error)) {
+        console.error("❌ Axios Error:", error.response?.data || error.message);
+        alert(error.response?.data?.error || error.message || 'เกิดข้อผิดพลาดในการสั่งซื้อ');
+      } else {
+        console.error("❌ Unknown Error:", error);
+        alert('เกิดข้อผิดพลาด');
+      }
+    }
   };
 
-  // รายชื่อร้านค้า
-  const shopList = ["all", ...new Set(cartItems.map(item => item.product.shop.shop_id))];
+
+
+  // ดึงชื่อร้านค้าไม่ซ้ำกันจาก cartItems
+  const shopList = Array.from(new Set(cartItems.map(item => `${item.product.shop.shop_id}|${item.product.shop.shop_name}`)));
+
+  // Filter cart ตามร้านค้าที่เลือก
+  const filteredItems = selectedShop === "all"
+    ? cartItems
+    : cartItems.filter(item => item.product.shop.shop_id === Number(selectedShop));
 
   return (
     <>
@@ -157,19 +214,41 @@ const CartPage = () => {
       <div className="container mx-auto p-6 pb-24">
         <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
 
+        {/* Address Selection */}
+        <div className="flex items-center space-x-4 mb-4">
+          <label className="font-semibold">เลือกที่อยู่จัดส่ง:</label>
+          <Select value={selectedAddress} onValueChange={setSelectedAddress}>
+            <SelectTrigger className="w-full max-w-[1100px]"> {/* Adjust width here */}
+              <SelectValue placeholder="เลือกที่อยู่" />
+            </SelectTrigger>
+            <SelectContent>
+              {addresses.map((addr) => (
+                <SelectItem key={addr.address_id} value={addr.address_id.toString()} className="text-left">
+                  {`${addr.fname} ${addr.lname} 
+                  | ${addr.house_number} ${addr.building} ${addr.street_name} ต.${addr.tambon} อ.${addr.amphoe} จ.${addr.province} ${addr.zipcode} 
+                  | โทร ${addr.phonenumber}`}
+                  {addr.is_default === 1 ? ' (ค่าเริ่มต้น)' : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+        </div>
+
         {/* Filter by Shop */}
-        <div className="mb-4">
+        <div className="mb-6">
           <label className="block text-gray-700 font-semibold mb-2">Filter by Shop</label>
           <Select value={selectedShop} onValueChange={setSelectedShop}>
             <SelectTrigger className="w-64">
               <SelectValue placeholder="Select a shop" />
             </SelectTrigger>
             <SelectContent>
-              {shopList.map((shopId, index) => {
-                const shop = cartItems.find(item => item.product.shop.shop_id === Number(shopId))?.product.shop;
+              <SelectItem value="all">All Shops</SelectItem>
+              {shopList.map((shopString, index) => {
+                const [shopId, shopName] = shopString.split("|");
                 return (
                   <SelectItem key={index} value={shopId}>
-                    {shopId === "all" ? "All Shops" : shop?.shop_name}
+                    {shopName}
                   </SelectItem>
                 );
               })}
@@ -179,65 +258,65 @@ const CartPage = () => {
 
         {/* Cart Items */}
         <div className="space-y-4">
-          {cartItems.length === 0 ? (
+          {filteredItems.length === 0 ? (
             <p>Your cart is empty</p>
           ) : (
-            cartItems
-              .filter(item => selectedShop === "all" || item.product.shop.shop_id === Number(selectedShop)) // แปลง selectedShop เป็นตัวเลขในการกรอง
-              .map(item => (
-                <div key={item.product.product_id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className="mr-3 w-5 h-5"
-                      checked={selectedItems.includes(item.product.product_id)}
-                      onChange={() => toggleSelectItem(item.product.product_id)}
-                    />
-                    <img
-                      src={item.product.shop.shop_image || "/path/to/default-image.jpg"}
-                      alt={item.product.shop.shop_name}
-                      className="w-10 h-10 rounded-full mr-3"
-                    />
-                    <div>
-                      <h2 className="font-semibold">{item.product.name}</h2>
-                      <p className="text-gray-500">Price: ${item.price}</p>
-                      <p className="text-sm text-gray-600">Shop: {item.product.shop.shop_name}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4">
-                    <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity - 1)} disabled={item.quantity <= 1}>-</Button>
-                    <span>{item.quantity}</span>
-                    <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity + 1)}>+</Button>
-                    <Button variant="outline" onClick={() => removeItemFromCart(item.cart_item_id)}>Remove</Button>
+            filteredItems.map(item => (
+              <div key={item.product.product_id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-3 w-5 h-5"
+                    checked={selectedItems.includes(item.product.product_id)}
+                    onChange={() => toggleSelectItem(item.product.product_id, item.product.shop.shop_id)}
+                  />
+                  <img
+                    src={item.product.image_url || "/path/to/default-image.jpg"}
+                    alt={item.product.shop.shop_name}
+                    className="w-10 h-10 rounded-lg mr-3"
+                  />
+                  <div>
+                    <h2 className="font-semibold">{item.product.name}</h2>
+                    <p className="text-gray-500">Price: ${item.price}</p>
+                    <p className="text-sm text-gray-600">Shop: {item.product.shop.shop_name}</p>
                   </div>
                 </div>
-              ))
+
+                <div className="flex items-center space-x-4">
+                  <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity - 1)} disabled={item.quantity <= 1}>-</Button>
+                  <span>{item.quantity}</span>
+                  <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity + 1)}>+</Button>
+                  <Button variant="outline" onClick={() => removeItemFromCart(item.cart_item_id)}>Remove</Button>
+                </div>
+              </div>
+            ))
           )}
         </div>
       </div>
 
+
+
       {/* Total & Place Order */}
-      {selectedItems.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-t z-50">
-          <div className="container mx-auto flex justify-between items-center">
-            <h2 className="text-xl font-bold">Total: ${calculateTotal()}</h2>
-            <Button variant="outline" onClick={handlePlaceOrder}>
-              <ShoppingCart size={20} className="mr-2" /> Place Order
-            </Button>
-          </div>
+      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-t z-50">
+        <div className="container mx-auto flex justify-between items-center">
+          <h2 className="text-xl font-bold">Total: ${calculateTotal()}</h2>
+          <Button variant="outline" onClick={handlePlaceOrder}>
+            <ShoppingCart size={20} className="mr-2" /> Place Order
+          </Button>
         </div>
-      )}
+      </div>
 
       {/* Order Success Dialog */}
-      <Dialog open={orderSuccess} onOpenChange={setOrderSuccess}>
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>สั่งสินค้าแล้ว!</DialogTitle>
           </DialogHeader>
           <p className="text-gray-600">กรุณาตรวจสอบการชำระเงินที่หน้า To Pay</p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOrderSuccess(true)}>OK</Button>
+            <Button variant="outline" onClick={() => setOpenDialog(false)}>
+              OK
+            </Button>
             <Link href="/userToPay">
               <Button>ไปหน้า To Pay</Button>
             </Link>

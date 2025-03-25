@@ -11,29 +11,29 @@ const ShopPost = () => {
   const [activeTab, setActiveTab] = useState("MyPost");
   interface Post {
     name: string;
-    price: number;
+    price_per_unit: number;
     unit: string;
     amount: number;
     BuyAmount? : number;
     description: string;
-    id: string | null; // id can be either number or null
+    post_id: string | null; // id can be either number or null
     bought : number;
   }
   
   const [posts, setPosts] = useState([
     {
-      id: "1",
+      post_id: "1",
       name: "Fresh Mango",
-      price: 2,
+      price_per_unit: 2,
       unit: "kg",
       amount: 5,
       description: "Sweet and juicy mangoes from organic farms.",
       bought : 3
     },
     {
-      id: "2",
+      post_id: "2",
       name: "Organic Avocado",
-      price: 3,
+      price_per_unit: 3,
       unit: "kg",
       amount: 2,
       description: "Creamy and delicious avocados, perfect for salads.",
@@ -46,7 +46,7 @@ const ShopPost = () => {
     address : string,
     profileImage: string;
     productName: string;
-    price: number;
+    price_per_unit: number;
     unit: string;
     amount: number;
     description: string;
@@ -66,7 +66,7 @@ useEffect(() => {
       address : "กรุงเทพ",
       profileImage: "https://via.placeholder.com/50", // ใส่ URL รูปจริง
       productName: "มะนาว",
-      price: 20,
+      price_per_unit: 20,
       unit: "กิโลกรัม",
       amount: 50,
       description: "มะนาวสดจากสวน ปลูกแบบออร์แกนิค",
@@ -80,7 +80,7 @@ useEffect(() => {
       address : "กรุงเทพ",
       profileImage: "https://via.placeholder.com/50",
       productName: "พริกแดง",
-      price: 150,
+      price_per_unit: 150,
       unit: "กิโลกรัม",
       amount: 20,
       description: "พริกแดงแห้งคุณภาพดี เผ็ดสะใจ",
@@ -93,16 +93,16 @@ useEffect(() => {
 
   const [form, setForm] = useState({
     name: "",
-    price: 0,
+    price_per_unit: 0,
     unit: "",
     amount: 0,
     description: "",
   });
 
   const [editForm, setEditForm] = useState<Post>({
-    id: null,
+    post_id: null,
     name: "",
-    price: 0,
+    price_per_unit: 0,
     unit: "",
     amount: 0,
     description: "",
@@ -148,15 +148,15 @@ useEffect(() => {
     // Ensure the types match exactly
     const updatedForm = {
       ...editForm,
-      id: String(editForm.id),        // Make sure id is a string
-      price: Number(editForm.price),   // Ensure price is a number
+      post_id: String(editForm.post_id),        // Make sure id is a string
+      price_per_unit: Number(editForm.price_per_unit),   // Ensure price_per_unit is a number
       amount: Number(editForm.amount), // Ensure amount is a number
     };
   
     // Update the post
     setPosts(prevPosts =>
       prevPosts.map(post =>
-        post.id === updatedForm.id ? { ...post, ...updatedForm } : post
+        post.post_id === updatedForm.post_id ? { ...post, ...updatedForm } : post
       )
     );
   
@@ -173,15 +173,15 @@ useEffect(() => {
   };
 
   const handlePost = () => {
-    if (!form.name || !form.price || !form.unit || !form.amount || !form.description) {
+    if (!form.name || !form.price_per_unit || !form.unit || !form.amount || !form.description) {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
     }
   
     const newPost = {
-      id: "",
+      post_id: "",
       name: form.name,
-      price: form.price,
+      price_per_unit: form.price_per_unit,
       unit: form.unit,
       amount: form.amount,
       description: form.description,
@@ -190,14 +190,14 @@ useEffect(() => {
     };
   
     setPosts([...posts, newPost]); // โพสต์ใหม่มี id ที่ถูกต้อง
-    setForm({ name: "", price: 0, unit: "", amount: 0, description: ""});
+    setForm({ name: "", price_per_unit: 0, unit: "", amount: 0, description: ""});
   
     alert("โพสต์สำเร็จ!");
   };
   
 
   const handleEdit = (post: Post) => {
-    if (post.id !== null) {
+    if (post.post_id !== null) {
       setEditForm({ ...post });
       setShowPopup(true);
     }
@@ -206,7 +206,7 @@ useEffect(() => {
   
 
   const handleCancel = (id: string) => {
-    setPosts(posts.filter(post => post.id !== id));
+    setPosts(posts.filter(post => post.post_id !== id));
   };
 
   return (
@@ -234,11 +234,11 @@ useEffect(() => {
                 <div>
                   <label className="block text-gray-1000 font-medium">ราคา(บาท) ต่อหน่วย</label>
                   <input 
-                    name="price" 
+                    name="price_per_unit" 
                     placeholder="ใส่ราคา (บาท)" 
                     className="w-full p-2 border rounded bg-gray-100 placeholder-gray-600"
                     onChange={handleChange} 
-                    value={form.price} 
+                    value={form.price_per_unit} 
                   />
                 </div>
                 <div>
@@ -294,16 +294,16 @@ useEffect(() => {
             {activeTab === "MyPost" && (
               <div className="grid grid-cols-2 gap-4 mt-4">
                 {posts.map((post) => (
-                  <div key={post.id} className="bg-gray-50 p-4 shadow-md rounded-lg border border-gray-200 relative">
+                  <div key={post.post_id} className="bg-gray-50 p-4 shadow-md rounded-lg border border-gray-200 relative">
                     <div className="absolute top-2 right-2 cursor-pointer group">
                       <FiMoreVertical className="text-gray-600" />
                       <div className="hidden group-hover:block absolute right-0 bg-white shadow-md rounded-lg p-2">
-                        <button onClick={() => handleCancel(post.id)} className="block text-red-500 px-3 py-1">ยกเลิก</button>
+                        <button onClick={() => handleCancel(post.post_id)} className="block text-red-500 px-3 py-1">ยกเลิก</button>
                         <button onClick={() => handleEdit(post)} className="block text-gray-700 px-3 py-1">แก้ไข</button>
                       </div>
                     </div>
                     <h3 className="text-lg font-semibold mt-2">{post.name}</h3>
-                    <p>{post.price} บาท ต่อ {post.unit}</p>
+                    <p>{post.price_per_unit} บาท ต่อ {post.unit}</p>
                     <p>ประกาศรับซื้อ {post.amount} {post.unit}</p>
                     <p>ซื้อแล้ว {post.bought} {post.unit}</p>
                     <p className="text-gray-600">{post.description}</p>
@@ -326,8 +326,8 @@ useEffect(() => {
                     <div className="mt-3">
                       <p className="text-gray-700"><span className="font-medium">วัตถุดิบ:</span> {seller.productName}</p>
                       <p className="text-gray-700"><span className="font-medium">ปริมาณที่ขาย:</span> {seller.amount} {seller.unit}</p>
-                      <p className="text-gray-700"><span className="font-medium">ราคา:</span> {seller.price} บาท ต่อ {seller.unit}</p>
-                      <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {seller.price*seller.amount} บาท</p>
+                      <p className="text-gray-700"><span className="font-medium">ราคา:</span> {seller.price_per_unit} บาท ต่อ {seller.unit}</p>
+                      <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {seller.price_per_unit*seller.amount} บาท</p>
                       <p className="text-gray-700"><span className="font-medium">ที่อยู่ฟาร์ม:</span> {seller.address}</p>
                       {/* ข้อมูลธนาคาร */}
                       <div className="mt-2 p-3 border rounded bg-gray-100">
@@ -409,14 +409,14 @@ useEffect(() => {
                 />
               </div>
               <div>
-                <label htmlFor="price" className="block text-sm font-semibold">Price</label>
+                <label htmlFor="price_per_unit" className="block text-sm font-semibold">Price_per_unit</label>
                 <input
-                  id="price"
-                  name="price"
-                  placeholder="Enter price"
+                  id="price_per_unit"
+                  name="price_per_unit"
+                  placeholder="Enter price_per_unit"
                   className="w-full p-2 border rounded"
                   onChange={handleEditChange}
-                  value={editForm.price}
+                  value={editForm.price_per_unit}
                 />
               </div>
               <div>
