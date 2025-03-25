@@ -13,17 +13,19 @@ import {
 } from "@/components/ui/select";
 
 interface AddressInfo {
-  ชื่อ: string;
-  นามสกุล: string;
-  เบอร์: string;
-  บ้านเลขที่: string;
-  ถนน: string;
-  ตำบล: string;
-  อำเภอ: string;
-  จังหวัด: string;
-  รหัสไปรษณีย์: string;
-  position_id: string;
   address_id: string;
+  fname: string;
+  lname: string;
+  phonenumber: string;
+  street_name: string;
+  building: string;
+  subDistrict: string;
+  district: string;
+  province: string;
+  zipcode: string;
+  house_number: string;
+  is_default: boolean;
+  position_id: string;
 }
 
 interface BankInfo {
@@ -46,30 +48,34 @@ const ProfileShop = () => {
   const [tempBankInfo, setTempBankInfo] = useState<BankInfo | null>(null);
 
   const [addressInfo, setAddressInfo] = useState<AddressInfo>({
-    position_id: '',
     address_id: '',
-    ชื่อ: '',
-    นามสกุล: '',
-    เบอร์: '',
-    บ้านเลขที่: '',
-    ถนน: '',
-    ตำบล: '',
-    อำเภอ: '',
-    จังหวัด: '',
-    รหัสไปรษณีย์: '',
+    fname: '',
+    lname: '',
+    phonenumber: '',
+    province: '',
+    district: '',
+    subDistrict: '',
+    zipcode: '',
+    street_name: '',
+    building: '',
+    house_number: '',
+    is_default: false,
+    position_id: '',
   });
   const [multiaddressInfo, setMultiAddressInfo] = useState<AddressInfo[]>([{
-    position_id: '',
     address_id: '',
-    ชื่อ: '',
-    นามสกุล: '',
-    เบอร์: '',
-    บ้านเลขที่: '',
-    ถนน: '',
-    ตำบล: '',
-    อำเภอ: '',
-    จังหวัด: '',
-    รหัสไปรษณีย์: '',
+    fname: '',
+    lname: '',
+    phonenumber: '',
+    province: '',
+    district: '',
+    subDistrict: '',
+    zipcode: '',
+    street_name: '',
+    building: '',
+    house_number: '',
+    is_default: false,
+    position_id: '',
   }]);
 
   const [bankInfo, setBankInfo] = useState<BankInfo>({
@@ -202,7 +208,7 @@ const ProfileShop = () => {
   const handleAddressSave = () => {
     // ตรวจสอบเบอร์โทรศัพท์
     const phonePattern = /^[0-9]{10}$/; // ตรวจสอบว่าเบอร์ต้องเป็นตัวเลข 10 หลัก
-    if (!phonePattern.test(addressInfo.เบอร์)) {
+    if (!phonePattern.test(addressInfo.phonenumber)) {
       alert("กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)");
       return; // ไม่ทำการบันทึกหากเบอร์โทรศัพท์ไม่ถูกต้อง
     }
@@ -210,15 +216,16 @@ const ProfileShop = () => {
     setIsAddressEditing(false);
     axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${addressInfo.address_id}`,
       {
-        fname : addressInfo.ชื่อ,
-        lname : addressInfo.นามสกุล,
-        phonenumber : addressInfo.เบอร์,
-        street_name : addressInfo.ถนน,
-        house_number : addressInfo.บ้านเลขที่,
-        province : addressInfo.จังหวัด,
-        amphoe : addressInfo.อำเภอ,
-        tambon : addressInfo.ตำบล,
-        zipcode : addressInfo.รหัสไปรษณีย์,
+        fname : addressInfo.fname,
+        lname : addressInfo.lname,
+        phonenumber : addressInfo.phonenumber,
+        street_name : addressInfo.street_name,
+        house_number : addressInfo.house_number,
+        building : addressInfo.building,
+        province : addressInfo.province,
+        district : addressInfo.district,
+        subDistrict : addressInfo.subDistrict,
+        zipcode : addressInfo.zipcode,
       },
       {
         headers: {
@@ -292,15 +299,16 @@ const ProfileShop = () => {
         const filteredAddresses: AddressInfo[] = data.filter(address => address.position_id === 2);
         setAddressInfo(prevState => ({
           ...prevState,
-          ชื่อ: filteredAddresses[0].fname,
-          นามสกุล: filteredAddresses[0].lname,
-          เบอร์: filteredAddresses[0].phonenumber,
-          บ้านเลขที่: filteredAddresses[0].house_number,
-          ถนน: filteredAddresses[0].street_name,
-          ตำบล: filteredAddresses[0].subDistrict,
-          อำเภอ: filteredAddresses[0].district,
-          จังหวัด: filteredAddresses[0].province,
-          รหัสไปรษณีย์: filteredAddresses[0].zipcode,
+          fname: filteredAddresses[0].fname,
+          lname: filteredAddresses[0].lname,
+          building: filteredAddresses[0].building,
+          phonenumber: filteredAddresses[0].phonenumber,
+          house_number: filteredAddresses[0].house_number,
+          street_name: filteredAddresses[0].street_name,
+          subDistrict: filteredAddresses[0].subDistrict,
+          district: filteredAddresses[0].district,
+          province: filteredAddresses[0].province,
+          zipcode: filteredAddresses[0].zipcode,
           address_id: filteredAddresses[0].address_id,
           position_id: filteredAddresses[0].position_id,
         }));
@@ -328,7 +336,30 @@ const ProfileShop = () => {
       ธนาคาร: value,
     }));
   };
-
+  const keyMapping: { [key in keyof AddressInfo]?: string } = {
+    fname: 'ชื่อ',
+    lname: 'นามสกุล',
+    phonenumber: 'เบอร์โทรฯ',
+    province: 'จังหวัด',
+    district: 'อำเภอ',
+    subDistrict: 'ตำบล',
+    zipcode: 'รหัสไปรษณี',
+    street_name: 'ถนน/ซอย',
+    building: 'ตึก',
+    house_number: 'บ้านเลขที่',
+  };
+  const keyOrder: (keyof AddressInfo)[] = [
+    'fname',
+    'lname',
+    'phonenumber',
+    'house_number',
+    'street_name',
+    'building',
+    'subDistrict',
+    'district',
+    'province',
+    'zipcode',
+  ];
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
@@ -346,11 +377,17 @@ const ProfileShop = () => {
           <div className="bg-white p-6 rounded-2xl shadow-lg mt-6">
             <h3 className="text-xl font-semibold mb-4">📍 ที่อยู่ร้าน</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {Object.entries(addressInfo).filter(([key]) => key !== 'position_id' && key !== 'address_id').map(([key, value]) => (
-                <div key={key} className="border-b pb-1 capitalize">
-                  {key.replace(/([A-Z])/g, ' $1')}: {value || '-'}
-                </div>
-              ))}
+              {keyOrder.map((key) => {
+                  // Check if the key exists in addressInfo and is not excluded
+                  if (key in addressInfo) {
+                      return (
+                          <div key={key} className="border-b pb-1 capitalize">
+                              {keyMapping[key] || key.replace(/([A-Z])/g, ' $1')}: {addressInfo[key] || '-'}
+                          </div>
+                      );
+                  }
+                  return null; // Return null for keys that should not be rendered
+              })}
             </div>
             <button onClick={handleEditAddress} className="text-blue-500 mt-4">✏️ แก้ไขที่อยู่</button>
           </div>
@@ -360,17 +397,28 @@ const ProfileShop = () => {
               <div className="bg-white p-8 rounded-2xl shadow-xl w-96">
                 <h2 className="text-2xl font-semibold mb-6">แก้ไขที่อยู่</h2>
                 <div className="grid grid-cols-2 gap-4">
-                  {Object.entries(addressInfo).filter(([key]) => key !== 'position_id' && key !== 'address_id').map(([key, value]) => (
+                  {keyOrder.map((key) => {
+                      // Check if the key exists in addressInfo and is not excluded
+                      if (key in addressInfo) {
+                          return (
+                              <div key={key}>
+                                  <label>{keyMapping[key] || key.replace(/([A-Z])/g, ' $1')}</label>
+                                  <input
+                                    name={key}
+                                    value={addressInfo[key]}
+                                    onChange={handleAddressChange}
+                                    className="border p-2 rounded-lg w-full"
+                                  />
+                              </div>
+                          );
+                      }
+                      return null; // Return null for keys that should not be rendered
+                  })}
+                  {/* {Object.entries(addressInfo).filter(([key]) => key !== 'position_id' && key !== 'address_id').map(([key, value]) => (
                     <div key={key}>
                       <label className="block mb-1">{key.replace(/([A-Z])/g, ' $1')}</label>
-                      <input
-                        name={key}
-                        value={value}
-                        onChange={handleAddressChange}
-                        className="border p-2 rounded-lg w-full"
-                      />
                     </div>
-                  ))}
+                  ))} */}
                 </div>
                 <div className="flex justify-end mt-6 space-x-4">
                   <button onClick={handleCancelAddressEdit} className="bg-gray-300 px-4 py-2 rounded-lg">ยกเลิก</button>
