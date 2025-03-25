@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import { useState, useEffect } from "react";
 import { FiMoreVertical } from "react-icons/fi";
 import { ChangeEvent} from "react";
+import SideBarUser from '@/components/SideBarUser';
 
 
 const FarmPost = () => {
@@ -39,7 +40,6 @@ const FarmPost = () => {
   interface Buyer {
     id: string;
     name: string;
-    address : string,
     profileImage: string;
     productName: string;
     price_per_unit: number;
@@ -59,7 +59,6 @@ useEffect(() => {
     {
       id: "1",
       name: "สมชาย ขายดี",
-      address : "กรุงเทพ",
       profileImage: "https://via.placeholder.com/50", // ใส่ URL รูปจริง
       productName: "มะนาว",
       price_per_unit: 20,
@@ -73,7 +72,6 @@ useEffect(() => {
     {
       id: "2",
       name: "แม่ส้ม แม่ค้าใจดี",
-      address : "กรุงเทพ",
       profileImage: "https://via.placeholder.com/50",
       productName: "พริกแดง",
       price_per_unit: 150,
@@ -109,7 +107,7 @@ useEffect(() => {
   const handleBuy = (buyerId: string) => {
     const buyer = buyers.find(buyer => buyer.id === buyerId);
     if (buyer) {
-      alert(`ติดต่อผู้ขาย: ${buyer.name}\nสินค้า: ${buyer.productName}\nสถานที่: ${buyer.address}`);
+      alert(`ยืนยัน`);
     }
   };
   
@@ -193,9 +191,7 @@ useEffect(() => {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="flex">
-        <div className="w-64 bg-gray-300 text-white p-6 min-h-screen">
-          {/* ใส่ Sidebar */}
-        </div>
+        <SideBarUser/>
         <div className="flex-1 p-6">
           <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold mb-4 text-center">สร้างโพสต์</h2>
@@ -308,7 +304,6 @@ useEffect(() => {
                       <p className="text-gray-700"><span className="font-medium">ปริมาณที่ซื้อ:</span> {buyer.amount} {buyer.unit}</p>
                       <p className="text-gray-700"><span className="font-medium">ราคา:</span> {buyer.price_per_unit} บาท ต่อ {buyer.unit}</p>
                       <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {buyer.price_per_unit*buyer.amount} บาท</p>
-                      <p className="text-gray-700"><span className="font-medium">ที่อยู่ร้าน:</span> {buyer.address}</p>
 
                       {/* เปลี่ยนเป็นดูสลิปโอนเงินอย่างเดียว ไม่ต้องรับ input */}
                         <div className="mt-4">
