@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
 import axios from "axios";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FragranceTone {
   id: number;
@@ -60,6 +61,8 @@ const CustomPerfumePage = () => {
   const [shopSearch, setShopSearch] = useState("");
   const [isTester, setIsTester] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,6 +73,24 @@ const CustomPerfumePage = () => {
         ]);
 
         setCsrfToken(csrfResponse.data.csrf_token);
+
+        // ✅ ดึง address จาก localStorage แทน API
+        const addressFromStorage = localStorage.getItem('addresses');
+        if (addressFromStorage) {
+          const addressData = JSON.parse(addressFromStorage);
+          const sortedAddresses = addressData.sort(
+            (a: any, b: any) => b.is_default - a.is_default
+          );
+          setAddresses(sortedAddresses);
+  
+          // ✅ auto select default address
+          if (sortedAddresses.length > 0) {
+            setSelectedAddress(sortedAddresses[0].address_id.toString());
+          }
+          console.log("✅ Address from localStorage:", sortedAddresses);
+        } else {
+          console.warn("⚠️ No address data found in localStorage");
+        }
 
       } catch (error) {
         console.error("❌ Error fetching data:", error);
@@ -92,8 +113,8 @@ const CustomPerfumePage = () => {
     setFragranceTones([
       { id: 1, name: "Floral" },
       { id: 2, name: "Fruity" },
-      { id: 3, name: "Woody" },
-      { id: 4, name: "Spicy" },
+      { id: 3, name: "Spicy" },
+      { id: 4, name: "Woody" },
     ]);
   }, [shopId]);
 
@@ -117,7 +138,7 @@ const CustomPerfumePage = () => {
       alert("กรุณาเลือกโทนกลิ่นอย่างน้อย 1 โทน");
       return;
     }
-    
+
     // ตรวจสอบข้อมูลที่กรอกครบหรือไม่
     if (!fragranceName || intensity === 0 || !volume) {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน (ชื่อกลิ่น, ความเข้มข้น, ปริมาตร)");
@@ -134,7 +155,7 @@ const CustomPerfumePage = () => {
       fragrance_name: fragranceName,
       description: description || null,
       intensity_level: intensity,
-      volume_ml: Number(volume),
+      volume_ml: isTester ? 1 : Number(volume), // ✅ ถ้า tester ให้ส่ง 0 ไป
       is_tester: isTester ? "yes" : "no",
       ingredients: selectedTones.map((tone) => ({
         ingredient_id: tone.id,
@@ -204,6 +225,26 @@ const CustomPerfumePage = () => {
         )}
 
         <h2 className="text-2xl font-semibold mb-6">Create Your Custom Fragrance</h2>
+
+        {/* Address Selection */}
+        <div className="flex items-center space-x-4 mb-4">
+          <label className="font-semibold">เลือกที่อยู่จัดส่ง:</label>
+          <Select value={selectedAddress} onValueChange={setSelectedAddress}>
+            <SelectTrigger className="w-full max-w-[1000px]"> {/* Adjust width here */}
+              <SelectValue placeholder="เลือกที่อยู่" />
+            </SelectTrigger>
+            <SelectContent>
+              {addresses.map((addr) => (
+                <SelectItem key={addr.address_id} value={addr.address_id.toString()} className="text-left">
+                  {`${addr.fname} ${addr.lname} 
+                  | ${addr.house_number} ${addr.building} ${addr.street_name} ต.${addr.subDistrict} อ.${addr.district} จ.${addr.province} ${addr.zipcode} 
+                  | โทร ${addr.phonenumber}`}
+                  {addr.is_default === 1 ? ' (ค่าเริ่มต้น)' : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* ค้นหา Tone */}
         <div className="mb-6">
