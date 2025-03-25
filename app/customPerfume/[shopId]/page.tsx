@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation"; // ใช้ดึงค่า shopId จาก URL
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
+import axios from "axios";
 
 interface FragranceTone {
   id: number;
@@ -28,6 +29,21 @@ interface Shop {
   shopImage: string;
 }
 
+interface Ingredient {
+  ingredient_id: number;
+  ingredient_percentage: number;
+}
+
+interface CustomPerfume {
+  shop_id: number;
+  fragrance_name: string;
+  description: string | null;
+  intensity_level: number;
+  volume_ml: number;
+  is_tester: string;
+  ingredients: Ingredient[];
+}
+
 const CustomPerfumePage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,22 +56,39 @@ const CustomPerfumePage = () => {
   const [description, setDescription] = useState("");
   const [intensity, setIntensity] = useState(50);
   const [volume, setVolume] = useState("");
-  const [toneSearch, setToneSearch] = useState(""); // สำหรับค้นหา tone
-  const [shopSearch, setShopSearch] = useState(""); // สำหรับค้นหาร้าน
-  const [isTester, setIsTester] = useState(false); // State สำหรับตรวจสอบว่าเลือก Tester หรือไม่
+  const [toneSearch, setToneSearch] = useState("");
+  const [shopSearch, setShopSearch] = useState("");
+  const [isTester, setIsTester] = useState(false);
+  const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
-    // ดึงข้อมูลร้านค้าจากฐานข้อมูล (ตัวอย่าง mock data)
+    const fetchData = async () => {
+      try {
+        // ดึง csrf-token และ cart จาก API
+        const [csrfResponse] = await Promise.all([
+          axios.get(`http://localhost:8000/csrf-token`, { withCredentials: true }),
+        ]);
+
+        setCsrfToken(csrfResponse.data.csrf_token);
+
+      } catch (error) {
+        console.error("❌ Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
     const dummyShops: Shop[] = Array.from({ length: 14 }, (_, i) => ({
       shopId: i + 1,
       shopName: `Shop${i + 1}`,
-      shopImage: "/placeholder-profile.jpg", // เปลี่ยนเป็น URL รูปร้านค้าจริง
+      shopImage: "/placeholder-profile.jpg",
     }));
 
     const foundShop = dummyShops.find((s) => s.shopId.toString() === shopId);
     setShop(foundShop || null);
 
-    // ดึงข้อมูลโทนกลิ่นจากฐานข้อมูล (Mock data)
     setFragranceTones([
       { id: 1, name: "Floral" },
       { id: 2, name: "Fruity" },
@@ -78,28 +111,72 @@ const CustomPerfumePage = () => {
     );
   };
 
-  const handleSubmit = () => {
-    console.log("Saving custom fragrance...", {
-      fragranceName,
-      description,
-      intensity,
-      volume,
-      selectedTones,
-    });
+  const handleSubmit = async () => {
+    // ตรวจสอบว่าเลือก tone หรือไม่
+    if (selectedTones.length === 0) {
+      alert("กรุณาเลือกโทนกลิ่นอย่างน้อย 1 โทน");
+      return;
+    }
+    
+    // ตรวจสอบข้อมูลที่กรอกครบหรือไม่
+    if (!fragranceName || intensity === 0 || !volume) {
+      alert("กรุณากรอกข้อมูลให้ครบถ้วน (ชื่อกลิ่น, ความเข้มข้น, ปริมาตร)");
+      return;
+    }
 
-    // Mock API Call
-    setTimeout(() => {
-      alert("สั่งสินค้าแล้ว กรุณาตรวจสอบการชำระเงินที่ To Pay");
-      router.push("/to-pay"); // เปลี่ยนเส้นทางไปหน้า "To Pay"
-    }, 1000);
+    if (!shopId) {
+      alert("ไม่พบร้านค้า");
+      return;
+    }
+
+    const payload: CustomPerfume = {
+      shop_id: Number(shopId),
+      fragrance_name: fragranceName,
+      description: description || null,
+      intensity_level: intensity,
+      volume_ml: Number(volume),
+      is_tester: isTester ? "yes" : "no",
+      ingredients: selectedTones.map((tone) => ({
+        ingredient_id: tone.id,
+        ingredient_percentage: tone.percentage,
+      })),
+    };
+
+    console.log("📦 Payload =>", payload);
+
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/custom-orders`,
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": csrfToken,
+            // ถ้า Auth ต้องใส่ Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      );
+
+      if (response.status === 201 || response.status === 200) {
+        alert("สั่งสินค้าแล้ว กรุณาตรวจสอบการชำระเงินที่ To Pay");
+        router.push("/to-pay");
+      } else {
+        console.error("❌ Failed:", response);
+        alert("เกิดข้อผิดพลาดในการสั่งซื้อ");
+      }
+    } catch (error: any) {
+      console.error("❌ Error submitting order:", error.response?.data || error.message);
+      alert(error.response?.data?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+    }
   };
 
-  // ฟังก์ชันกรอง tone ตามการค้นหาของผู้ใช้
+
+
   const filteredTones = fragranceTones.filter((tone) =>
     tone.name.toLowerCase().includes(toneSearch.toLowerCase())
   );
 
-  // ฟังก์ชันกรองร้านตามการค้นหาของผู้ใช้
   const filteredShops = [shop].filter((shop) =>
     shop?.shopName.toLowerCase().includes(shopSearch.toLowerCase())
   );
@@ -107,26 +184,26 @@ const CustomPerfumePage = () => {
   return (
     <div>
       <Navbar />
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-8">
         {/* ปุ่ม Back */}
-        <Button variant="outline" onClick={() => router.back()} className="mb-6">
+        <Button variant="outline" onClick={() => router.back()} className="mb-8">
           Back
         </Button>
 
         {filteredShops.length > 0 && (
-          <div className="flex items-center space-x-4 mb-6">
+          <div className="flex items-center space-x-4 mb-8">
             <Image
               src={filteredShops[0]?.shopImage || "/placeholder-profile.jpg"}
               alt={filteredShops[0]?.shopName || "Shop"}
-              width={60}
-              height={60}
-              className="w-16 h-16 rounded-full"
+              width={80}
+              height={80}
+              className="w-20 h-20 rounded-full"
             />
-            <h1 className="text-2xl font-bold">{filteredShops[0]?.shopName}</h1>
+            <h1 className="text-3xl font-bold">{filteredShops[0]?.shopName}</h1>
           </div>
         )}
 
-        <h2 className="text-xl font-semibold mb-4">Create Your Custom Fragrance</h2>
+        <h2 className="text-2xl font-semibold mb-6">Create Your Custom Fragrance</h2>
 
         {/* ค้นหา Tone */}
         <div className="mb-6">
@@ -135,17 +212,18 @@ const CustomPerfumePage = () => {
             value={toneSearch}
             onChange={(e) => setToneSearch(e.target.value)}
             placeholder="Search tones"
+            className="w-full"
           />
         </div>
 
         {/* เลือกโทนกลิ่น */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Select Fragrance Tones</h3>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold mb-4">Select Fragrance Tones</h3>
+          <div className="grid grid-cols-2 gap-6">
             {filteredTones.map((tone) => (
               <div key={tone.id} className="flex items-center space-x-3">
                 <Checkbox onCheckedChange={() => handleToneSelect(tone)} />
-                <span>{tone.name}</span>
+                <span className="text-lg">{tone.name}</span>
                 {selectedTones.some((t) => t.id === tone.id) && (
                   <div className="flex items-center space-x-2 w-full">
                     <Slider
@@ -156,9 +234,7 @@ const CustomPerfumePage = () => {
                       step={1}
                       onValueChange={(val) => handlePercentageChange(tone.id, val[0])}
                     />
-                    <span className="w-12 text-right">
-                      {selectedTones.find((t) => t.id === tone.id)?.percentage}%
-                    </span>
+                    <span className="w-12 text-right">{selectedTones.find((t) => t.id === tone.id)?.percentage}%</span>
                   </div>
                 )}
               </div>
@@ -167,44 +243,60 @@ const CustomPerfumePage = () => {
         </div>
 
         {/* ฟอร์มกรอกข้อมูล */}
-        <div className="mb-6">
+        <div className="mb-8">
           <label className="block text-gray-700 font-semibold mb-2">Fragrance Name *</label>
-          <Input value={fragranceName} onChange={(e) => setFragranceName(e.target.value)} />
+          <Input
+            value={fragranceName}
+            onChange={(e) => setFragranceName(e.target.value)}
+            placeholder="Enter fragrance name"
+            className="w-full"
+          />
         </div>
 
-        <div className="mb-6">
+        <div className="mb-8">
           <label className="block text-gray-700 font-semibold mb-2">Description</label>
-          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe your fragrance"
+            className="w-full"
+          />
         </div>
 
-        <div className="mb-6">
+        <div className="mb-8">
           <label className="block text-gray-700 font-semibold mb-2">Intensity (%) *</label>
           <div className="flex items-center space-x-2">
-            <Slider defaultValue={[50]} min={0} max={100} step={1} onValueChange={(val) => setIntensity(val[0])} />
-            <span className="w-10 text-right">{intensity}%</span>
+            <Slider
+              defaultValue={[50]}
+              min={0}
+              max={100}
+              step={1}
+              onValueChange={(val) => setIntensity(val[0])}
+              className="w-full"
+            />
+            <span className="w-12 text-right">{intensity}%</span>
           </div>
         </div>
 
         {/* ฟิลด์ Volume */}
-        <div className="mb-6">
+        <div className="mb-8">
           <label className="block text-gray-700 font-semibold mb-2">Volume (ml) *</label>
           <Input
             type="number"
             value={volume}
             onChange={(e) => setVolume(e.target.value)}
-            disabled={isTester} // ปิดการพิมพ์เมื่อเลือก Tester
+            disabled={isTester}
+            className="w-full"
           />
         </div>
 
-
         {/* ปุ่มกด */}
-        <div className="flex space-x-4">
-          {/* ปุ่ม Tester */}
+        <div className="flex items-center space-x-6">
           <Checkbox checked={isTester} onCheckedChange={(checked) => setIsTester(checked)} />
-          <span>
-            Use Tester
-          </span>
-          <Button onClick={handleSubmit}>Submit</Button>
+          <span className="text-lg">Use Tester</span>
+          <Button onClick={handleSubmit} className="ml-4 py-3 px-6 text-lg font-semibold">
+            Submit
+          </Button>
         </div>
       </div>
     </div>

@@ -16,9 +16,9 @@ interface FilterComponentProps {
 }
 
 const genderOptions = [
-  { label: "ชาย", value: "male" },
-  { label: "หญิง", value: "female" },
-  { label: "ยูนิเซ็กซ์", value: "unisex" },
+  { label: "Male", value: "male" },
+  { label: "Female", value: "female" },
+  { label: "Unisex", value: "unisex" },
 ];
 
 const strengthOptions = [
@@ -81,7 +81,7 @@ const FilterSidebar = ({
 
       {/* Filter เพศ (gender) แบบ checkbox */}
       <div>
-        <span className="block mb-1 font-semibold">เพศ:</span>
+        <span className="block mb-1 font-semibold">Gender:</span>
         {genderOptions.map((gender) => (
           <div key={gender.value} className="flex items-center mb-2">
             <input
