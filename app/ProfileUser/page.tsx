@@ -3,12 +3,14 @@ import { Edit, Search, ShoppingCart, Bell, Store, Tractor, Grid, Clipboard, Doll
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+import SideBarUser from "@/components/SideBarUser";
+import DropdownList from "@/components/ui/DropdownList"; // Importing the DropdownList component
 import { useState, useEffect } from 'react';
 
 const DEFAULT_IMAGES = {
@@ -28,12 +30,6 @@ interface AddressData {
   building: string;
   houseNumber: string;
   isDefault: boolean;
-}
-
-interface ProfileMenuItem {
-  icon: React.ReactNode;
-  label: string;
-  href: string;
 }
 
 export default function ProfileUser() {
@@ -69,17 +65,6 @@ export default function ProfileUser() {
   const [currentAddress, setCurrentAddress] = useState<AddressData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  const profileMenuItems: ProfileMenuItem[] = [
-    { icon: <Store className="w-6 h-6" />, label: "My Shop", href: "/profileShop" },
-    { icon: <Tractor className="w-6 h-6" />, label: "My Farm", href: "/farm" },
-    { icon: <Grid className="w-6 h-6" />, label: "Order Customize", href: "/customize" },
-    { icon: <ShoppingCart className="w-6 h-6" />, label: "Cart", href: "/cart" },
-    { icon: <Clipboard className="w-6 h-6" />, label: "Order", href: "/userOrder" },
-    { icon: <DollarSign className="w-6 h-6" />, label: "To Pay", href: "/userToPay" },
-    { icon: <Upload className="w-6 h-6" />, label: "To Ship", href: "/userToShip" },
-    { icon: <Truck className="w-6 h-6" />, label: "To Receive", href: "/userToReceive" }
-  ];
-
   const validatePhoneNumber = (phone: string) => {
     const phoneRegex = /^[0-9]{3}-[0-9]{3}-[0-9]{4}$/;
     return phoneRegex.test(phone);
@@ -102,13 +87,6 @@ export default function ProfileUser() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setCurrentAddress(prev => {
-      if (!prev) return getEmptyAddress();
-      return { ...prev, [name]: value };
-    });
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
     setCurrentAddress(prev => {
       if (!prev) return getEmptyAddress();
       return { ...prev, [name]: value };
@@ -231,6 +209,18 @@ export default function ProfileUser() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(
+        'https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json'
+      );
+      const result = await response.json();
+      setProvinces(result);
+    };
+
+    fetchData();
+  }, []);
+
   const DropdownList = ({
     label,
     id,
@@ -280,142 +270,160 @@ export default function ProfileUser() {
     <div>
       <Navbar />
 
-      {/* Search Bar */}
-      <div className="flex justify-between items-center mt-6">
-        <div className="relative w-full max-w-md mx-auto">
-          <Input
-            type="text"
-            placeholder="Search Product"
-            className="w-full px-4 py-2 rounded-full bg-gray-50"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
-          >
-            <Search className="w-5 h-5 text-gray-500" />
-          </Button>
+      {/* Main Content with Sidebar Layout */}
+      <div className="flex min-h-screen bg-gray-50">
+        {/* Sidebar */}
+        <div className="hidden md:block">
+          <SideBarUser />
         </div>
-        <div className="flex space-x-6 ml-4">
-          <Button variant="ghost" size="sm" className="p-1">
-            <ShoppingCart className="w-6 h-6" />
-          </Button>
-          <Button variant="ghost" size="sm" className="p-1">
-            <Bell className="w-6 h-6" />
-          </Button>
-        </div>
-      </div>
 
-      {/* Profile Section */}
-      <Card className="mt-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row">
-            <div className="flex flex-col items-center">
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 relative">
-                <Image 
-                  src={DEFAULT_IMAGES.profile}
-                  alt="Profile"
-                  width={96}
-                  height={96}
-                  className="object-cover"
-                />
-              </div>
-              <p className="mt-2 font-medium">{user_data?.username}</p>
-              <Button variant="ghost" size="sm" className="mt-2">
-                <Edit className="w-4 h-4 mr-1" /> Edit Profile
+        {/* Main Content */}
+        <div className="flex-1 p-4">
+          {/* Search Bar */}
+          <div className="flex justify-between items-center mb-6">
+            <div className="relative w-full max-w-md">
+              <Input
+                type="text"
+                placeholder="Search Address"
+                className="w-full px-4 py-2 rounded-full bg-gray-50"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
+              >
+                <Search className="w-5 h-5 text-gray-500" />
               </Button>
             </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 md:mt-0 md:ml-8 w-full">
-              {profileMenuItems.map((item, index) => (
-                <Link href={item.href} key={index}>
-                  <Card className="hover:shadow-md transition-shadow">
-                    <CardContent className="flex flex-col items-center p-4">
-                      <div className="w-12 h-12 flex items-center justify-center">
-                        {item.icon}
-                      </div>
-                      <p className="text-sm mt-2">{item.label}</p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+            <div className="flex space-x-4 ml-4">
+              <Button variant="ghost" size="sm" className="p-1">
+                <ShoppingCart className="w-6 h-6" />
+              </Button>
+              <Button variant="ghost" size="sm" className="p-1">
+                <Bell className="w-6 h-6" />
+              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Address Section */}
-      <Card className="mt-6">
-        <CardContent className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-medium">Address</h2>
-            <Button 
-              variant="outline" 
-              onClick={handleAddAddress}
-              disabled={isLoading}
-            >
-              + Add New Address
-            </Button>
-          </div>
-          
-          {filteredAddresses.length === 0 ? (
-            <div className="text-center py-6 text-gray-500">
-              {searchQuery ? "ไม่พบที่อยู่ที่ค้นหา" : "ไม่มีที่อยู่ โปรดเพิ่มที่อยู่ใหม่"}
-            </div>
-          ) : (
-            filteredAddresses.map((address) => (
-              <div key={address.id} className="bg-white rounded-lg border p-4 mb-4 relative">
-                <div className="absolute right-4 top-4 flex space-x-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleEditAddress(address)}
-                    disabled={isLoading}
-                  >
-                    <Edit className="w-4 h-4 mr-1" /> Edit
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleDeleteAddress(address.id)}
-                    disabled={isLoading}
-                  >
-                    <Trash2 className="w-4 h-4 mr-1 text-red-500" /> Delete
+          {/* Profile Section */}
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center">
+                <div className="flex flex-col items-center">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 relative">
+                    <Image 
+                      src={DEFAULT_IMAGES.profile}
+                      alt="Profile"
+                      width={96}
+                      height={96}
+                      className="object-cover"
+                    />
+                  </div>
+                  <p className="mt-2 font-medium">{user_data?.username}</p>
+                  <Button variant="ghost" size="sm" className="mt-2">
+                    <Edit className="w-4 h-4 mr-1" /> Edit Profile
                   </Button>
                 </div>
-                <div className="flex items-center mb-2">
-                  <input 
-                    type="checkbox" 
-                    className="mr-4 h-4 w-4" 
-                    checked={address.isDefault}
-                    onChange={() => handleSetDefaultAddress(address.id)}
-                    disabled={isLoading}
-                  />
-                  {address.isDefault && <span className="text-sm text-green-600">Default Address</span>}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="font-medium">{address.firstname} {address.lastname}</p>
-                    <p className="text-gray-600 mt-2">{address.phone}</p>
-                    <p className="text-gray-600 mt-2">{address.province}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">{address.district}, {address.subDistrict}</p>
-                    <p className="text-gray-600 mt-2">{address.streetName}</p>
-                    <p className="text-gray-600 mt-2">{address.postalCode}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">{address.building}</p>
-                    <p className="text-gray-600 mt-2">{address.houseNumber}</p>
+
+                <div className="mt-6 md:mt-0 md:ml-10 text-center md:text-left">
+                  <h2 className="text-xl font-semibold mb-2">Profile Information</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-gray-500">Full Name</p>
+                      <p>{user_data?.first_name} {user_data?.last_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Email</p>
+                      <p>{user_data?.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Phone</p>
+                      <p>{user_data?.phone_number}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">User ID</p>
+                      <p>{user_data?.user_id}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+
+          {/* Address Section */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-medium">Address</h2>
+                <Button 
+                  variant="outline" 
+                  onClick={handleAddAddress}
+                  disabled={isLoading}
+                >
+                  + Add New Address
+                </Button>
+              </div>
+              
+              {filteredAddresses.length === 0 ? (
+                <div className="text-center py-6 text-gray-500">
+                  {searchQuery ? "ไม่พบที่อยู่ที่ค้นหา" : "ไม่มีที่อยู่ โปรดเพิ่มที่อยู่ใหม่"}
+                </div>
+              ) : (
+                filteredAddresses.map((address) => (
+                  <div key={address.id} className="bg-white rounded-lg border p-4 mb-4 relative">
+                    <div className="absolute right-4 top-4 flex space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleEditAddress(address)}
+                        disabled={isLoading}
+                      >
+                        <Edit className="w-4 h-4 mr-1" /> Edit
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteAddress(address.id)}
+                        disabled={isLoading}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1 text-red-500" /> Delete
+                      </Button>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <input 
+                        type="checkbox" 
+                        className="mr-4 h-4 w-4" 
+                        checked={address.isDefault}
+                        onChange={() => handleSetDefaultAddress(address.id)}
+                        disabled={isLoading}
+                      />
+                      {address.isDefault && <span className="text-sm text-green-600">Default Address</span>}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <p className="font-medium">{address.firstname} {address.lastname}</p>
+                        <p className="text-gray-600 mt-2">{address.phone}</p>
+                        <p className="text-gray-600 mt-2">{address.province}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">{address.district}, {address.subDistrict}</p>
+                        <p className="text-gray-600 mt-2">{address.streetName}</p>
+                        <p className="text-gray-600 mt-2">{address.postalCode}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">{address.building}</p>
+                        <p className="text-gray-600 mt-2">{address.houseNumber}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* Address Form Dialog */}
       <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
@@ -472,6 +480,16 @@ export default function ProfileUser() {
                   child="amphure"
                   childsId={["amphure_id", "tambon_id"]}
                   setChilds={[setAmphures, setTambons]}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+                <DropdownList
+                  label="จังหวัด"
+                  id="province_id"
+                  list={provinces}
+                  child="amphure"
+                  childsId={["amphure_id", "tambon_id"]}
+                  setChilds={[setAmphures, setTambons]}
                 />
               </div>
               
@@ -483,7 +501,32 @@ export default function ProfileUser() {
                   child="tambon"
                   childsId={["tambon_id"]}
                   setChilds={[setTambons]}
+                  selected={selected}
+                  setSelected={setSelected}
+                <DropdownList
+                  label="เขต/อำเภอ"
+                  id="amphure_id"
+                  list={amphures}
+                  child="tambon"
+                  childsId={["tambon_id"]}
+                  setChilds={[setTambons]}
                 />
+              </div>
+              
+              <div className="space-y-2">
+                <DropdownList 
+                  label="แขวง/ตำบล" 
+                  id="tambon_id" 
+                  list={tambons} 
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+                <DropdownList 
+                  label="แขวง/ตำบล" 
+                  id="tambon_id" 
+                  list={tambons} 
+                />
+                <pre>{JSON.stringify(selected, null, 4)}</pre>
               </div>
               
               <div className="space-y-2">
@@ -545,33 +588,33 @@ export default function ProfileUser() {
             </div>
             
             <div className="mt-6 flex justify-end space-x-4">
-  <Button 
-    type="button" 
-    variant="outline" 
-    onClick={() => {
-      setIsAddressDialogOpen(false);
-      setCurrentAddress(null);
-    }}
-    disabled={isLoading}
-    className="min-w-[100px]"
-  >
-    ยกเลิก
-  </Button>
-  <Button 
-    type="submit"
-    disabled={isLoading}
-    className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
-  >
-    {isLoading ? (
-      <div className="flex items-center">
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-        กำลังบันทึก...
-      </div>
-    ) : (
-      "บันทึก"
-    )}
-  </Button>
-</div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setIsAddressDialogOpen(false);
+                  setCurrentAddress(null);
+                }}
+                disabled={isLoading}
+                className="min-w-[100px]"
+              >
+                ยกเลิก
+              </Button>
+              <Button 
+                type="submit"
+                disabled={isLoading}
+                className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    กำลังบันทึก...
+                  </div>
+                ) : (
+                  "บันทึก"
+                )}
+              </Button>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
