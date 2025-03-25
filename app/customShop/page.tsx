@@ -17,8 +17,15 @@ const ShopListPage = () => {
   const [shops, setShops] = useState<Shop[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+    }
+
     const fetchShops = async () => {
       const dummyShops: Shop[] = Array.from({ length: 14 }, (_, i) => ({
         shopId: i + 1,
@@ -33,6 +40,11 @@ const ShopListPage = () => {
 
   // ไปหน้าสร้างน้ำหอม
   const handleOrderCustomize = (shopId: number) => {
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+    
     router.push(`/customPerfume/${shopId}`);
   };
 
