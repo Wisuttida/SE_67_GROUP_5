@@ -503,6 +503,7 @@ export default function ProfileUser() {
                   setChilds={[setTambons]}
                   selected={selected}
                   setSelected={setSelected}
+                  />
                 <DropdownList
                   label="เขต/อำเภอ"
                   id="amphure_id"
@@ -510,7 +511,7 @@ export default function ProfileUser() {
                   child="tambon"
                   childsId={["tambon_id"]}
                   setChilds={[setTambons]}
-                />
+                 />
               </div>
               
               <div className="space-y-2">
