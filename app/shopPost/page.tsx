@@ -109,6 +109,10 @@ useEffect(() => {
 
   const [showPopup, setShowPopup] = useState(false);
   const handleBuy = (sellerId: string) => {
+    if (!slipPreviews[sellerId]) {
+      alert("กรุณาอัพโหลดหลักฐานการโอน");
+      return;
+  }
     const seller = sellers.find(seller => seller.id === sellerId);
     if (seller) {
       alert(`รับซื้อ`);
@@ -342,36 +346,36 @@ useEffect(() => {
 
                       {/* input รับรูปสลิปโอนเงิน */}
                       <div className="mt-4">
-  <label className="block text-gray-1000 font-medium mb-2">อัพโหลดสลิปโอนเงิน</label>
+                        <label className="block text-gray-1000 font-medium mb-2">อัพโหลดสลิปโอนเงิน</label>
 
-  <label className="cursor-pointer flex items-center justify-center border-2 border-dashed border-gray-400 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
-    <input
-      type="file"
-      accept="image/*"
-      className="hidden"
-      onChange={(e) => handleSlipUpload(e, seller.id)} // ใช้ seller.id
-    />
-    <span className="text-gray-600">เลือกไฟล์...</span>
-  </label>
+                        <label className="cursor-pointer flex items-center justify-center border-2 border-dashed border-gray-400 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleSlipUpload(e, seller.id)} // ใช้ seller.id
+                          />
+                          <span className="text-gray-600">เลือกไฟล์...</span>
+                        </label>
 
-  {slipPreviews[seller.id] && (
-    <div className="mt-3 relative inline-block"> {/* เพิ่ม relative ที่นี่ */}
-      <p className="text-gray-700">ตัวอย่างสลิป:</p>
-      <img
-        src={slipPreviews[seller.id]}
-        alt="Slip Preview"
-        className="w-full h-auto rounded-lg shadow-md border mt-2"
-      />
-      {/* ปุ่มกากบาท */}
-      <button
-        onClick={() => removePreview(seller.id)} // ใช้ seller.id แทนการฮาร์ดโค้ด
-        className="absolute top-10 right-2 bg-gray-500 text-white rounded-full p-1 shadow hover:bg-gray-600 transition opacity-10absolute top-2 right-2 bg-gray-500 text-white rounded-full p-2 shadow opacity-50 hover:opacity-100 hover:bg-gray-600 transition0 hover:opacity-500"
-      >
-        ✕
-      </button>
-    </div>
-  )}
-</div>
+                        {slipPreviews[seller.id] && (
+                          <div className="mt-3 relative inline-block"> {/* เพิ่ม relative ที่นี่ */}
+                            <p className="text-gray-700">ตัวอย่างสลิป:</p>
+                            <img
+                              src={slipPreviews[seller.id]}
+                              alt="Slip Preview"
+                              className="w-full h-auto rounded-lg shadow-md border mt-2"
+                            />
+                            {/* ปุ่มกากบาท */}
+                            <button
+                              onClick={() => removePreview(seller.id)} // ใช้ seller.id แทนการฮาร์ดโค้ด
+                              className="absolute top-8 right-1 bg-gray-500 text-white rounded-full p-1 shadow hover:bg-gray-600 transition opacity-10absolute top-2 right-2 bg-gray-500 text-white rounded-full p-2 shadow opacity-50 hover:opacity-100 hover:bg-gray-600 transition0 hover:opacity-500"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        )}
+                      </div>
 
 
                     </div>
