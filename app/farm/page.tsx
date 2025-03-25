@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { Edit, Search, ShoppingCart, Bell, User, Package, Store } from 'lucide-react';
+import { Edit, Search, ShoppingCart, Bell } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
-import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import SideBarFarm from "@/components/SideBarFarm"; // Importing the SideBarFarm component
 

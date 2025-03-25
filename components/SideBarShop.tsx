@@ -164,7 +164,7 @@ export default function ProfileUser() {
         <div className="flex flex-col space-y-4">
           {menuItems.map((item, index) => (
             <Link href={item.path} key={index}>
-              <div className="flex items-center space-x-3 hover:bg-gray-300 p-2 rounded-lg cursor-pointer">
+              <div className="flex items-center space-x-3 hover:bg-gray-400 hover:shadow-lg p-2 rounded-lg cursor-pointer transition-all duration-200">
                 {item.icon}
                 <p className="whitespace-nowrap">{item.name}</p> {/* Prevent text wrapping */}
               </div>
