@@ -35,7 +35,6 @@ interface BankInfo {
 const ProfileShop = () => {
   let csrf = localStorage.getItem('csrfToken');
   let token = localStorage.getItem('token');
-  let shopData = localStorage.getItem('shop');
   const [isAddressEditing, setIsAddressEditing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState('');
@@ -289,8 +288,8 @@ const ProfileShop = () => {
           เบอร์: filteredAddresses[0].phonenumber,
           บ้านเลขที่: filteredAddresses[0].house_number,
           ถนน: filteredAddresses[0].street_name,
-          ตำบล: filteredAddresses[0].tambon,
-          อำเภอ: filteredAddresses[0].amphoe,
+          ตำบล: filteredAddresses[0].subDistrict,
+          อำเภอ: filteredAddresses[0].district,
           จังหวัด: filteredAddresses[0].province,
           รหัสไปรษณีย์: filteredAddresses[0].zipcode,
           address_id: filteredAddresses[0].address_id,
