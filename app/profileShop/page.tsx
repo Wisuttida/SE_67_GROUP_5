@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import SideBarShop from '@/components/SideBarShop';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
+import { useToast } from "@/components/ui/use-toast";
 import {
   Select,
   SelectContent,
@@ -37,6 +38,7 @@ interface BankInfo {
 const ProfileShop = () => {
   let csrf = localStorage.getItem('csrfToken');
   let token = localStorage.getItem('token');
+  const { toast } = useToast();
   const [isAddressEditing, setIsAddressEditing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState('');
@@ -236,7 +238,9 @@ const ProfileShop = () => {
         },
         withCredentials: true,
       }
-    ).catch(error => {
+    ).then(res => {
+      toast("อัปเดตที่อยู่เรียบร้อยแล้ว");
+    }).catch(error => {
       console.error('Error saving address:', error.response ? error.response.data : error.message);
     });
   
@@ -296,7 +300,7 @@ const ProfileShop = () => {
     if (addressGet) {
       try {
         const data: AddressInfo[] = JSON.parse(addressGet);
-        const filteredAddresses: AddressInfo[] = data.filter(address => address.position_id === 2);
+        const filteredAddresses: AddressInfo[] = data.filter(address => Number(address.position_id) === 2);
         setAddressInfo(prevState => ({
           ...prevState,
           fname: filteredAddresses[0].fname,
@@ -405,7 +409,7 @@ const ProfileShop = () => {
                                   <label>{keyMapping[key] || key.replace(/([A-Z])/g, ' $1')}</label>
                                   <input
                                     name={key}
-                                    value={addressInfo[key]}
+                                    value={addressInfo[key] as string}
                                     onChange={handleAddressChange}
                                     className="border p-2 rounded-lg w-full"
                                   />
