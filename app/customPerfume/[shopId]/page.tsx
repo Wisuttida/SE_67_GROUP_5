@@ -40,6 +40,9 @@ const CustomPerfumePage = () => {
   const [description, setDescription] = useState("");
   const [intensity, setIntensity] = useState(50);
   const [volume, setVolume] = useState("");
+  const [toneSearch, setToneSearch] = useState(""); // สำหรับค้นหา tone
+  const [shopSearch, setShopSearch] = useState(""); // สำหรับค้นหาร้าน
+  const [isTester, setIsTester] = useState(false); // State สำหรับตรวจสอบว่าเลือก Tester หรือไม่
 
   useEffect(() => {
     // ดึงข้อมูลร้านค้าจากฐานข้อมูล (ตัวอย่าง mock data)
@@ -91,30 +94,55 @@ const CustomPerfumePage = () => {
     }, 1000);
   };
 
+  // ฟังก์ชันกรอง tone ตามการค้นหาของผู้ใช้
+  const filteredTones = fragranceTones.filter((tone) =>
+    tone.name.toLowerCase().includes(toneSearch.toLowerCase())
+  );
+
+  // ฟังก์ชันกรองร้านตามการค้นหาของผู้ใช้
+  const filteredShops = [shop].filter((shop) =>
+    shop?.shopName.toLowerCase().includes(shopSearch.toLowerCase())
+  );
+
   return (
     <div>
       <Navbar />
       <div className="container mx-auto p-6">
-        {shop && (
+        {/* ปุ่ม Back */}
+        <Button variant="outline" onClick={() => router.back()} className="mb-6">
+          Back
+        </Button>
+
+        {filteredShops.length > 0 && (
           <div className="flex items-center space-x-4 mb-6">
             <Image
-              src={shop.shopImage}
-              alt={shop.shopName}
+              src={filteredShops[0]?.shopImage || "/placeholder-profile.jpg"}
+              alt={filteredShops[0]?.shopName || "Shop"}
               width={60}
               height={60}
               className="w-16 h-16 rounded-full"
             />
-            <h1 className="text-2xl font-bold">{shop.shopName}</h1>
+            <h1 className="text-2xl font-bold">{filteredShops[0]?.shopName}</h1>
           </div>
         )}
 
         <h2 className="text-xl font-semibold mb-4">Create Your Custom Fragrance</h2>
 
+        {/* ค้นหา Tone */}
+        <div className="mb-6">
+          <label className="block text-gray-700 font-semibold mb-2">Search Fragrance Tones</label>
+          <Input
+            value={toneSearch}
+            onChange={(e) => setToneSearch(e.target.value)}
+            placeholder="Search tones"
+          />
+        </div>
+
         {/* เลือกโทนกลิ่น */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3">Select Fragrance Tones</h3>
           <div className="grid grid-cols-2 gap-4">
-            {fragranceTones.map((tone) => (
+            {filteredTones.map((tone) => (
               <div key={tone.id} className="flex items-center space-x-3">
                 <Checkbox onCheckedChange={() => handleToneSelect(tone)} />
                 <span>{tone.name}</span>
@@ -128,7 +156,9 @@ const CustomPerfumePage = () => {
                       step={1}
                       onValueChange={(val) => handlePercentageChange(tone.id, val[0])}
                     />
-                    <span className="w-12 text-right">{selectedTones.find((t) => t.id === tone.id)?.percentage}%</span>
+                    <span className="w-12 text-right">
+                      {selectedTones.find((t) => t.id === tone.id)?.percentage}%
+                    </span>
                   </div>
                 )}
               </div>
@@ -155,14 +185,25 @@ const CustomPerfumePage = () => {
           </div>
         </div>
 
+        {/* ฟิลด์ Volume */}
         <div className="mb-6">
           <label className="block text-gray-700 font-semibold mb-2">Volume (ml) *</label>
-          <Input type="number" value={volume} onChange={(e) => setVolume(e.target.value)} />
+          <Input
+            type="number"
+            value={volume}
+            onChange={(e) => setVolume(e.target.value)}
+            disabled={isTester} // ปิดการพิมพ์เมื่อเลือก Tester
+          />
         </div>
+
 
         {/* ปุ่มกด */}
         <div className="flex space-x-4">
-          <Button variant="outline">Tester</Button>
+          {/* ปุ่ม Tester */}
+          <Checkbox checked={isTester} onCheckedChange={(checked) => setIsTester(checked)} />
+          <span>
+            Use Tester
+          </span>
           <Button onClick={handleSubmit}>Submit</Button>
         </div>
       </div>
