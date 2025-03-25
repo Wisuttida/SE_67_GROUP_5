@@ -135,7 +135,8 @@ const ShopHomePost = () => {
         <label className="block text-sm font-medium text-gray-700">จำนวนที่ต้องการซื้อ</label>
         <input 
           type="number" 
-          min="1" 
+          min="0"        // กำหนดขั้นต่ำที่ 0 หรือปรับตามต้องการ
+          step="0.5"
           max={selectedFarm.amount} 
           value={quantity} 
           onChange={(e) => setQuantity(Number(e.target.value))} 
