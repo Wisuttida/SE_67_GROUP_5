@@ -3,7 +3,7 @@ import { Edit, Search, ShoppingCart, Bell, Store, Tractor, Grid, Clipboard, Doll
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
@@ -40,6 +40,7 @@ export default function ProfileUser() {
   let token = localStorage.getItem('token');
   const router = useRouter();
   const { toast } = useToast();
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   interface UserData {
     user_id: number;
@@ -78,10 +79,21 @@ export default function ProfileUser() {
       }
     }
   }, []);
-  
   const validatePhoneNumber = (phone: string) => {
-    const phoneRegex = /^[0-9]+$/;
-    return phoneRegex.test(phone);
+    const phoneRegexZero = /^[1-9]\d+$/;
+    const phoneRegexNumber = /[A-Za-z]+/;
+    const phoneRegexLenght = /^\d{9,10}$/;
+    if(phoneRegexZero.test(phone)) {
+      return 0;
+    }
+    else if(phoneRegexNumber.test(phone)) {
+      return 1;
+    }
+    else if(!phoneRegexLenght.test(phone)) {
+      return 2;
+    }
+    else
+      return 3;
   };
   const getEmptyAddress = (): AddressData => ({
     address_id: '',
@@ -193,8 +205,14 @@ export default function ProfileUser() {
     event.preventDefault();
     if (!currentAddress) return;
 
-    if (!validatePhoneNumber(currentAddress.phonenumber)) {
-      toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณากรอกในรูปแบบ 0XX-XXX-XXXX");
+    if (validatePhoneNumber(currentAddress.phonenumber) == 0) {
+      toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณาเริ่มต้นด้วย 0");
+      return;
+    }else if (validatePhoneNumber(currentAddress.phonenumber) == 1){
+      toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณากรอกตัวเลข");
+      return;
+    }else if (validatePhoneNumber(currentAddress.phonenumber) == 2) {
+      toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณากรอกระหว่าง 9-10 ตัว");
       return;
     }
 
@@ -227,10 +245,11 @@ export default function ProfileUser() {
             },
             withCredentials: true,
           }
-        ).catch(error => {
+        ).then(res => {
+          toast("อัปเดตที่อยู่เรียบร้อยแล้ว");
+        }).catch(error => {
           console.error('Error saving address:', error.response ? error.response.data : error.message);
         });
-        toast("อัปเดตที่อยู่เรียบร้อยแล้ว");
       } else {
         setAddresses(prev => [...prev, currentAddress]);
         axios.post(`${process.env.NEXT_PUBLIC_API_URL}/addresses/`,
@@ -256,10 +275,11 @@ export default function ProfileUser() {
             },
             withCredentials: true,
           }
-        ).catch(error => {
+        ).then(res => {
+          toast("เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว");
+        }).catch(error => {
           console.error('Error saving address:', error.response ? error.response.data : error.message);
         });
-        toast("เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว");
       }
       
     
@@ -295,7 +315,7 @@ export default function ProfileUser() {
       address.province.toLowerCase().includes(searchQuery.toLowerCase()) ||
       address.district.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
+  
   return (
     <div>
       <Navbar />
@@ -352,7 +372,12 @@ export default function ProfileUser() {
                     />
                   </div>
                   <p className="mt-2 font-medium">{user_data?.username}</p>
-                  <Button variant="ghost" size="sm" className="mt-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => setShowEditDialog(true)}
+                  >
                     <Edit className="w-4 h-4 mr-1" /> Edit Profile
                   </Button>
                 </div>
@@ -495,8 +520,8 @@ export default function ProfileUser() {
                   name="phonenumber"
                   value={currentAddress?.phonenumber || ''}
                   onChange={handleInputChange}
+                  // pattern="^0[0-9]{8,9}$"
                   required
-                  pattern="[0-9]+"
                   placeholder="0XXXXXXXXX"
                   disabled={isLoading}
                 />
