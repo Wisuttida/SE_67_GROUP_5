@@ -37,7 +37,10 @@ const AddProduct = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        if (!product.name || !product.price || !product.stock_quantity || !product.quantity || !product.fragrance_tone_name || !product.fragrance_strength || !product.volume || !product.gender_target || !product.description || !product.image_url) {
+            alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+            return;
+        }
         // ตรวจสอบข้อมูลที่เก็บใน state
         const formData = new FormData();
         formData.append('name', product.name);
@@ -51,32 +54,33 @@ const AddProduct = () => {
         formData.append('description', product.description);
 
         // ถ้ามีการเลือกไฟล์รูปภาพ
-        if (product.image_url) {
-            const imageFile = product.image_url.split(',')[1]; // ตัด URL ของรูปภาพที่เก็บใน state
-            const fileBlob = new Blob([new Uint8Array(atob(imageFile).split('').map(c => c.charCodeAt(0)))], { type: 'image/jpeg' });
-            formData.append('image', fileBlob, 'product-image.jpg');
-        }
-
-        // try {
-        //     // ส่งข้อมูลไปยัง backend
-        //     const response = await axios.post(
-        //         `${process.env.NEXT_PUBLIC_API_URL}/products/add`,  // ปรับ URL API ของคุณให้ตรง
-        //         formData,
-        //         {
-        //             headers: {
-        //                 'Content-Type': 'multipart/form-data',  // กำหนด Content-Type สำหรับการส่งไฟล์
-        //             },
-        //             withCredentials: true,  // ส่งคุกกี้สำหรับการยืนยัน
-        //         }
-        //     );
-
-        //     // ถ้าส่งข้อมูลสำเร็จ
-        //     alert("✅ เพิ่มสินค้าในร้านสำเร็จ!");
-        //     router.push("/myProductShop"); // ไปยังหน้าที่แสดงสินค้าของร้าน
-        // } catch (error) {
-        //     console.error("Error adding product:", error);
-        //     alert("❌ ไม่สามารถเพิ่มสินค้า: " + (error.response?.data?.error || error.message));
+        // if (product.image_url) {
+        //     const imageFile = product.image_url.split(',')[1]; // ตัด URL ของรูปภาพที่เก็บใน state
+        //     const fileBlob = new Blob([new Uint8Array(atob(imageFile).split('').map(c => c.charCodeAt(0)))], { type: 'image/jpeg' });
+        //     formData.append('image', fileBlob, 'product-image.jpg');
         // }
+
+    //     try {
+    //         // ส่งข้อมูลไปยัง backend
+    //         const response = await axios.post(
+    //             `${process.env.NEXT_PUBLIC_API_URL}/products`,  // ปรับ URL API ของคุณให้ตรง
+    //             formData,
+    //             {
+    //                 headers: {
+    //                     'Content-Type': 'multipart/form-data',  // กำหนด Content-Type สำหรับการส่งไฟล์
+    //                 },
+    //                 withCredentials: true,  // ส่งคุกกี้สำหรับการยืนยัน
+    //             }
+    //         );
+
+    //         // ถ้าส่งข้อมูลสำเร็จ
+    //         alert("✅ เพิ่มสินค้าในร้านสำเร็จ!");
+    //         router.push("/myProductShop"); // ไปยังหน้าที่แสดงสินค้าของร้าน
+    //     } catch (error) {
+    //         console.error("Error adding product:", error);
+    //         alert("❌ ไม่สามารถเพิ่มสินค้า: " + (error.response?.data?.error || error.message));
+    //     }
+    router.push('myProductShop');
     };
 
     return (
