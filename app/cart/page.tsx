@@ -218,7 +218,7 @@ const CartPage = () => {
         <div className="flex items-center space-x-4 mb-4">
           <label className="font-semibold">เลือกที่อยู่จัดส่ง:</label>
           <Select value={selectedAddress} onValueChange={setSelectedAddress}>
-            <SelectTrigger className="w-auto"> {/* Adjust width here */}
+            <SelectTrigger className="w-full max-w-[1100px]"> {/* Adjust width here */}
               <SelectValue placeholder="เลือกที่อยู่" />
             </SelectTrigger>
             <SelectContent>
