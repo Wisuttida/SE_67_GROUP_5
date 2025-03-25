@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import { useState, useEffect } from "react";
 import { FiMoreVertical } from "react-icons/fi";
 import { ChangeEvent} from "react";
+import SideBarFarm from '@/components/SideBarFarm';
 
 
 const FarmPost = () => {
@@ -39,7 +40,6 @@ const FarmPost = () => {
   interface Buyer {
     id: string;
     name: string;
-    address : string,
     profileImage: string;
     productName: string;
     price_per_unit: number;
@@ -59,7 +59,6 @@ useEffect(() => {
     {
       id: "1",
       name: "สมชาย ขายดี",
-      address : "กรุงเทพ",
       profileImage: "https://via.placeholder.com/50", // ใส่ URL รูปจริง
       productName: "มะนาว",
       price_per_unit: 20,
@@ -73,7 +72,6 @@ useEffect(() => {
     {
       id: "2",
       name: "แม่ส้ม แม่ค้าใจดี",
-      address : "กรุงเทพ",
       profileImage: "https://via.placeholder.com/50",
       productName: "พริกแดง",
       price_per_unit: 150,
@@ -109,7 +107,7 @@ useEffect(() => {
   const handleBuy = (buyerId: string) => {
     const buyer = buyers.find(buyer => buyer.id === buyerId);
     if (buyer) {
-      alert(`ติดต่อผู้ขาย: ${buyer.name}\nสินค้า: ${buyer.productName}\nสถานที่: ${buyer.address}`);
+      alert(`ยืนยัน`);
     }
   };
   
@@ -193,8 +191,8 @@ useEffect(() => {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="flex">
-        <div className="w-64 bg-gray-300 text-white p-6 min-h-screen">
-          {/* ใส่ Sidebar */}
+        <div>
+        <SideBarFarm/>
         </div>
         <div className="flex-1 p-6">
           <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
@@ -217,6 +215,9 @@ useEffect(() => {
                     name="price_per_unit" 
                     placeholder="ใส่ราคา (บาท)" 
                     className="w-full p-2 border rounded bg-gray-100 placeholder-gray-600"
+                    type="number"  // ใช้ type="number" เพื่อรับแค่ตัวเลข
+                    min="0"        // กำหนดขั้นต่ำที่ 0 หรือปรับตามต้องการ
+                    step="0.5"
                     onChange={handleChange} 
                     value={form.price_per_unit} 
                   />
@@ -238,6 +239,9 @@ useEffect(() => {
                   name="amount" 
                   placeholder="ใส่ปริมาณ" 
                   className="w-full p-2 border rounded bg-gray-100 placeholder-gray-600"
+                  type="number"  // ใช้ type="number" เพื่อรับแค่ตัวเลข
+                  min="0"        // กำหนดขั้นต่ำที่ 0 หรือปรับตามต้องการ
+                  step="0.5"
                   onChange={handleChange} 
                   value={form.amount} 
                 />
@@ -308,7 +312,6 @@ useEffect(() => {
                       <p className="text-gray-700"><span className="font-medium">ปริมาณที่ซื้อ:</span> {buyer.amount} {buyer.unit}</p>
                       <p className="text-gray-700"><span className="font-medium">ราคา:</span> {buyer.price_per_unit} บาท ต่อ {buyer.unit}</p>
                       <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {buyer.price_per_unit*buyer.amount} บาท</p>
-                      <p className="text-gray-700"><span className="font-medium">ที่อยู่ร้าน:</span> {buyer.address}</p>
 
                       {/* เปลี่ยนเป็นดูสลิปโอนเงินอย่างเดียว ไม่ต้องรับ input */}
                         <div className="mt-4">
@@ -354,7 +357,7 @@ useEffect(() => {
             <h2 className="text-2xl font-bold mb-4">Edit Post</h2>
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold">Product Name</label>
+                <label htmlFor="name" className="block text-sm font-semibold">ชื่อวัตถุดิบ</label>
                 <input
                   id="name"
                   name="name"
@@ -365,18 +368,21 @@ useEffect(() => {
                 />
               </div>
               <div>
-                <label htmlFor="price_per_unit" className="block text-sm font-semibold">Price_per_unit</label>
+                <label htmlFor="price_per_unit" className="block text-sm font-semibold">ราคา(บาท) ต่อหน่วย</label>
                 <input
                   id="price_per_unit"
                   name="price_per_unit"
                   placeholder="Enter price_per_unit"
                   className="w-full p-2 border rounded"
+                  type="number"  // ใช้ type="number" เพื่อรับแค่ตัวเลข
+                  min="0"        // กำหนดขั้นต่ำที่ 0 หรือปรับตามต้องการ
+                  step="0.5"
                   onChange={handleEditChange}
                   value={editForm.price_per_unit}
                 />
               </div>
               <div>
-                <label htmlFor="unit" className="block text-sm font-semibold">Unit</label>
+                <label htmlFor="unit" className="block text-sm font-semibold">หน่วย</label>
                 <input
                   id="unit"
                   name="unit"
@@ -387,18 +393,21 @@ useEffect(() => {
                 />
               </div>
               <div>
-                <label htmlFor="amount" className="block text-sm font-semibold">Amount</label>
+                <label htmlFor="amount" className="block text-sm font-semibold">ปริมาณ</label>
                 <input
                   id="amount"
                   name="amount"
                   placeholder="Enter amount"
                   className="w-full p-2 border rounded"
+                  type="number"  // ใช้ type="number" เพื่อรับแค่ตัวเลข
+                  min="0"        // กำหนดขั้นต่ำที่ 0 หรือปรับตามต้องการ
+                  step="0.5"
                   onChange={handleEditChange}
                   value={editForm.amount}
                 />
               </div>
               <div>
-                <label htmlFor="description" className="block text-sm font-semibold">Description</label>
+                <label htmlFor="description" className="block text-sm font-semibold">รายละเอียด</label>
                 <textarea
                   id="description"
                   name="description"
@@ -408,13 +417,13 @@ useEffect(() => {
                   value={editForm.description}
                 />
               </div>
-              <button type="submit" className="w-full bg-black text-white py-2 rounded-md">Update</button>
+              <button type="submit" className="w-full bg-black text-white py-2 rounded-md">แก้ไข</button>
               <button
                 type="button"
                 className="w-full bg-gray-300 text-black py-2 rounded-md mt-2"
                 onClick={() => setShowPopup(false)}
               >
-                Cancel
+                ยกเลิก
               </button>
             </form>
           </div>

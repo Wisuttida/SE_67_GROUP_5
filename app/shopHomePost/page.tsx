@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation"; // ใช้สำหรับเปลี่ยนหน้า
 
 interface Farm {
-  farmId: number;
+  farmId: string;
   farmName: string;
   farmImage: string;
   productName: string;
@@ -26,13 +26,12 @@ const ShopHomePost = () => {
   const [farms, setFarms] = useState<Farm[]>([]);
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [slip, setSlip] = useState<File | null>(null);
   const router = useRouter(); // ใช้ router สำหรับเปลี่ยนหน้า
 
   useEffect(() => {
     const fetchFarms = async () => {
       const dummyFarms: Farm[] = Array.from({ length: 14 }, (_, i) => ({
-        farmId: i + 1,
+        farmId: "${i + 1}",
         farmName: `Farm${i + 1}`,
         farmImage: "/placeholder-profile.jpg",
         productName: "ชื่อวัตถุดิบ",
@@ -53,15 +52,14 @@ const ShopHomePost = () => {
   const handleOrderCustomize = (farm: Farm) => {
     setSelectedFarm(farm);
     setQuantity(1);
-    setSlip(null);
   };
 
   const closeModal = () => {
     setSelectedFarm(null);
   };
 
-  const handleConfirmPurchase = () => {
-    if (!slip) {
+  const handleConfirmPurchase = (farmId: string) => {
+    if (!slipPreviews[farmId]) {
       alert("กรุณาอัปโหลดสลิปก่อนยืนยันการซื้อ");
       return;
     }else{
@@ -71,6 +69,25 @@ const ShopHomePost = () => {
           }
     }
     
+  };
+  const [slipPreviews, setSlipPreviews] = useState<{ [key: string]: string }>({});
+  const handleSlipUpload = (e: React.ChangeEvent<HTMLInputElement>, sellerId: string) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSlipPreviews(prev => ({ ...prev, [sellerId]: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+      e.target.value = ""; // รีเซ็ตค่า input
+    }
+  };
+  const removePreview = (sellerId: string) => {
+    setSlipPreviews(prev => {
+      const newPreviews = { ...prev };
+      delete newPreviews[sellerId];
+      return newPreviews;
+    });
   };
 
   return (
@@ -135,7 +152,8 @@ const ShopHomePost = () => {
         <label className="block text-sm font-medium text-gray-700">จำนวนที่ต้องการซื้อ</label>
         <input 
           type="number" 
-          min="1" 
+          min="0"        // กำหนดขั้นต่ำที่ 0 หรือปรับตามต้องการ
+          step="0.5"
           max={selectedFarm.amount} 
           value={quantity} 
           onChange={(e) => setQuantity(Number(e.target.value))} 
@@ -149,7 +167,7 @@ const ShopHomePost = () => {
           <input 
             type="file" 
             accept="image/*" 
-            onChange={(e) => setSlip(e.target.files?.[0] || null)} 
+            onChange={(e) => handleSlipUpload(e, selectedFarm.farmId)} 
             className="w-full opacity-0 absolute inset-0 cursor-pointer"
           />
           <div className="text-gray-500">
@@ -157,24 +175,32 @@ const ShopHomePost = () => {
             <p className="text-sm mt-2">ลากหรือคลิกเพื่ออัปโหลด</p>
           </div>
         </div>
-        {slip && (
-          <div className="mt-4">
-            <p className="text-sm font-medium text-gray-700">ตัวอย่างสลิป:</p>
-            <Image
-              src={URL.createObjectURL(slip)}
+        {slipPreviews[selectedFarm.farmId] && (
+          <div className="mt-3 relative inline-block"> {/* เพิ่ม relative ที่นี่ */}
+            <p className="text-gray-700">ตัวอย่างสลิป:</p>
+            <img
+              src={slipPreviews[selectedFarm.farmId]}
               alt="Slip Preview"
-              width={250}
-              height={250}
-              className="rounded-lg border shadow-lg mt-2"
+              className="w-full h-auto rounded-lg shadow-md border mt-2"
             />
+            {/* ปุ่มกากบาท */}
+            <button
+              onClick={() => removePreview(selectedFarm.farmId)} // ใช้ seller.id แทนการฮาร์ดโค้ด
+              className="absolute top-8 right-1 bg-gray-500 text-white rounded-full p-1 shadow hover:bg-gray-600 transition opacity-10absolute top-2 right-2 bg-gray-500 text-white rounded-full p-2 shadow opacity-50 hover:opacity-100 hover:bg-gray-600 transition0 hover:opacity-500"
+            >
+              ✕
+            </button>
           </div>
         )}
       </div>
       <div className="flex justify-end space-x-3 mt-auto">
-        <Button variant="outline" className="hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg" onClick={closeModal}>
+        <Button variant="outline" 
+          className={`w-1/2 py-2 rounded-md text-center ${slipPreviews[selectedFarm.farmId] ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-red-500 text-white"}`}
+          disabled={!!slipPreviews[selectedFarm.farmId]}
+          onClick={closeModal}>
           ยกเลิก
         </Button>
-        <Button variant="default" className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg" onClick={handleConfirmPurchase}>
+        <Button variant="default" className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg" onClick={() => handleConfirmPurchase(selectedFarm.farmId)}>
           ยืนยัน
         </Button>
       </div>

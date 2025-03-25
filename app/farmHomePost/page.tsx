@@ -5,6 +5,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation"; // ใช้สำหรับเปลี่ยนหน้า
+import SideBarFarm from "@/components/SideBarFarm";
 
 interface Shop {
   shopId: number;
@@ -53,7 +54,7 @@ const ShopHomePost = () => {
   const handleConfirm = () => {
     const userResponse = confirm("ต้องการดำเนินการต่อหรือไม่?");
           if (userResponse) {
-            router.push(`/farmToShip`);
+            router.push(`/farm/to-ship`);
           }
   };
 
@@ -62,8 +63,8 @@ const ShopHomePost = () => {
       <Navbar />
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-gray-300 text-white p-6">
-          {/* ใส่Sidebar ตรงนี้ */}
+        <div>
+          <SideBarFarm/>
         </div>
         {/* Main Content */}
         <div className="container mx-auto p-6">
@@ -116,7 +117,8 @@ const ShopHomePost = () => {
         <label className="block text-sm font-medium text-gray-700">จำนวนที่ต้องการขาย ({selectedShop.unit})</label>
         <input 
           type="number" 
-          min="0.01" 
+          min="0"        // กำหนดขั้นต่ำที่ 0 หรือปรับตามต้องการ
+          step="0.5" 
           max={selectedShop.amount} 
           value={quantity} 
           onChange={(e) => setQuantity(Number(e.target.value))} 
