@@ -326,21 +326,14 @@ useEffect(() => {
 
                     {/* ปุ่ม */}
                     <div className="mt-4 flex gap-4">
-                      {/* ปฎิเสธ */}
-                      <button 
-                        onClick={() => handleNotSell(buyer.id)} 
-                        className="w-1/2 bg-red-500 text-white py-2 rounded-md text-center"
-                      >
-                        ปฎิเสธ
-                      </button>
 
                       {/* ยืนบัน */}
-                      <button 
+                      {/* <button 
                         onClick={() => handleBuy(buyer.id)} 
                         className="w-1/2 bg-green-500 text-white py-2 rounded-md text-center"
                       >
                         ยืนบัน
-                      </button>
+                      </button> */}
                     </div>
 
                   </div>
