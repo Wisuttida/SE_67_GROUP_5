@@ -19,13 +19,12 @@ interface ShippingOrder {
   image?: string;
 }
 
-export default function UserToShip() {
+export default function UserPage() {
   const { toast } = useToast();
   const [orders, setOrders] = useState<ShippingOrder[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<ShippingOrder[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -53,21 +52,12 @@ export default function UserToShip() {
   }, [toast]);
 
   useEffect(() => {
-    let result = orders;
-
-    // Filter by active tab
-    if (activeTab !== 'all') {
-      result = result.filter(order => order.status === activeTab);
-    }
-
-    // Filter orders based on search query
-    result = result.filter(order => 
+    const result = orders.filter(order => 
       order.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.shop.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
     setFilteredOrders(result);
-  }, [orders, searchQuery, activeTab]);
+  }, [orders, searchQuery]);
 
   if (isLoading) {
     return (
@@ -101,22 +91,7 @@ export default function UserToShip() {
 
       <div className="mt-8">
         <h1 className="text-2xl font-bold text-center mb-6">รายการที่ต้องจัดส่ง</h1>
-
-        {/* Status Tabs */}
-        <div className="flex justify-center mb-4">
-          {['all', 'pending', 'shipped', 'delivered', 'cancelled'].map(status => (
-            <Button
-              key={status}
-              variant={activeTab === status ? 'solid' : 'outline'}
-              className="mx-2"
-              onClick={() => setActiveTab(status)}
-            >
-              {status === 'all' ? 'ทั้งหมด' : status}
-            </Button>
-          ))}
-        </div>
-
-        {/* Orders Grid */}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredOrders.length === 0 ? (
             <div className="col-span-2 text-center py-8 text-gray-500">
