@@ -33,11 +33,7 @@ const ShopPage = () => {
   }
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [shopDetails, setShopDetails] = useState({
-    shopName: "",
-    shopImage: "/placeholder-profile.jpg",
-    description: "",
-  });
+  const [shopDetails, setShopDetails] = useState();
 
   // Filter state
   const [minPrice, setMinPrice] = useState<string>("");

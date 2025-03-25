@@ -12,6 +12,7 @@ import Navbar from "@/components/Navbar";
 import SideBarUser from "@/components/SideBarUser";
 import DropdownList from "@/components/ui/DropdownList"; // Importing the DropdownList component
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const DEFAULT_IMAGES = {
   profile: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f3f4f6'/%3E%3Cpath d='M48 48C54.6274 48 60 42.6274 60 36C60 29.3726 54.6274 24 48 24C41.3726 24 36 29.3726 36 36C36 42.6274 41.3726 48 48 48ZM48 52C40.0474 52 33.5 58.5474 33.5 66.5H62.5C62.5 58.5474 55.9526 52 48 52Z' fill='%239ca3af'/%3E%3C/svg%3E"
@@ -35,6 +36,8 @@ interface AddressData {
 }
 
 export default function ProfileUser() {
+  let csrf = localStorage.getItem('csrfToken');
+  let token = localStorage.getItem('token');
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   interface UserData {
@@ -47,24 +50,7 @@ export default function ProfileUser() {
     profile_image: string | null;
   }
   const [user_data, setUserData] = useState<UserData | undefined>(undefined);
-  const [addresses, setAddresses] = useState<AddressData[]>([
-    // {
-    //   address_id: "addr-1",
-    //   fname: 'John',
-    //   lname: 'Doe',
-    //   phonenumber: '0921234567',
-    //   province: 'Bangkok',
-    //   district: 'Watthana',
-    //   subDistrict: 'Khlong Toei Nuea',
-    //   zipcode: '10110',
-    //   street_name: 'Sukhumvit Road',
-    //   building: 'ABC Building',
-    //   house_number: '123/45',
-    //   is_default: true,
-    //   users_user_id: user_data?.user_id ?? 0,
-    //   position_id: 4,
-    // }
-  ]);
+  const [addresses, setAddresses] = useState<AddressData[]>([]);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
@@ -115,9 +101,9 @@ export default function ProfileUser() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setCurrentAddress(prev => {
+    setCurrentAddress((prev) => {
       if (!prev) return getEmptyAddress();
-      return { ...prev, [name]: value };
+      return { ...prev, [name]: value } as AddressData;
     });
   };
 
@@ -157,6 +143,39 @@ export default function ProfileUser() {
       }));
       setAddresses(updatedAddresses);
       toast("ตั้งเป็นที่อยู่หลักเรียบร้อยแล้ว");
+      axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${id}`,
+        {
+          is_default: true
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrf,
+          },
+          withCredentials: true,
+        }
+      ).catch(error => {
+        console.error('Error saving address:', error.response ? error.response.data : error.message);
+      });
+    
+      // เรียกข้อมูลใหม่เพื่ออัพเดตที่อยู่
+      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        withCredentials: true,
+      })
+      .then(res => {
+        localStorage.setItem('addresses', JSON.stringify(res.data.data));
+      })
+      .catch(error => {
+        console.error("Error fetching address:", error);
+      });
     } catch (error) {
       toast("ไม่สามารถตั้งค่าที่อยู่หลักได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
@@ -186,6 +205,49 @@ export default function ProfileUser() {
         toast("เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว");
       }
       
+      axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${currentAddress.address_id}`,
+        {
+          fname : currentAddress.fname,
+          lname : currentAddress.lname,
+          phonenumber : currentAddress.phonenumber,
+          street_name : currentAddress.street_name,
+          house_number : currentAddress.house_number,
+          building : currentAddress.building,
+          province : currentAddress.province,
+          district : currentAddress.district,
+          subDistrict : currentAddress.subDistrict,
+          zipcode : currentAddress.zipcode,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrf,
+          },
+          withCredentials: true,
+        }
+      ).catch(error => {
+        console.error('Error saving address:', error.response ? error.response.data : error.message);
+      });
+    
+      // เรียกข้อมูลใหม่เพื่ออัพเดตที่อยู่
+      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        withCredentials: true,
+      })
+      .then(res => {
+        localStorage.setItem('addresses', JSON.stringify(res.data.data));
+      })
+      .catch(error => {
+        console.error("Error fetching address:", error);
+      });
+
       setIsAddressDialogOpen(false);
       setCurrentAddress(null);
     } catch (error) {
@@ -371,10 +433,10 @@ export default function ProfileUser() {
           <form onSubmit={handleSaveAddress}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstname">ชื่อจริง</Label>
+                <Label htmlFor="fname">ชื่อจริง</Label>
                 <Input
-                  id="firstname"
-                  name="firstname"
+                  id="fname"
+                  name="fname"
                   value={currentAddress?.fname || ''}
                   onChange={handleInputChange}
                   required
@@ -383,10 +445,10 @@ export default function ProfileUser() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="lastname">นามสกุล</Label>
+                <Label htmlFor="lname">นามสกุล</Label>
                 <Input
-                  id="lastname"
-                  name="lastname"
+                  id="lname"
+                  name="lname"
                   value={currentAddress?.lname || ''}
                   onChange={handleInputChange}
                   required
@@ -395,10 +457,10 @@ export default function ProfileUser() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone">เบอร์โทรศัพท์ (0XXXXXXXXX)</Label>
+                <Label htmlFor="phonenumber">เบอร์โทรศัพท์ (0XXXXXXXXX)</Label>
                 <Input
-                  id="phone"
-                  name="phone"
+                  id="phonenumber"
+                  name="phonenumber"
                   value={currentAddress?.phonenumber || ''}
                   onChange={handleInputChange}
                   required
@@ -409,10 +471,10 @@ export default function ProfileUser() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="streetName">ถนน</Label>
+                <Label htmlFor="street_name">ถนน</Label>
                 <Input
-                  id="streetName"
-                  name="streetName"
+                  id="street_name"
+                  name="street_name"
                   value={currentAddress?.street_name || ''}
                   onChange={handleInputChange}
                   disabled={isLoading}
@@ -431,10 +493,10 @@ export default function ProfileUser() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="houseNumber">บ้านเลขที่</Label>
+                <Label htmlFor="house_number">บ้านเลขที่</Label>
                 <Input
-                  id="houseNumber"
-                  name="houseNumber"
+                  id="house_number"
+                  name="house_number"
                   value={currentAddress?.house_number || ''}
                   onChange={handleInputChange}
                   required
@@ -479,10 +541,10 @@ export default function ProfileUser() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="postalCode">รหัสไปรษณีย์</Label>
+                <Label htmlFor="zipcode">รหัสไปรษณีย์</Label>
                 <Input
-                  id="postalCode"
-                  name="postalCode"
+                  id="zipcode"
+                  name="zipcode"
                   value={currentAddress?.zipcode || ''}
                   onChange={handleInputChange}
                   required
