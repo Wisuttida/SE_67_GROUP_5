@@ -200,7 +200,13 @@ const ProfileShop = () => {
   };
 
   const handleAddressSave = () => {
-    console.log('Address Saved:', addressInfo);
+    // ตรวจสอบเบอร์โทรศัพท์
+    const phonePattern = /^[0-9]{10}$/; // ตรวจสอบว่าเบอร์ต้องเป็นตัวเลข 10 หลัก
+    if (!phonePattern.test(addressInfo.เบอร์)) {
+      alert("กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)");
+      return; // ไม่ทำการบันทึกหากเบอร์โทรศัพท์ไม่ถูกต้อง
+    }
+  
     setIsAddressEditing(false);
     axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${addressInfo.address_id}`,
       {
@@ -226,6 +232,8 @@ const ProfileShop = () => {
     ).catch(error => {
       console.error('Error saving address:', error.response ? error.response.data : error.message);
     });
+  
+    // เรียกข้อมูลใหม่เพื่ออัพเดตที่อยู่
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -242,6 +250,7 @@ const ProfileShop = () => {
       console.error("Error fetching address:", error);
     });
   };
+  
 
   interface ShopData {
     shop_id: number;
