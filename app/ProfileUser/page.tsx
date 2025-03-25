@@ -18,71 +18,99 @@ const DEFAULT_IMAGES = {
 };
 
 interface AddressData {
-  id: string;
-  firstname: string;
-  lastname: string;
-  phone: string;
-  province: string;
-  district: string;
-  subDistrict: string;
-  postalCode: string;
-  streetName: string;
+  address_id: string;
+  fname: string;
+  lname: string;
+  phonenumber: string;
+  street_name: string;
   building: string;
-  houseNumber: string;
-  isDefault: boolean;
+  subDistrict: string;
+  district: string;
+  province: string;
+  zipcode: string;
+  house_number: string;
+  is_default: boolean;
+  users_user_id: number;
+  position_id: number;
 }
 
 export default function ProfileUser() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  interface UserData {
+    user_id: number;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    profile_image: string | null;
+  }
+  const [user_data, setUserData] = useState<UserData | undefined>(undefined);
   const [addresses, setAddresses] = useState<AddressData[]>([
-    {
-      id: "addr-1",
-      firstname: 'John',
-      lastname: 'Doe',
-      phone: '092-123-4567',
-      province: 'Bangkok',
-      district: 'Watthana',
-      subDistrict: 'Khlong Toei Nuea',
-      postalCode: '10110',
-      streetName: 'Sukhumvit Road',
-      building: 'ABC Building',
-      houseNumber: '123/45',
-      isDefault: true
-    }
+    // {
+    //   address_id: "addr-1",
+    //   fname: 'John',
+    //   lname: 'Doe',
+    //   phonenumber: '0921234567',
+    //   province: 'Bangkok',
+    //   district: 'Watthana',
+    //   subDistrict: 'Khlong Toei Nuea',
+    //   zipcode: '10110',
+    //   street_name: 'Sukhumvit Road',
+    //   building: 'ABC Building',
+    //   house_number: '123/45',
+    //   is_default: true,
+    //   users_user_id: user_data?.user_id ?? 0,
+    //   position_id: 4,
+    // }
   ]);
-  const [provinces, setProvinces] = useState([]);
-  const [amphures, setAmphures] = useState([]);
-  const [tambons, setTambons] = useState([]);
-  const [selected, setSelected] = useState({
-    province_id: undefined,
-    amphure_id: undefined,
-    tambon_id: undefined,
-  });
-
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [currentAddress, setCurrentAddress] = useState<AddressData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-
+  useEffect(() => {
+    const user_dataGet = localStorage.getItem('user_data');
+    if (user_dataGet) {
+        try {
+            const data: UserData = JSON.parse(user_dataGet);
+            setUserData(data);
+        } catch (error) {
+            console.error('Error parsing user data from localStorage:', error);
+        }
+    }
+    const addressGet = localStorage.getItem('addresses');
+    if (addressGet) {
+      try {
+        const data: AddressData[] = JSON.parse(addressGet);
+        const filteredAddresses: AddressData[] = data.filter(address => address.position_id === 4);
+        setAddresses(filteredAddresses);
+      } catch (error) {
+        console.error('Error parsing shop data from localStorage:', error);
+      }
+    }
+  }, []);
+  
   const validatePhoneNumber = (phone: string) => {
-    const phoneRegex = /^[0-9]{3}-[0-9]{3}-[0-9]{4}$/;
+    const phoneRegex = /^[0-9]+$/;
     return phoneRegex.test(phone);
   };
-
   const getEmptyAddress = (): AddressData => ({
-    id: `addr-${Date.now()}`,
-    firstname: '',
-    lastname: '',
-    phone: '',
+    address_id: '',
+    fname: '',
+    lname: '',
+    phonenumber: '',
     province: '',
     district: '',
     subDistrict: '',
-    postalCode: '',
-    streetName: '',
+    zipcode: '',
+    street_name: '',
     building: '',
-    houseNumber: '',
-    isDefault: false
+    house_number: '',
+    is_default: false,
+    users_user_id: user_data?.user_id ?? 0,
+    position_id: 0,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,7 +137,7 @@ export default function ProfileUser() {
     try {
       if (confirm("คุณต้องการลบที่อยู่นี้ใช่หรือไม่?")) {
         setIsLoading(true);
-        const updatedAddresses = addresses.filter(addr => addr.id !== id);
+        const updatedAddresses = addresses.filter(addr => addr.address_id !== id);
         setAddresses(updatedAddresses);
         toast("ลบที่อยู่เรียบร้อยแล้ว");
       }
@@ -125,7 +153,7 @@ export default function ProfileUser() {
       setIsLoading(true);
       const updatedAddresses = addresses.map(address => ({
         ...address,
-        isDefault: address.id === id
+        isDefault: address.address_id === id
       }));
       setAddresses(updatedAddresses);
       toast("ตั้งเป็นที่อยู่หลักเรียบร้อยแล้ว");
@@ -138,10 +166,9 @@ export default function ProfileUser() {
 
   const handleSaveAddress = async (event: React.FormEvent) => {
     event.preventDefault();
-    
     if (!currentAddress) return;
 
-    if (!validatePhoneNumber(currentAddress.phone)) {
+    if (!validatePhoneNumber(currentAddress.phonenumber)) {
       toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณากรอกในรูปแบบ 0XX-XXX-XXXX");
       return;
     }
@@ -150,7 +177,7 @@ export default function ProfileUser() {
       setIsLoading(true);
       if (isEditing) {
         const updatedAddresses = addresses.map(addr => 
-          addr.id === currentAddress.id ? currentAddress : addr
+          addr.address_id === currentAddress.address_id ? currentAddress : addr
         );
         setAddresses(updatedAddresses);
         toast("อัปเดตที่อยู่เรียบร้อยแล้ว");
@@ -168,103 +195,12 @@ export default function ProfileUser() {
     }
   };
 
-  const filteredAddresses = addresses.filter(address => 
-    address.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    address.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    address.province.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    address.district.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredAddresses: AddressData[] = addresses.filter(address => 
+      address.fname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      address.lname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      address.province.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      address.district.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  interface UserData {
-    user_id: number;
-    username: string;
-    email: string;
-    first_name: string;
-    last_name: string;
-    phone_number: string;
-    profile_image: string | null;
-  }
-  const [user_data, setUserData] = useState<UserData | undefined>(undefined);
-  useEffect(() => {
-    const user_dataGet = localStorage.getItem('user_data');
-    if (user_dataGet) {
-        try {
-            const data: UserData = JSON.parse(user_dataGet);
-            setUserData(data);
-        } catch (error) {
-            console.error('Error parsing user data from localStorage:', error);
-        }
-    }
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetch(
-        'https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json'
-      );
-      const result = await response.json();
-      setProvinces(result);
-    };
-
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetch(
-        'https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json'
-      );
-      const result = await response.json();
-      setProvinces(result);
-    };
-
-    fetchData();
-  }, []);
-
-  const DropdownList = ({
-    label,
-    id,
-    list,
-    child,
-    childsId = [],
-    setChilds = [],
-  }) => {
-    const onChangeHandle = (event) => {
-      setChilds.forEach((setChild) => setChild([]));
-      const entries = childsId.map((child) => [child, undefined]);
-      const unSelectChilds = Object.fromEntries(entries);
-
-      const input = event.target.value;
-      const dependId = input ? Number(input) : undefined;
-      setSelected((prev) => ({ ...prev, ...unSelectChilds, [id]: dependId }));
-
-      if (!input) return;
-
-      if (child) {
-        const parent = list.find((item) => item.id === dependId);
-        const { [child]: childs } = parent;
-        const [setChild] = setChilds;
-        setChild(childs);
-      }
-    };
-
-    return (
-      <>
-        <label htmlFor={label}>{label}</label>
-        <select value={selected[id]} onChange={onChangeHandle} className="w-full px-3 py-2 border rounded-md">
-          <option label="เลือกข้อมูล ..." />
-          {list &&
-            list.map((item) => (
-              <option
-                key={item.id}
-                value={item.id}
-                label={`${item.name_th} - ${item.name_en}`}
-              />
-            ))}
-        </select>
-      </>
-    );
-  };
 
   return (
     <div>
@@ -372,7 +308,7 @@ export default function ProfileUser() {
                 </div>
               ) : (
                 filteredAddresses.map((address) => (
-                  <div key={address.id} className="bg-white rounded-lg border p-4 mb-4 relative">
+                  <div key={address.address_id} className="bg-white rounded-lg border p-4 mb-4 relative">
                     <div className="absolute right-4 top-4 flex space-x-2">
                       <Button 
                         variant="ghost" 
@@ -385,7 +321,7 @@ export default function ProfileUser() {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => handleDeleteAddress(address.id)}
+                        onClick={() => handleDeleteAddress(address.address_id)}
                         disabled={isLoading}
                       >
                         <Trash2 className="w-4 h-4 mr-1 text-red-500" /> Delete
@@ -395,26 +331,26 @@ export default function ProfileUser() {
                       <input 
                         type="checkbox" 
                         className="mr-4 h-4 w-4" 
-                        checked={address.isDefault}
-                        onChange={() => handleSetDefaultAddress(address.id)}
+                        checked={address.is_default}
+                        onChange={() => handleSetDefaultAddress(address.address_id)}
                         disabled={isLoading}
                       />
-                      {address.isDefault && <span className="text-sm text-green-600">Default Address</span>}
+                      {address.is_default ? <span className="text-sm text-green-600">Default Address</span> : null}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <p className="font-medium">{address.firstname} {address.lastname}</p>
-                        <p className="text-gray-600 mt-2">{address.phone}</p>
+                        <p className="font-medium">{address.fname} {address.lname}</p>
+                        <p className="text-gray-600 mt-2">{address.phonenumber}</p>
                         <p className="text-gray-600 mt-2">{address.province}</p>
                       </div>
                       <div>
                         <p className="text-gray-600">{address.district}, {address.subDistrict}</p>
-                        <p className="text-gray-600 mt-2">{address.streetName}</p>
-                        <p className="text-gray-600 mt-2">{address.postalCode}</p>
+                        <p className="text-gray-600 mt-2">{address.street_name}</p>
+                        <p className="text-gray-600 mt-2">{address.zipcode}</p>
                       </div>
                       <div>
                         <p className="text-gray-600">{address.building}</p>
-                        <p className="text-gray-600 mt-2">{address.houseNumber}</p>
+                        <p className="text-gray-600 mt-2">{address.house_number}</p>
                       </div>
                     </div>
                   </div>
@@ -439,7 +375,7 @@ export default function ProfileUser() {
                 <Input
                   id="firstname"
                   name="firstname"
-                  value={currentAddress?.firstname || ''}
+                  value={currentAddress?.fname || ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -451,7 +387,7 @@ export default function ProfileUser() {
                 <Input
                   id="lastname"
                   name="lastname"
-                  value={currentAddress?.lastname || ''}
+                  value={currentAddress?.lname || ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -459,84 +395,17 @@ export default function ProfileUser() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone">เบอร์โทรศัพท์ (0XX-XXX-XXXX)</Label>
+                <Label htmlFor="phone">เบอร์โทรศัพท์ (0XXXXXXXXX)</Label>
                 <Input
                   id="phone"
                   name="phone"
-                  value={currentAddress?.phone || ''}
+                  value={currentAddress?.phonenumber || ''}
                   onChange={handleInputChange}
                   required
-                  pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
-                  placeholder="0XX-XXX-XXXX"
+                  pattern="[0-9]+"
+                  placeholder="0XXXXXXXXX"
                   disabled={isLoading}
                 />
-              </div>
-              
-              <div className="space-y-2">
-                <DropdownList
-                  label="จังหวัด"
-                  id="province_id"
-                  list={provinces}
-                  child="amphure"
-                  childsId={["amphure_id", "tambon_id"]}
-                  setChilds={[setAmphures, setTambons]}
-                  selected={selected}
-                  setSelected={setSelected}
-                />
-                <DropdownList
-                  label="จังหวัด"
-                  id="province_id"
-                  list={provinces}
-                  child="amphure"
-                  childsId={["amphure_id", "tambon_id"]}
-                  setChilds={[setAmphures, setTambons]}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <DropdownList
-                  label="เขต/อำเภอ"
-                  id="amphure_id"
-                  list={amphures}
-                  child="tambon"
-                  childsId={["tambon_id"]}
-                  setChilds={[setTambons]}
-                  selected={selected}
-                  setSelected={setSelected}
-                  />
-                <DropdownList
-                  label="เขต/อำเภอ"
-                  id="amphure_id"
-                  list={amphures}
-                  child="tambon"
-                  childsId={["tambon_id"]}
-                  setChilds={[setTambons]}
-                 />
-              </div>
-              
-              <div className="space-y-2">
-                <DropdownList 
-                  label="แขวง/ตำบล" 
-                  id="tambon_id" 
-                  list={tambons} 
-                  selected={selected}
-                  setSelected={setSelected}
-                />
-                <DropdownList 
-                  label="แขวง/ตำบล" 
-                  id="tambon_id" 
-                  list={tambons} 
-                />
-                <pre>{JSON.stringify(selected, null, 4)}</pre>
-              </div>
-              
-              <div className="space-y-2">
-                <DropdownList 
-                  label="แขวง/ตำบล" 
-                  id="tambon_id" 
-                  list={tambons} 
-                />
-                <pre>{JSON.stringify(selected, null, 4)}</pre>
               </div>
               
               <div className="space-y-2">
@@ -544,7 +413,7 @@ export default function ProfileUser() {
                 <Input
                   id="streetName"
                   name="streetName"
-                  value={currentAddress?.streetName || ''}
+                  value={currentAddress?.street_name || ''}
                   onChange={handleInputChange}
                   disabled={isLoading}
                 />
@@ -566,7 +435,43 @@ export default function ProfileUser() {
                 <Input
                   id="houseNumber"
                   name="houseNumber"
-                  value={currentAddress?.houseNumber || ''}
+                  value={currentAddress?.house_number || ''}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="subDistrict">ตำบล</Label>
+                <Input
+                  id="subDistrict"
+                  name="subDistrict"
+                  value={currentAddress?.subDistrict || ''}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="district">อำเภอ</Label>
+                <Input
+                  id="district"
+                  name="district"
+                  value={currentAddress?.district || ''}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="province">จังหวัด</Label>
+                <Input
+                  id="province"
+                  name="province"
+                  value={currentAddress?.province || ''}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
@@ -578,7 +483,7 @@ export default function ProfileUser() {
                 <Input
                   id="postalCode"
                   name="postalCode"
-                  value={currentAddress?.postalCode || ''}
+                  value={currentAddress?.zipcode || ''}
                   onChange={handleInputChange}
                   required
                   pattern="[0-9]{5}"
