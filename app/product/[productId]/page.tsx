@@ -24,7 +24,7 @@ interface Product {
   shop_image: string;
   volume: number;
   description: string;
-  shop_id: number;
+  shops_shop_id: number;
   status: string;
   fragrance_tones: { fragrance_tone_id: number; fragrance_tone_name: string }[];
 }
@@ -180,7 +180,7 @@ function ProductDetailPage({ params }: Params) {
         {/* ข้อมูลร้านค้า */}
         {product && (
           <div className="bg-white p-3 rounded-lg shadow-lg flex items-center mt-4">
-            <Link href={`/shop/${product.shop_id}`} className="flex items-center">
+            <Link href={`/shop/${product.shops_shop_id}`} className="flex items-center">
               <img
                 src={product.shop_image}
                 alt={product.shop_name}

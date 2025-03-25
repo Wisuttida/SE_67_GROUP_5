@@ -87,6 +87,10 @@ const CartPage = () => {
       localStorage.removeItem('orderPlaced'); // Clear the status
     }
   }, []);
+
+  useEffect(() => {
+    console.log("✅ Address Selected:", selectedAddress);
+  }, [selectedAddress]);
   
   const toggleSelectItem = (productId: number, shopId: number) => {
     // หากเลือกสินค้าจากร้านหนึ่งแล้วไม่ให้เลือกสินค้าจากร้านอื่น
