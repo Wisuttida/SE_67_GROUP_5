@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -46,8 +46,8 @@ interface CustomPerfume {
 
 const CustomPerfumePage = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const shopId = searchParams.get("shopId"); // ดึง shopId จาก URL
+  const params = useParams();
+  const shopId = params?.shopId; // <-- ได้ค่า shopId ตรงนี้
 
   const [shop, setShop] = useState<Shop | null>(null);
   const [fragranceTones, setFragranceTones] = useState<FragranceTone[]>([]);
@@ -163,7 +163,7 @@ const CustomPerfumePage = () => {
         router.push("/to-pay");
       } else {
         console.error("❌ Failed:", response);
-        alert("เกิดข้อผิดพลาดในการสั่งซื้อ");
+        alert(response);
       }
     } catch (error: any) {
       console.error("❌ Error submitting order:", error.response?.data || error.message);
@@ -292,7 +292,7 @@ const CustomPerfumePage = () => {
 
         {/* ปุ่มกด */}
         <div className="flex items-center space-x-6">
-          <Checkbox checked={isTester} onCheckedChange={(checked) => setIsTester(checked)} />
+          <Checkbox checked={isTester} onCheckedChange={(checked) => setIsTester(!!checked)} />
           <span className="text-lg">Use Tester</span>
           <Button onClick={handleSubmit} className="ml-4 py-3 px-6 text-lg font-semibold">
             Submit
