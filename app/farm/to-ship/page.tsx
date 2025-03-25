@@ -1,61 +1,111 @@
 "use client";
-import { useState } from 'react';
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
+import SideBarFarm from "@/components/SideBarFarm";
 
-interface ShipmentData {
-  user: string;
-  productName: string;
-  description: string;
-  amount: number;
-  totalPrice: number;
+interface Order {
+  shop_name: string;
+  order_id: string;
+  name: string;
+  total_price: number;
+  quantity: number;
+  unit: string;
+  status: "รอจัดส่ง" | "กำลังจัดส่ง" | "จัดส่งแล้ว";
 }
 
-const initialShipments: ShipmentData[] = [
-  { user: "User1", productName: "Product Name", description: "Description", amount: 1, totalPrice: 100 },
-  { user: "User2", productName: "Product Name", description: "Description", amount: 2, totalPrice: 200 },
-  // Add more sample data as needed
+const initialOrders: Order[] = [
+  { shop_name: "Shop 1", order_id: "order-1", name: "สินค้า 1", total_price: 500, quantity: 1, unit:"Kg", status: "รอจัดส่ง" },
+  { shop_name: "Shop 2", order_id: "order-2", name: "สินค้า 2", total_price: 1200, quantity: 2, unit:"Kg", status: "รอจัดส่ง" },
+  { shop_name: "Shop 3", order_id: "order-3", name: "สินค้า 3", total_price: 2100, quantity: 3, unit:"Kg", status: "กำลังจัดส่ง" },
+  { shop_name: "Shop 4", order_id: "order-4", name: "สินค้า 4", total_price: 3200, quantity: 4, unit:"Kg", status: "จัดส่งแล้ว" },
+  { shop_name: "Shop 5", order_id: "order-5", name: "สินค้า 5", total_price: 4500, quantity: 5, unit:"Kg", status: "จัดส่งแล้ว" },
+  { shop_name: "Shop 6", order_id: "order-6", name: "สินค้า 6", total_price: 6000, quantity: 6, unit:"Kg", status: "รอจัดส่ง" },
 ];
 
-export default function FarmToShip() {
-  const { toast } = useToast();
-  const [shipments, setShipments] = useState<ShipmentData[]>(initialShipments);
+const TABS = ["รอจัดส่ง", "กำลังจัดส่ง", "จัดส่งแล้ว"];
 
-  const handleFinish = (index: number) => {
-    // Logic to mark shipment as finished
-    const updatedShipments = shipments.filter((_, i) => i !== index);
-    setShipments(updatedShipments);
-    toast("Shipment marked as finished.");
+const OrderCard = ({ order, updateOrderStatus }: { order: Order; updateOrderStatus: (order_id: string) => void }) => {
+  return (
+    <div className="bg-white p-6 rounded-2xl shadow-lg">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">{order.shop_name}</h2>
+        <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-200">{order.status}</span>
+      </div>
+      <p className="text-gray-600 text-sm">รหัสคำสั่งซื้อ: {order.order_id}</p>
+      <div className="mt-2 border-t pt-2">
+        <p className="text-gray-800 font-medium">{order.name}</p>
+        <p className="text-gray-600 text-sm">จำนวน: {order.quantity} {order.unit}</p>
+        <p className="text-black font-bold">฿{order.total_price}</p>
+      </div>
+      <div className="mt-4 flex gap-2">
+        {order.status === "รอจัดส่ง" ? (
+          <Button 
+            className="w-full bg-blue-600 text-white hover:bg-blue-700" 
+            onClick={() => {
+              if (window.confirm("จัดส่งสำเร็จใช่ไหม?")) {
+                updateOrderStatus(order.order_id);
+              }
+            }}
+          >
+            ยืนยันการจัดส่ง
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
+const ShippingDashboard = () => {
+  const [selectedTab, setSelectedTab] = useState("รอจัดส่ง");
+  const [orders, setOrders] = useState(initialOrders);
+
+  const updateOrderStatus = (order_id : string) => {
+    setOrders(prevOrders =>
+      prevOrders.map(order =>
+        order.order_id === order_id ? { ...order, status: "กำลังจัดส่ง" } : order
+      )
+    );
   };
 
+  const filteredOrders = orders.filter(order => order.status === selectedTab);
+
   return (
-    <div>
+    <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="p-4">
-        <h2 className="text-xl font-semibold mb-4">To Ship</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {shipments.map((shipment, index) => (
-            <Card key={index} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <p className="font-medium">{shipment.user}</p>
-                <p>Product Name: {shipment.productName}</p>
-                <p>Description: {shipment.description}</p>
-                <p>Amount: {shipment.amount}</p>
-                <p>Total Price: {shipment.totalPrice} ฿</p>
-                <Button 
-                  variant="outline" 
-                  className="mt-2"
-                  onClick={() => handleFinish(index)}
+      <div className="flex">
+        {/* Sidebar */}
+        <div>
+        <SideBarFarm />
+        </div>
+        {/* Main content area */}
+        <div className="flex-1 p-6 bg-gray-100">
+          <div className="bg-gradient-to-br from-gray-100 to-white p-6 rounded-2xl shadow-lg">
+            <h1 className="text-2xl font-bold mb-4">การจัดส่งวัตถุดิบ</h1>
+            <div className="flex space-x-4 border-b pb-2 mb-4">
+              {TABS.map(tab => (
+                <button 
+                  key={tab}
+                  className={`px-4 py-2 font-semibold ${selectedTab === tab ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600"}`}
+                  onClick={() => setSelectedTab(tab)}
                 >
-                  Finish
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredOrders.length > 0 ? (
+                filteredOrders.map((order, index) => <OrderCard key={index} order={order} updateOrderStatus={updateOrderStatus} />)
+              ) : (
+                <p className="text-gray-500">ไม่มีคำสั่งซื้อในหมวดนี้</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ShippingDashboard;

@@ -10,7 +10,8 @@ import { ChangeEvent} from "react";
 const ShopPost = () => {
   const [activeTab, setActiveTab] = useState("MyPost");
   interface Post {
-    name: string;
+    ingredients_ingredient_id: string; // เพิ่มตาม database ยังไม่ได้ใช้เกี่ยวกับการดึงข้อมูล
+    name: string; //ingrediant name
     price_per_unit: number;
     unit: string;
     amount: number;
@@ -22,6 +23,7 @@ const ShopPost = () => {
   
   const [posts, setPosts] = useState([
     {
+      ingredients_ingredient_id:"",
       post_id: "1",
       name: "Fresh Mango",
       price_per_unit: 2,
@@ -31,6 +33,7 @@ const ShopPost = () => {
       bought : 3
     },
     {
+      ingredients_ingredient_id:"",
       post_id: "2",
       name: "Organic Avocado",
       price_per_unit: 3,
@@ -41,17 +44,18 @@ const ShopPost = () => {
     }
   ]);
   interface Seller {
-    id: string;
+    farm_id: string;
+    farm_name: string;
+    farm_image: string;
     name: string;
-    profileImage: string;
-    productName: string;
+    total_price:number;
     price_per_unit: number;
     unit: string;
     amount: number;
     description: string;
-    bankName: string;  // Name of the bank
-    bankAccountNumber: string;  // Account number of the seller
-    bankAccountName: string;  // Account holder's name
+    bank_name: string;  // Name of the bank
+    bank_number: string;  // Account number of the seller
+    bank_account: string;  // Account holder's name
   }
   
   const [sellers, setSellers] = useState<Seller[]>([]);
@@ -60,30 +64,32 @@ useEffect(() => {
   // ตัวอย่างข้อมูลผู้ขาย (อาจดึงจาก API)
   setSellers([
     {
-      id: "1",
-      name: "สมชาย ขายดี",
-      profileImage: "https://via.placeholder.com/50", // ใส่ URL รูปจริง
-      productName: "มะนาว",
+      farm_id: "1",
+      farm_name: "สมชาย ขายดี",
+      farm_image: "https://via.placeholder.com/50", // ใส่ URL รูปจริง
+      name: "มะนาว",
       price_per_unit: 20,
       unit: "กิโลกรัม",
       amount: 50,
+      total_price: 1000,
       description: "มะนาวสดจากสวน ปลูกแบบออร์แกนิค",
-      bankName : "ไทยพาณิชย์",
-      bankAccountNumber: "123456789",
-      bankAccountName: "สมชาย ขายดี",
+      bank_name : "ไทยพาณิชย์",
+      bank_number: "123456789",
+      bank_account: "สมชาย ขายดี",
     },
     {
-      id: "2",
-      name: "แม่ส้ม แม่ค้าใจดี",
-      profileImage: "https://via.placeholder.com/50",
-      productName: "พริกแดง",
+      farm_id: "2",
+      farm_name: "แม่ส้ม แม่ค้าใจดี",
+      farm_image: "https://via.placeholder.com/50",
+      name: "พริกแดง",
       price_per_unit: 150,
       unit: "กิโลกรัม",
       amount: 20,
+      total_price: 3000,
       description: "พริกแดงแห้งคุณภาพดี เผ็ดสะใจ",
-      bankName : "ไทยพาณิชย์",
-      bankAccountNumber: "123456789",
-      bankAccountName: "สมชาย ขายดี",
+      bank_name : "ไทยพาณิชย์",
+      bank_number: "123456789",
+      bank_account: "สมชาย ขายดี",
     },
   ]);
 }, []);
@@ -97,6 +103,7 @@ useEffect(() => {
   });
 
   const [editForm, setEditForm] = useState<Post>({
+    ingredients_ingredient_id:"",
     post_id: null,
     name: "",
     price_per_unit: 0,
@@ -113,16 +120,16 @@ useEffect(() => {
       alert("กรุณาอัพโหลดหลักฐานการโอน");
       return;
   }
-    const seller = sellers.find(seller => seller.id === sellerId);
+    const seller = sellers.find(seller => seller.farm_id === sellerId);
     if (seller) {
       alert(`รับซื้อ`);
     }
   };
   
   const handleNotBuy = (sellerId: string) => {
-    const seller = sellers.find(seller => seller.id === sellerId);
+    const seller = sellers.find(seller => seller.farm_id === sellerId);
     if (!seller) return;
-    confirm(`คุณแน่ใจหรือไม่ว่าคุณไม่ต้องการซื้อจาก ${seller.name}?`);
+    confirm(`คุณแน่ใจหรือไม่ว่าคุณไม่ต้องการซื้อจาก ${seller.farm_name}?`);
   
   };
   
@@ -187,6 +194,7 @@ useEffect(() => {
     }
   
     const newPost = {
+      ingredients_ingredient_id:"",
       post_id: "",
       name: form.name,
       price_per_unit: form.price_per_unit,
@@ -328,26 +336,26 @@ useEffect(() => {
             {activeTab === "Buy" && (
               <div className="grid grid-cols-2 gap-4 mt-4">
                 {sellers.map((seller) => (
-                  <div key={seller.id} className="bg-white p-4 shadow-md rounded-lg border border-gray-200 relative">
+                  <div key={seller.farm_id} className="bg-white p-4 shadow-md rounded-lg border border-gray-200 relative">
                     {/* รูปโปรไฟล์ + ชื่อผู้ขาย */}
                     <div className="flex items-center gap-3">
-                      <img src={seller.profileImage} alt="profile" className="w-12 h-12 rounded-full object-cover border" />
+                      <img src={seller.farm_image} alt="profile" className="w-12 h-12 rounded-full object-cover border" />
                       <div>
-                        <h3 className="text-lg font-semibold">{seller.name}</h3>
+                        <h3 className="text-lg font-semibold">{seller.farm_name}</h3>
                       </div>
                     </div>
                     {/* รายละเอียดสินค้า */}
                     <div className="mt-3">
-                      <p className="text-gray-700"><span className="font-medium">วัตถุดิบ:</span> {seller.productName}</p>
+                      <p className="text-gray-700"><span className="font-medium">วัตถุดิบ:</span> {seller.name}</p>
                       <p className="text-gray-700"><span className="font-medium">ปริมาณที่ขาย:</span> {seller.amount} {seller.unit}</p>
                       <p className="text-gray-700"><span className="font-medium">ราคา:</span> {seller.price_per_unit} บาท ต่อ {seller.unit}</p>
-                      <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {seller.price_per_unit*seller.amount} บาท</p>
+                      <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {seller.total_price} บาท</p>
                       {/* ข้อมูลธนาคาร */}
                       <div className="mt-2 p-3 border rounded bg-gray-100">
                         <h4 className="text-lg font-semibold">ข้อมูลธนาคาร</h4>
-                        <p className="text-gray-700"><span className="font-medium">ชื่อบัญชี:</span> {seller.bankAccountName}</p>
-                        <p className="text-gray-700"><span className="font-medium">เลขบัญชี:</span> {seller.bankAccountNumber}</p>
-                        <p className="text-gray-700"><span className="font-medium">ธนาคาร:</span> {seller.bankName}</p>
+                        <p className="text-gray-700"><span className="font-medium">ชื่อบัญชี:</span> {seller.bank_account}</p>
+                        <p className="text-gray-700"><span className="font-medium">เลขบัญชี:</span> {seller.bank_number}</p>
+                        <p className="text-gray-700"><span className="font-medium">ธนาคาร:</span> {seller.bank_name}</p>
                       </div>
 
                       {/* input รับรูปสลิปโอนเงิน */}
@@ -359,22 +367,22 @@ useEffect(() => {
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={(e) => handleSlipUpload(e, seller.id)} // ใช้ seller.id
+                            onChange={(e) => handleSlipUpload(e, seller.farm_id)} // ใช้ seller.id
                           />
                           <span className="text-gray-600">เลือกไฟล์...</span>
                         </label>
 
-                        {slipPreviews[seller.id] && (
+                        {slipPreviews[seller.farm_id] && (
                           <div className="mt-3 relative inline-block"> {/* เพิ่ม relative ที่นี่ */}
                             <p className="text-gray-700">ตัวอย่างสลิป:</p>
                             <img
-                              src={slipPreviews[seller.id]}
+                              src={slipPreviews[seller.farm_id]}
                               alt="Slip Preview"
                               className="w-full h-auto rounded-lg shadow-md border mt-2"
                             />
                             {/* ปุ่มกากบาท */}
                             <button
-                              onClick={() => removePreview(seller.id)} // ใช้ seller.id แทนการฮาร์ดโค้ด
+                              onClick={() => removePreview(seller.farm_id)} // ใช้ seller.id แทนการฮาร์ดโค้ด
                               className="absolute top-8 right-1 bg-gray-500 text-white rounded-full p-1 shadow hover:bg-gray-600 transition opacity-10absolute top-2 right-2 bg-gray-500 text-white rounded-full p-2 shadow opacity-50 hover:opacity-100 hover:bg-gray-600 transition0 hover:opacity-500"
                             >
                               ✕
@@ -389,16 +397,16 @@ useEffect(() => {
                     <div className="mt-4 flex gap-4">
                       {/* ปุ่ม ไม่ซื้อ */}
                       <button 
-                        onClick={() => handleNotBuy(seller.id)} 
-                        className={`w-1/2 py-2 rounded-md text-center ${slipPreviews[seller.id] ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-red-500 text-white"}`}
-                        disabled={!!slipPreviews[seller.id]}
+                        onClick={() => handleNotBuy(seller.farm_id)} 
+                        className={`w-1/2 py-2 rounded-md text-center ${slipPreviews[seller.farm_id] ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-red-500 text-white"}`}
+                        disabled={!!slipPreviews[seller.farm_id]}
                       >
                         ไม่ซื้อ
                       </button>
 
                       {/* ปุ่ม รับซื้อ */}
                       <button 
-                        onClick={() => handleBuy(seller.id)} 
+                        onClick={() => handleBuy(seller.farm_id)} 
                         className="w-1/2 bg-green-500 text-white py-2 rounded-md text-center"
                       >
                         รับซื้อ

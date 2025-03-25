@@ -1,7 +1,7 @@
 "use client";
 
 import Navbar from '@/components/Navbar';
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FiMoreVertical } from "react-icons/fi";
 import { ChangeEvent} from "react";
 import SideBarFarm from '@/components/SideBarFarm';
@@ -16,12 +16,12 @@ const FarmPost = () => {
     amount: number;
     BuyAmount? : number;
     description: string;
-    id: string | null; // id can be either number or null
+    post_id: string | null; // id can be either number or null
   }
   
   const [posts, setPosts] = useState([
     {
-      id: "1",
+      post_id: "1",
       name: "Fresh Mango",
       price_per_unit: 2,
       unit: "kg",
@@ -29,7 +29,7 @@ const FarmPost = () => {
       description: "Sweet and juicy mangoes from organic farms.",
     },
     {
-      id: "2",
+      post_id: "2",
       name: "Organic Avocado",
       price_per_unit: 3,
       unit: "kg",
@@ -37,53 +37,7 @@ const FarmPost = () => {
       description: "Creamy and delicious avocados, perfect for salads.",
     }
   ]);
-  interface Buyer {
-    id: string;
-    name: string;
-    profileImage: string;
-    productName: string;
-    price_per_unit: number;
-    unit: string;
-    amount: number;
-    description: string;
-    bankName: string;  // Name of the bank
-    bankAccountNumber: string;  // Account number of the seller
-    bankAccountName: string;  // Account holder's name
-  }
-  
-  const [buyers, setBuyers] = useState<Buyer[]>([]);
 
-useEffect(() => {
-  // ตัวอย่างข้อมูลผู้ขาย (อาจดึงจาก API)
-  setBuyers([
-    {
-      id: "1",
-      name: "สมชาย ขายดี",
-      profileImage: "https://via.placeholder.com/50", // ใส่ URL รูปจริง
-      productName: "มะนาว",
-      price_per_unit: 20,
-      unit: "กิโลกรัม",
-      amount: 50,
-      description: "มะนาวสดจากสวน ปลูกแบบออร์แกนิค",
-      bankName : "ไทยพาณิชย์",
-      bankAccountNumber: "123456789",
-      bankAccountName: "สมชาย ขายดี",
-    },
-    {
-      id: "2",
-      name: "แม่ส้ม แม่ค้าใจดี",
-      profileImage: "https://via.placeholder.com/50",
-      productName: "พริกแดง",
-      price_per_unit: 150,
-      unit: "กิโลกรัม",
-      amount: 20,
-      description: "พริกแดงแห้งคุณภาพดี เผ็ดสะใจ",
-      bankName : "ไทยพาณิชย์",
-      bankAccountNumber: "123456789",
-      bankAccountName: "สมชาย ขายดี",
-    },
-  ]);
-}, []);
 
   const [form, setForm] = useState({
     name: "",
@@ -94,7 +48,7 @@ useEffect(() => {
   });
 
   const [editForm, setEditForm] = useState<Post>({
-    id: null,
+    post_id: null,
     name: "",
     price_per_unit: 0,
     unit: "",
@@ -104,19 +58,7 @@ useEffect(() => {
   });
 
   const [showPopup, setShowPopup] = useState(false);
-  const handleBuy = (buyerId: string) => {
-    const buyer = buyers.find(buyer => buyer.id === buyerId);
-    if (buyer) {
-      alert(`ยืนยัน`);
-    }
-  };
-  
-  const handleNotSell = (buyerId: string) => {
-    const buyer = buyers.find(buyer => buyer.id === buyerId);
-    if (!buyer) return;
-    confirm(`คุณแน่ใจหรือไม่ว่าคุณไม่ต้องการขายให้ ${buyer.name}?`);
-  
-  };
+
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -127,7 +69,7 @@ useEffect(() => {
     // Ensure the types match exactly
     const updatedForm = {
       ...editForm,
-      id: String(editForm.id),        // Make sure id is a string
+      post_id: String(editForm.post_id),        // Make sure id is a string
       price_per_unit: Number(editForm.price_per_unit),   // Ensure price_per_unit is a number
       amount: Number(editForm.amount), // Ensure amount is a number
     };
@@ -135,7 +77,7 @@ useEffect(() => {
     // Update the post
     setPosts(prevPosts =>
       prevPosts.map(post =>
-        post.id === updatedForm.id ? { ...post, ...updatedForm } : post
+        post.post_id === updatedForm.post_id ? { ...post, ...updatedForm } : post
       )
     );
   
@@ -158,7 +100,7 @@ useEffect(() => {
     }
   
     const newPost = {
-      id: "",
+      post_id: "",
       name: form.name,
       price_per_unit: form.price_per_unit,
       unit: form.unit,
@@ -175,7 +117,7 @@ useEffect(() => {
   
 
   const handleEdit = (post: Post) => {
-    if (post.id !== null) {
+    if (post.post_id !== null) {
       setEditForm({ ...post });
       setShowPopup(true);
     }
@@ -184,7 +126,7 @@ useEffect(() => {
   
 
   const handleCancel = (id: string) => {
-    setPosts(posts.filter(post => post.id !== id));
+    setPosts(posts.filter(post => post.post_id !== id));
   };
 
   return (
@@ -271,18 +213,15 @@ useEffect(() => {
               <button className={`p-2 flex-1 ${activeTab === "MyPost" ? "border-b-2 border-black" : ""}`} onClick={() => setActiveTab("MyPost")}>
                 โพสต์ของฉัน
               </button>
-              <button className={`p-2 flex-1 ${activeTab === "Sell" ? "border-b-2 border-black" : ""}`} onClick={() => setActiveTab("Sell")}>
-                ขาย
-              </button>
             </div>
             {activeTab === "MyPost" && (
               <div className="grid grid-cols-2 gap-4 mt-4">
                 {posts.map((post) => (
-                  <div key={post.id} className="bg-gray-50 p-4 shadow-md rounded-lg border border-gray-200 relative">
+                  <div key={post.post_id} className="bg-gray-50 p-4 shadow-md rounded-lg border border-gray-200 relative">
                     <div className="absolute top-2 right-2 cursor-pointer group">
                       <FiMoreVertical className="text-gray-600" />
                       <div className="hidden group-hover:block absolute right-0 bg-white shadow-md rounded-lg p-2">
-                        <button onClick={() => handleCancel(post.id)} className="block text-red-500 px-3 py-1">ยกเลิก</button>
+                        <button onClick={() => handleCancel(post.post_id)} className="block text-red-500 px-3 py-1">ยกเลิก</button>
                         <button onClick={() => handleEdit(post)} className="block text-gray-700 px-3 py-1">แก้ไข</button>
                       </div>
                     </div>
@@ -291,50 +230,6 @@ useEffect(() => {
                     <p>ประกาศขาย {post.amount} {post.unit}</p>
                     <p>ขายแล้ว {post.amount} {post.unit}</p>
                     <p className="text-gray-600">{post.description}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-            {activeTab === "Sell" && (
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                {buyers.map((buyer) => (
-                  <div key={buyer.id} className="bg-white p-4 shadow-md rounded-lg border border-gray-200 relative">
-                    {/* รูปโปรไฟล์ + ชื่อผู้ซื้อ */}
-                    <div className="flex items-center gap-3">
-                      <img src={buyer.profileImage} alt="profile" className="w-12 h-12 rounded-full object-cover border" />
-                      <div>
-                        <h3 className="text-lg font-semibold">{buyer.name}</h3>
-                      </div>
-                    </div>
-                    {/* รายละเอียดสินค้า */}
-                    <div className="mt-3">
-                      <p className="text-gray-700"><span className="font-medium">วัตถุดิบ:</span> {buyer.productName}</p>
-                      <p className="text-gray-700"><span className="font-medium">ปริมาณที่ซื้อ:</span> {buyer.amount} {buyer.unit}</p>
-                      <p className="text-gray-700"><span className="font-medium">ราคา:</span> {buyer.price_per_unit} บาท ต่อ {buyer.unit}</p>
-                      <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {buyer.price_per_unit*buyer.amount} บาท</p>
-
-                      {/* เปลี่ยนเป็นดูสลิปโอนเงินอย่างเดียว ไม่ต้องรับ input */}
-                        <div className="mt-4">
-                        <label className="block text-gray-1000 font-medium mb-2">สลิปโอนเงิน</label>
-                        <img 
-                            src="image" 
-                            alt="Slip Preview" 
-                            className="w-full h-auto rounded-lg shadow-md border mt-2"
-                        />
-                        </div>
-                    </div>
-
-                    {/* ปุ่ม */}
-                    <div className="mt-4 flex gap-4">
-
-                      {/* ยืนบัน */}
-                      {/* <button 
-                        onClick={() => handleBuy(buyer.id)} 
-                        className="w-1/2 bg-green-500 text-white py-2 rounded-md text-center"
-                      >
-                        ยืนบัน
-                      </button> */}
-                    </div>
 
                   </div>
                 ))}

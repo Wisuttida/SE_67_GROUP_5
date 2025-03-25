@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation"; // ใช้สำหรับเปลี่ยนหน้า
 
 interface Farm {
-  farmId: string;
-  farmName: string;
-  farmImage: string;
-  productName: string;
+  farm_id: string;
+  farm_name: string;
+  farm_image: string;
+  name: string;
   price_per_unit: number;
   unit: string;
   amount: number;
@@ -31,10 +31,10 @@ const ShopHomePost = () => {
   useEffect(() => {
     const fetchFarms = async () => {
       const dummyFarms: Farm[] = Array.from({ length: 14 }, (_, i) => ({
-        farmId: "${i + 1}",
-        farmName: `Farm${i + 1}`,
-        farmImage: "/placeholder-profile.jpg",
-        productName: "ชื่อวัตถุดิบ",
+        farm_id: "${i + 1}",
+        farm_name: `Farm${i + 1}`,
+        farm_image: "/placeholder-profile.jpg",
+        name: "ชื่อวัตถุดิบ",
         price_per_unit: 50,
         unit: "Kg",
         amount: 10,
@@ -103,21 +103,21 @@ const ShopHomePost = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {farms.map((farm) => (
               <div
-                key={farm.farmId}
+                key={farm.farm_id}
                 className="flex flex-col p-6 border rounded-lg shadow-lg bg-white"
               >
                 <div className="flex items-center mb-3">
                   <Image
-                    src={farm.farmImage}
-                    alt={farm.farmName}
+                    src={farm.farm_image}
+                    alt={farm.farm_name}
                     width={50}
                     height={50}
                     className="w-12 h-12 rounded-full object-cover mr-3"
                   />
-                  <h2 className="text-lg font-bold text-gray-800">{farm.farmName}</h2>
+                  <h2 className="text-lg font-bold text-gray-800">{farm.farm_name}</h2>
                 </div>
                 <div className="text-left text-black">
-                  <p className="text-sm">{farm.productName}</p>
+                  <p className="text-sm">{farm.name}</p>
                   <p className="text-md font-semibold">{farm.price_per_unit} ต่อ {farm.unit}</p>
                   <p className="text-sm">ประกาศขาย {farm.amount} {farm.unit}</p>
                   <p className="text-sm">ขายแล้ว {farm.sold} {farm.unit}</p>
@@ -141,22 +141,32 @@ const ShopHomePost = () => {
     <div className="bg-white p-8 rounded-2xl shadow-2xl w-96 max-h-screen overflow-auto flex flex-col">
       <h2 className="text-2xl font-bold text-center mb-4 text-gray-800">ยืนยันการซื้อ</h2>
       <div className="border-b pb-4 mb-6 text-gray-700">
-        <p className="text-sm font-semibold">{selectedFarm.farmName}</p>
+        <p className="text-sm font-semibold">{selectedFarm.farm_name}</p>
         <p className="text-sm">บัญชีธนาคาร: <span className="font-semibold">{selectedFarm.bank_account}</span></p>
         <p className="text-sm">เลขบัญชี: <span className="font-semibold">{selectedFarm.bank_number}</span></p>
         <p className="text-sm">ชื่อ: <span className="font-semibold">{selectedFarm.bank_name}</span></p>
-        <p className="text-sm">สินค้า: <span className="font-semibold">{selectedFarm.productName}</span></p>
+        <p className="text-sm">สินค้า: <span className="font-semibold">{selectedFarm.name}</span></p>
         <p className="text-base font-bold text-gray-750">{selectedFarm.price_per_unit} ต่อ {selectedFarm.unit}</p>
       </div>
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700">จำนวนที่ต้องการซื้อ</label>
         <input 
           type="number" 
-          min="0"        // กำหนดขั้นต่ำที่ 0 หรือปรับตามต้องการ
+          min="0.1"        // กำหนดขั้นต่ำที่ 0 หรือปรับตามต้องการ
           step="0.5"
-          max={selectedFarm.amount} 
+          max={selectedFarm.amount - selectedFarm.sold} 
           value={quantity} 
           onChange={(e) => setQuantity(Number(e.target.value))} 
+          onBlur={(e) => {
+            const value = Number(e.target.value);
+            const min = 0.1; // กำหนดค่า min
+            const max = selectedFarm.amount - selectedFarm.sold; // กำหนดค่า max
+            if (value < min) {
+              setQuantity(min); // ถ้าค่าน้อยกว่า min ให้ปรับเป็น min
+            } else if (value > max) {
+              setQuantity(max); // ถ้าค่ามากกว่า max ให้ปรับเป็น max
+            }
+          }} 
           className="w-full p-3 border rounded-lg mt-2 focus:outline-none focus:ring-2 focus:ring-green-400"
         />
         <p className="text-sm mt-2 font-semibold text-red-500">ราคารวม: {selectedFarm.price_per_unit * quantity} บาท</p>
@@ -167,7 +177,7 @@ const ShopHomePost = () => {
           <input 
             type="file" 
             accept="image/*" 
-            onChange={(e) => handleSlipUpload(e, selectedFarm.farmId)} 
+            onChange={(e) => handleSlipUpload(e, selectedFarm.farm_id)} 
             className="w-full opacity-0 absolute inset-0 cursor-pointer"
           />
           <div className="text-gray-500">
@@ -175,17 +185,17 @@ const ShopHomePost = () => {
             <p className="text-sm mt-2">ลากหรือคลิกเพื่ออัปโหลด</p>
           </div>
         </div>
-        {slipPreviews[selectedFarm.farmId] && (
+        {slipPreviews[selectedFarm.farm_id] && (
           <div className="mt-3 relative inline-block"> {/* เพิ่ม relative ที่นี่ */}
             <p className="text-gray-700">ตัวอย่างสลิป:</p>
             <img
-              src={slipPreviews[selectedFarm.farmId]}
+              src={slipPreviews[selectedFarm.farm_id]}
               alt="Slip Preview"
               className="w-full h-auto rounded-lg shadow-md border mt-2"
             />
             {/* ปุ่มกากบาท */}
             <button
-              onClick={() => removePreview(selectedFarm.farmId)} // ใช้ seller.id แทนการฮาร์ดโค้ด
+              onClick={() => removePreview(selectedFarm.farm_id)} // ใช้ seller.id แทนการฮาร์ดโค้ด
               className="absolute top-8 right-1 bg-gray-500 text-white rounded-full p-1 shadow hover:bg-gray-600 transition opacity-10absolute top-2 right-2 bg-gray-500 text-white rounded-full p-2 shadow opacity-50 hover:opacity-100 hover:bg-gray-600 transition0 hover:opacity-500"
             >
               ✕
@@ -195,12 +205,12 @@ const ShopHomePost = () => {
       </div>
       <div className="flex justify-end space-x-3 mt-auto">
         <Button variant="outline" 
-          className={`w-1/2 py-2 rounded-md text-center ${slipPreviews[selectedFarm.farmId] ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-red-500 text-white"}`}
-          disabled={!!slipPreviews[selectedFarm.farmId]}
+          className={`w-1/2 py-2 rounded-md text-center ${slipPreviews[selectedFarm.farm_id] ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-red-500 text-white"}`}
+          disabled={!!slipPreviews[selectedFarm.farm_id]}
           onClick={closeModal}>
           ยกเลิก
         </Button>
-        <Button variant="default" className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg" onClick={() => handleConfirmPurchase(selectedFarm.farmId)}>
+        <Button variant="default" className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg" onClick={() => handleConfirmPurchase(selectedFarm.farm_id)}>
           ยืนยัน
         </Button>
       </div>
