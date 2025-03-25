@@ -50,34 +50,41 @@ const CartPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch csrf-token and cart items in parallel
-        const [csrfResponse, cartResponse, addressResponse] = await Promise.all([
+        // ดึง csrf-token และ cart จาก API
+        const [csrfResponse, cartResponse] = await Promise.all([
           axios.get(`http://localhost:8000/csrf-token`, { withCredentials: true }),
           axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cart/items`, { withCredentials: true }),
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, { withCredentials: true }),
         ]);
-
-        // Set csrf-token
+  
         setCsrfToken(csrfResponse.data.csrf_token);
-
-        // Set cart items
         setCartItems(cartResponse.data.cart_items);
-
-        // Set addresses and select the default one
-        const sortedAddresses = addressResponse.data.data.sort(
-          (a: any, b: any) => b.is_default - a.is_default
-        );
-        setAddresses(sortedAddresses);
-        if (sortedAddresses.length > 0) {
-          setSelectedAddress(sortedAddresses[0].address_id.toString()); // Auto select the first address
+  
+        // ✅ ดึง address จาก localStorage แทน API
+        const addressFromStorage = localStorage.getItem('addresses');
+        if (addressFromStorage) {
+          const addressData = JSON.parse(addressFromStorage);
+          const sortedAddresses = addressData.sort(
+            (a: any, b: any) => b.is_default - a.is_default
+          );
+          setAddresses(sortedAddresses);
+  
+          // ✅ auto select default address
+          if (sortedAddresses.length > 0) {
+            setSelectedAddress(sortedAddresses[0].address_id.toString());
+          }
+          console.log("✅ Address from localStorage:", sortedAddresses);
+        } else {
+          console.warn("⚠️ No address data found in localStorage");
         }
+  
       } catch (error) {
         console.error("❌ Error fetching data:", error);
       }
     };
-
+  
     fetchData();
   }, []);
+  
 
   useEffect(() => {
     // Check if the order was placed and open the dialog
@@ -229,7 +236,7 @@ const CartPage = () => {
               {addresses.map((addr) => (
                 <SelectItem key={addr.address_id} value={addr.address_id.toString()} className="text-left">
                   {`${addr.fname} ${addr.lname} 
-                  | ${addr.house_number} ${addr.building} ${addr.street_name} ต.${addr.tambon} อ.${addr.amphoe} จ.${addr.province} ${addr.zipcode} 
+                  | ${addr.house_number} ${addr.building} ${addr.street_name} ต.${addr.subDistrict} อ.${addr.district} จ.${addr.province} ${addr.zipcode} 
                   | โทร ${addr.phonenumber}`}
                   {addr.is_default === 1 ? ' (ค่าเริ่มต้น)' : ''}
                 </SelectItem>
