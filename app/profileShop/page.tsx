@@ -196,6 +196,7 @@ const ProfileShop = () => {
     })
     .then(res => {
       localStorage.setItem('shop', JSON.stringify(res.data.data.shop[0]));
+      toast("อัปเดตคำอธิบายร้านแล้ว");
     })
     .catch(error => {
       console.error("Error fetching address:", error);
