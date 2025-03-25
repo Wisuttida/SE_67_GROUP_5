@@ -6,11 +6,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import SideBarUser from "@/components/SideBarUser";
-import DropdownList from "@/components/ui/DropdownList"; // Importing the DropdownList component
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -38,6 +38,7 @@ interface AddressData {
 export default function ProfileUser() {
   let csrf = localStorage.getItem('csrfToken');
   let token = localStorage.getItem('token');
+  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   interface UserData {
@@ -142,10 +143,10 @@ export default function ProfileUser() {
         isDefault: address.address_id === id
       }));
       setAddresses(updatedAddresses);
-      toast("ตั้งเป็นที่อยู่หลักเรียบร้อยแล้ว");
       axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${id}`,
         {
-          is_default: true
+          is_default: true,
+          position_id: 4,
         },
         {
           headers: {
@@ -156,10 +157,14 @@ export default function ProfileUser() {
           },
           withCredentials: true,
         }
-      ).catch(error => {
+      )
+      .then(res => {
+        toast("ตั้งเป็นที่อยู่หลักเรียบร้อยแล้ว");
+      })
+      .catch(error => {
         console.error('Error saving address:', error.response ? error.response.data : error.message);
       });
-    
+      
       // เรียกข้อมูลใหม่เพื่ออัพเดตที่อยู่
       axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
         headers: {
@@ -172,6 +177,7 @@ export default function ProfileUser() {
       })
       .then(res => {
         localStorage.setItem('addresses', JSON.stringify(res.data.data));
+        window.location.reload();
       })
       .catch(error => {
         console.error("Error fetching address:", error);
@@ -199,37 +205,63 @@ export default function ProfileUser() {
           addr.address_id === currentAddress.address_id ? currentAddress : addr
         );
         setAddresses(updatedAddresses);
+        axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${currentAddress.address_id}`,
+          {
+            fname : currentAddress.fname,
+            lname : currentAddress.lname,
+            phonenumber : currentAddress.phonenumber,
+            street_name : currentAddress.street_name,
+            house_number : currentAddress.house_number,
+            building : currentAddress.building,
+            province : currentAddress.province,
+            district : currentAddress.district,
+            subDistrict : currentAddress.subDistrict,
+            zipcode : currentAddress.zipcode,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': csrf,
+            },
+            withCredentials: true,
+          }
+        ).catch(error => {
+          console.error('Error saving address:', error.response ? error.response.data : error.message);
+        });
         toast("อัปเดตที่อยู่เรียบร้อยแล้ว");
       } else {
         setAddresses(prev => [...prev, currentAddress]);
+        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/addresses/`,
+          {
+            fname : currentAddress.fname,
+            lname : currentAddress.lname,
+            phonenumber : currentAddress.phonenumber,
+            street_name : currentAddress.street_name,
+            house_number : currentAddress.house_number,
+            building : currentAddress.building,
+            province : currentAddress.province,
+            district : currentAddress.district,
+            subDistrict : currentAddress.subDistrict,
+            zipcode : currentAddress.zipcode,
+            position_id: 4,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': csrf,
+            },
+            withCredentials: true,
+          }
+        ).catch(error => {
+          console.error('Error saving address:', error.response ? error.response.data : error.message);
+        });
         toast("เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว");
       }
       
-      axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${currentAddress.address_id}`,
-        {
-          fname : currentAddress.fname,
-          lname : currentAddress.lname,
-          phonenumber : currentAddress.phonenumber,
-          street_name : currentAddress.street_name,
-          house_number : currentAddress.house_number,
-          building : currentAddress.building,
-          province : currentAddress.province,
-          district : currentAddress.district,
-          subDistrict : currentAddress.subDistrict,
-          zipcode : currentAddress.zipcode,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrf,
-          },
-          withCredentials: true,
-        }
-      ).catch(error => {
-        console.error('Error saving address:', error.response ? error.response.data : error.message);
-      });
     
       // เรียกข้อมูลใหม่เพื่ออัพเดตที่อยู่
       axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
