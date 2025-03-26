@@ -13,6 +13,9 @@ import Navbar from "@/components/Navbar";
 import SideBarUser from "@/components/SideBarUser";
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
+//import formidable from 'formidable';
 
 const DEFAULT_IMAGES = {
   profile: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f3f4f6'/%3E%3Cpath d='M48 48C54.6274 48 60 42.6274 60 36C60 29.3726 54.6274 24 48 24C41.3726 24 36 29.3726 36 36C36 42.6274 41.3726 48 48 48ZM48 52C40.0474 52 33.5 58.5474 33.5 66.5H62.5C62.5 58.5474 55.9526 52 48 52Z' fill='%239ca3af'/%3E%3C/svg%3E"
@@ -34,7 +37,6 @@ interface AddressData {
   users_user_id: number;
   position_id: number;
 }
-
 export default function ProfileUser() {
   let csrf = localStorage.getItem('csrfToken');
   let token = localStorage.getItem('token');
@@ -51,18 +53,23 @@ export default function ProfileUser() {
     profile_image: string | null;
   }
   const [user_data, setUserData] = useState<UserData | undefined>(undefined);
+  const [temp_user_data, setTempUserData] = useState<UserData | undefined>(undefined);
   const [addresses, setAddresses] = useState<AddressData[]>([]);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [currentAddress, setCurrentAddress] = useState<AddressData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File>();
+  const [uploadMessage, setUploadMessage] = useState<string>('');
+  const formData = new FormData();
   useEffect(() => {
     const user_dataGet = localStorage.getItem('user_data');
     if (user_dataGet) {
         try {
             const data: UserData = JSON.parse(user_dataGet);
             setUserData(data);
+            setTempUserData(data);
         } catch (error) {
             console.error('Error parsing user data from localStorage:', error);
         }
@@ -311,13 +318,66 @@ export default function ProfileUser() {
   const filteredAddresses: AddressData[] = addresses.filter(address => 
       address.fname.toLowerCase().includes(searchQuery.toLowerCase()) ||
       address.lname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      address.phonenumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      address.house_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      address.building.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      address.street_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      address.subDistrict.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      address.district.toLowerCase().includes(searchQuery.toLowerCase()) ||
       address.province.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      address.district.toLowerCase().includes(searchQuery.toLowerCase())
+      address.zipcode.toLowerCase().includes(searchQuery.toLowerCase())
   );
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+    if(selectedFile) {
+      formData.append('file', selectedFile);
+    }
+    axios.post('/api/upload', formData, {
+      headers: {
+          'Content-Type': 'multipart/form-data',
+      },
+    }).then(response => {
+      setUploadMessage(response.data.message);
+      axios.put(`${process.env.NEXT_PUBLIC_API_URL}/user/updateProfile`,
+        {
+          first_name : user_data?.first_name,
+          last_name : user_data?.last_name,
+          profile_image : response.data.filePath
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrf,
+          },
+          withCredentials: true,
+        }
+      ).catch(error => {
+        console.error('Error saving profile:', error.response ? error.response.data : error.message);
+      });
+      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/user/get/${user_data?.user_id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        withCredentials: true,
+      })
+      .then(res => {
+        localStorage.setItem('user_data', JSON.stringify(res.data.data));
+        window.location.reload();
+      })
+      .catch(error => {
+        console.error("Error fetching address:", error);
+      });
+    })
+    .catch(error => {
+      console.error('Error uploading file:', error);
+      setUploadMessage('Error uploading file');
+    });
     // Save the profile (API call can be added here)
     console.log("Saved Profile:", user_data);
     
@@ -341,11 +401,12 @@ export default function ProfileUser() {
   };
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    
     if (file) {
-      // สร้าง URL ชั่วคราวสำหรับแสดงรูปที่เลือก
       const imageUrl = URL.createObjectURL(file);
-      
-      setUserData((prev) => {
+      setSelectedFile(file);
+      formData.append('file', file);
+      setTempUserData((prev) => {
         if (!prev) {
           // ถ้า prev เป็น undefined ให้คืนค่าฐานข้อมูลเริ่มต้นที่มีข้อมูลครบถ้วน
           return {
@@ -365,9 +426,11 @@ export default function ProfileUser() {
       });
     }
   };
-  
-  
-  
+  useEffect(() => {
+    if (selectedFile) {
+      return; // Set loading to false when addressInfo is available
+    }
+  }, [selectedFile]);
   
   return (
     <div>
@@ -415,14 +478,12 @@ export default function ProfileUser() {
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row items-center">
                 <div className="flex flex-col items-center">
-                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 relative">
-                    <Image 
-                      src={user_data?.profile_image || DEFAULT_IMAGES.profile}
-                      alt="Profile"
-                      width={96}
-                      height={96}
-                      className="object-cover"
-                    />
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
+                  <img 
+                    src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
+                    alt="Profile Image" 
+                    className="w-full h-full object-cover"
+                  />
                   </div>
                   <p className="mt-2 font-medium">{user_data?.username}</p>
                   <Button 
@@ -468,7 +529,7 @@ export default function ProfileUser() {
         <Label htmlFor="profile_image" className="mb-2">รูปโปรไฟล์</Label>
         <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
           <img 
-            src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
+            src={temp_user_data?.profile_image || DEFAULT_IMAGES.profile} 
             alt="Profile Image" 
             className="w-full h-full object-cover"
           />
@@ -510,7 +571,7 @@ export default function ProfileUser() {
           />
         </div>
 
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label htmlFor="email">อีเมล</Label>
           <Input
             id="email"
@@ -521,7 +582,7 @@ export default function ProfileUser() {
             required
             disabled={isLoading}
           />
-        </div>
+        </div> */}
       </div>
       
       {/* Action Buttons */}
