@@ -63,7 +63,8 @@ const CartPage = () => {
         const addressFromStorage = localStorage.getItem('addresses');
         if (addressFromStorage) {
           const addressData = JSON.parse(addressFromStorage);
-          const sortedAddresses = addressData.sort(
+          const positionFourAddresses = addressData.filter((addr: any) => addr.position_id === 4);
+          const sortedAddresses = positionFourAddresses.sort(
             (a: any, b: any) => b.is_default - a.is_default
           );
           setAddresses(sortedAddresses);
@@ -339,7 +340,7 @@ const CartPage = () => {
       {/* Total & Place Order */}
       <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-t z-50">
         <div className="container mx-auto flex justify-between items-center">
-          <h2 className="text-xl font-bold">Total: ${calculateTotal()}</h2>
+          <h2 className="text-xl font-bold">Total: ฿{calculateTotal()}</h2>
           <Button variant="outline" onClick={handlePlaceOrder}>
             <ShoppingCart size={20} className="mr-2" /> Place Order
           </Button>
