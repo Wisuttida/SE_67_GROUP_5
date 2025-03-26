@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import axios from 'axios';
 import LoadingPage from '@/components/LoadingPage';
+import SideBarUser from '@/components/SideBarUser';
 
 interface PaymentItem {
   id: string;

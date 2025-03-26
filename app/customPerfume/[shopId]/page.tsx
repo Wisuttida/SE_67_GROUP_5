@@ -66,8 +66,12 @@ const CustomPerfumePage = () => {
         const addressFromStorage = localStorage.getItem('addresses');
         if (addressFromStorage) {
           const addressData = JSON.parse(addressFromStorage);
-          const sortedAddresses = addressData.sort((a: any, b: any) => b.is_default - a.is_default);
+          const positionFourAddresses = addressData.filter((addr: any) => addr.position_id === 4);
+          const sortedAddresses = positionFourAddresses.sort(
+            (a: any, b: any) => b.is_default - a.is_default
+          );
           setAddresses(sortedAddresses);
+
           if (sortedAddresses.length > 0) {
             setSelectedAddress(sortedAddresses[0].address_id.toString());
           }
@@ -109,7 +113,7 @@ const CustomPerfumePage = () => {
         : [...prev, { ...ingredient, percentage: 50 }] // ค่าเริ่มต้น 50%
     );
   };
-  
+
   const handlePercentageChange = (id: number, value: number) => {
     setSelectedIngredients((prev) =>
       prev.map((i) => (i.id === id ? { ...i, percentage: value } : i))

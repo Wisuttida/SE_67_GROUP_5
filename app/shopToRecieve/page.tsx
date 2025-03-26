@@ -68,7 +68,7 @@ const ShopToRecieve = () => {
             <Navbar />
 
             <div className="flex">
-                <div className="w-64 bg-gray-300 text-white p-6">
+                <div>
                     <SideBarShop />
                 </div>
                 <div className="container mx-auto p-6">

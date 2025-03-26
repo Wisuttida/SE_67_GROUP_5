@@ -18,7 +18,7 @@ interface Product {
   fragrance_strength: string;
   shopName: string;
   shopImage: string;
-  fragrance_tones: { fragrance_tone_id: number; fragrance_tone_name: string }[];
+  fragrance_tones: { fragrance_tone_name: string };
 }
 
 const ProductPage = () => {
@@ -30,12 +30,14 @@ const ProductPage = () => {
   const [searchName, setSearchName] = useState<string>("");
   const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
   const [selectedStrengths, setSelectedStrengths] = useState<string[]>([]);
+  const [selectedTones, setSelectedTones] = useState<string[]>([]);
 
   useEffect(() => {
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`)
       .then(response => {
         if (Array.isArray(response.data)) {
           setProducts(response.data);
+          console.log(response.data);
         } else {
           console.error("ข้อมูลที่ได้รับไม่ใช่ Array:", response.data);
         }
@@ -62,6 +64,14 @@ const ProductPage = () => {
     }
   };
 
+  const handleToneChange = (tone: string) => {
+    if (selectedTones.includes(tone)) {
+      setSelectedStrengths(selectedTones.filter(t => t !== tone));
+    } else {
+      setSelectedTones([...selectedTones, tone]);
+    }
+  };
+
   // กรองข้อมูลสินค้าตาม filter ที่ระบุ
   const filteredProducts = products.filter((product) => {
     const productPrice = parseFloat(product.price);
@@ -71,29 +81,25 @@ const ProductPage = () => {
       return false;
     }
 
-    // กรองราคาขั้นสูง
     if (maxPrice && productPrice > parseFloat(maxPrice)) {
       return false;
     }
 
-    // กรองตามชื่อสินค้า (ไม่คำนึงถึงตัวพิมพ์เล็กใหญ่)
     if (searchName && !product.name.toLowerCase().includes(searchName.toLowerCase())) {
       return false;
     }
 
-    // กรองตามเพศ (gender) แบบ checkbox (แก้ให้รองรับหลาย gender)
-    if (selectedGenders.length > 0) {
-      if (!selectedGenders.includes(product.gender_target.toLowerCase())) {
-        return false;
-      }
+    if (selectedGenders.length > 0 && !selectedGenders.includes(product.gender_target.toLowerCase())) {
+      return false;
     }
 
-    // Filter Fragrance Strength
-    if (selectedStrengths.length > 0) {
-      if (!selectedStrengths.includes(product.fragrance_strength.toLowerCase())) {
-        return false;
-      }
+    if (selectedStrengths.length > 0 && !selectedStrengths.includes(product.fragrance_strength.toLowerCase())) {
+      return false;
     }
+
+    if (selectedTones.length > 0 && !selectedTones.includes(product.fragrance_tones.fragrance_tone_name.toLowerCase())) {
+      return false;
+  }
 
     return true;
   });
@@ -110,12 +116,13 @@ const ProductPage = () => {
           searchName={searchName}
           selectedGenders={selectedGenders}
           selectedStrengths={selectedStrengths}
+          selectedTones={selectedTones}
           setMinPrice={setMinPrice}
           setMaxPrice={setMaxPrice}
           setSearchName={setSearchName}
           handleGenderChange={handleGenderChange}
           handleStrengthChange={handleStrengthChange}
-        />
+          handleToneChange={handleToneChange}/>
 
         {/* ส่วนแสดงสินค้า */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-3/4">

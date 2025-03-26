@@ -95,7 +95,7 @@ const ShopHomePost = () => {
       <Navbar />
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-gray-300 text-white p-6">
+        <div>
           <SideBarShop />
         </div>
         {/* Main Content */}

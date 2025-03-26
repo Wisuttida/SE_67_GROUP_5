@@ -393,7 +393,7 @@ const ProfileShop = () => {
       {/* เริ่มต้น Flexbox Layout */}
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-gray-300 text-white p-6">
+        <div>
           <SideBarShop />
         </div>
 

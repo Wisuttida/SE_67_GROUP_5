@@ -8,11 +8,14 @@ interface FilterComponentProps {
   searchName: string;
   selectedGenders: string[];
   selectedStrengths: string[];
+  selectedTones: string[];
+
   setMinPrice: Dispatch<SetStateAction<string>>;
   setMaxPrice: Dispatch<SetStateAction<string>>;
   setSearchName: Dispatch<SetStateAction<string>>;
   handleGenderChange: (gender: string) => void;
   handleStrengthChange: (strength: string) => void;
+  handleToneChange: (tone: string) => void;
 }
 
 const genderOptions = [
@@ -29,17 +32,24 @@ const strengthOptions = [
   { label: "Eau Fraiche/mists", value: "eau fraiche/mists" },
 ];
 
+const toneOptions = [
+  { label: "Floral", value: "floral" },
+  { label: "Fruity", value: "fruity" },
+];
+
 const FilterSidebar = ({
   minPrice,
   maxPrice,
   searchName,
   selectedGenders,
   selectedStrengths,
+  selectedTones,
   setMinPrice,
   setMaxPrice,
   setSearchName,
   handleGenderChange,
   handleStrengthChange,
+  handleToneChange,
 }: FilterComponentProps) => {
   return (
     <aside className="w-1/4 p-4 border rounded h-[calc(100vh-64px)] sticky top-16">
@@ -114,6 +124,23 @@ const FilterSidebar = ({
           </div>
         ))}
       </div>
+
+      {/* <div className="mb-4">
+        <span className="block mb-1 font-semibold">Fragrance Tone:</span>
+        {toneOptions.map((tone) => (
+          <div key={tone.value} className="flex items-center mb-2">
+            <input
+              type="checkbox"
+              id={tone.value}
+              value={tone.value}
+              checked={selectedTones.includes(tone.value)}
+              onChange={() => handleToneChange(tone.value)}
+              className="mr-2"
+            />
+            <label htmlFor={tone.value}>{tone.label}</label>
+          </div>
+        ))}
+      </div> */}
     </aside>
   );
 };

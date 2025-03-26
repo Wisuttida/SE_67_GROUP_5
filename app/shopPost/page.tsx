@@ -229,7 +229,7 @@ useEffect(() => {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="flex">
-        <div className="w-64 bg-gray-300 text-white p-6 min-h-screen">
+        <div>
           <SideBarShop />
         </div>
         <div className="flex-1 p-6">

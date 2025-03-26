@@ -22,6 +22,7 @@ interface Product {
   volume: number;
   description: string;
   shops_shop_id: number; // ตรวจสอบว่า `shops_shop_id` ตรงกับ `shopId`
+  fragrance_tones: { fragrance_tone_name: string };
 }
 
 const ShopPage = () => {
@@ -41,6 +42,7 @@ const ShopPage = () => {
   const [searchName, setSearchName] = useState<string>("");
   const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
   const [selectedStrengths, setSelectedStrengths] = useState<string[]>([]);
+  const [selectedTones, setSelectedTones] = useState<string[]>([]);
 
   useEffect(() => {
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`)
@@ -93,6 +95,10 @@ const ShopPage = () => {
       return false;
     }
 
+    if (selectedTones.length > 0 && !selectedTones.includes(product.fragrance_tones.fragrance_tone_name.toLowerCase())) {
+        return false;
+    }
+
     return true;
   });
 
@@ -110,6 +116,14 @@ const ShopPage = () => {
       setSelectedStrengths(selectedStrengths.filter(s => s !== strength));
     } else {
       setSelectedStrengths([...selectedStrengths, strength]);
+    }
+  };
+
+  const handleToneChange = (tone: string) => {
+    if (selectedTones.includes(tone)) {
+      setSelectedStrengths(selectedTones.filter(t => t !== tone));
+    } else {
+      setSelectedTones([...selectedTones, tone]);
     }
   };
 
@@ -139,11 +153,13 @@ const ShopPage = () => {
             searchName={searchName}
             selectedGenders={selectedGenders}
             selectedStrengths={selectedStrengths}
+            selectedTones={selectedTones}
             setMinPrice={setMinPrice}
             setMaxPrice={setMaxPrice}
             setSearchName={setSearchName}
             handleGenderChange={handleGenderChange}
             handleStrengthChange={handleStrengthChange}
+            handleToneChange={handleToneChange}
           />
 
           {/* Product display */}

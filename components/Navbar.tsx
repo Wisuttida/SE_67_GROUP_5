@@ -14,20 +14,20 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasShop, setHasShop] = useState(false);
   const [hasFarm, setHasFarm] = useState(false);
-  const [csrfToken, setCsrfToken] = useState('');
+  //const [csrfToken, setCsrfToken] = useState('');
 
-  useEffect(() => {
-    const fetchCsrfToken = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/csrf-token');
-        setCsrfToken(response.data.csrf_token);
-      } catch (error) {
-        console.error('Error fetching CSRF token:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchCsrfToken = async () => {
+  //     try {
+  //       const response = await axios.get('http://localhost:8000/csrf-token');
+  //       setCsrfToken(response.data.csrf_token);
+  //     } catch (error) {
+  //       console.error('Error fetching CSRF token:', error);
+  //     }
+  //   };
 
-    fetchCsrfToken();
-  }, []);
+  //   fetchCsrfToken();
+  // }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
