@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
+import axios from "axios";
 
 interface Shop {
-  shopId: number;
-  shopName: string;
-  shopImage: string;
+  shop_id: number;
+  shop_name: string;
+  shop_image: string | null;
 }
 
 const ShopListPage = () => {
@@ -26,16 +27,27 @@ const ShopListPage = () => {
       setIsLoggedIn(true);
     }
 
-    const fetchShops = async () => {
-      const dummyShops: Shop[] = Array.from({ length: 14 }, (_, i) => ({
-        shopId: i + 1,
-        shopName: `Shop${i + 1}`,
-        shopImage: "/placeholder-profile.jpg",
-      }));
-      setShops(dummyShops);
-    };
+    // const fetchShops = async () => {
+    //   const dummyShops: Shop[] = Array.from({ length: 14 }, (_, i) => ({
+    //     shopId: i + 1,
+    //     shopName: `Shop${i + 1}`,
+    //     shopImage: "/placeholder-profile.jpg",
+    //   }));
+    //   setShops(dummyShops);
+    // };
 
-    fetchShops();
+    // fetchShops();
+  }, []);
+
+  useEffect(() => {
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/shops/accepted`, { withCredentials: true })
+      .then(response => {
+        setShops(response.data.shops);
+        console.log(response.data.shops);
+      })
+      .catch(error => {
+        console.error("Error fetching buy posts:", error);
+      });
   }, []);
 
   // ไปหน้าสร้างน้ำหอม
@@ -54,7 +66,7 @@ const ShopListPage = () => {
   };
 
   const filteredShops = shops.filter((shop) =>
-    shop.shopName.toLowerCase().includes(searchTerm.toLowerCase())
+    shop.shop_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -76,31 +88,31 @@ const ShopListPage = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredShops.map((shop) => (
             <div
-              key={shop.shopId}
+              key={shop.shop_id}
               className="flex flex-col items-center p-4 border rounded-lg shadow-md"
             >
               {/* ✅ คลิกที่รูปไปร้าน */}
-              <Image
-                src={shop.shopImage}
-                alt={shop.shopName}
+              <img
+                src={shop.shop_image || "/path/to/default-image.jpg"}
+                alt={shop.shop_name}
                 width={50}
                 height={50}
                 className="w-16 h-16 rounded-full mb-2 cursor-pointer"
-                onClick={() => handleGoToShop(shop.shopId)}
+                onClick={() => handleGoToShop(shop.shop_id)}
               />
               {/* ✅ คลิกชื่อไปร้าน */}
               <h2
                 className="font-semibold cursor-pointer hover:text-blue-600"
-                onClick={() => handleGoToShop(shop.shopId)}
+                onClick={() => handleGoToShop(shop.shop_id)}
               >
-                {shop.shopName}
+                {shop.shop_name}
               </h2>
 
               {/* ปุ่ม Order Customize */}
               <Button
                 variant="outline"
                 className="mt-2"
-                onClick={() => handleOrderCustomize(shop.shopId)}
+                onClick={() => handleOrderCustomize(shop.shop_id)}
               >
                 Order Customize
               </Button>

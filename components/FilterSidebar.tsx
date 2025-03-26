@@ -52,7 +52,7 @@ const FilterSidebar = ({
   handleToneChange,
 }: FilterComponentProps) => {
   return (
-    <aside className="w-1/4 p-4 border rounded h-[calc(100vh-64px)] sticky top-16">
+    <aside className="w-64 bg-white shadow-md rounded-lg p-6 h-full">
       <h2 className="text-xl font-semibold mb-4">กรองสินค้า</h2>
 
       {/* Filter ราคา */}
