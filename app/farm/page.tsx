@@ -78,9 +78,19 @@ export default function Farm() {
       setIsLoading(false);
     }
   };
-
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // ใช้การแทนที่เพื่อกรองเฉพาะตัวเลข
+    const value = e.target.value.replace(/[^0-9]/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
+    setFarmData({ ...farmData, phoneNumber: value }); // อัพเดทสถานะ
+  };
+  
   const handleSaveAddress = async (event: React.FormEvent) => {
     event.preventDefault();
+    const phonePattern = /^[0-9]{10}$/; // ตรวจสอบว่าเบอร์ต้องเป็นตัวเลข 10 หลัก
+    if (!phonePattern.test(farmData.phoneNumber)) {
+      toast("กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)");
+      return; // ไม่ทำการบันทึกหากเบอร์โทรศัพท์ไม่ถูกต้อง
+    }
     setIsLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -134,7 +144,7 @@ export default function Farm() {
   };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-  
+
     // ตรวจสอบว่าเป็นเลขเท่านั้น และต้องไม่เกิน 12 หลัก (ปรับจำนวนหลักตามต้องการ)
     if (name === "bank_number") {
       const numericValue = value.replace(/[^0-9]/g, ''); // ลบตัวอักษรที่ไม่ใช่เลข
@@ -145,7 +155,6 @@ export default function Farm() {
       setBankInfo((prev) => ({ ...prev, [name]: value }));
     }
   };
-  
   const handleSave = () => {
     const bankNumber = bankInfo.bank_number.replace(/\D/g, '');
     if (bankNumber.length !== 12) {
@@ -187,6 +196,11 @@ export default function Farm() {
     // .catch(error => {
     //   console.error("Error fetching address:", error);
     // });
+  };
+  const labelMapping = {
+    bank_name: "Bank",
+    bank_number: "Bank number",
+    bank_account: "Account",
   };
   return (
     <div>
@@ -280,11 +294,14 @@ export default function Farm() {
           {/* ข้อมูลบัญชีธนาคาร */}
           <div className="bg-white p-6 rounded-2xl shadow-lg mt-6">
             <h3 className="text-xl font-semibold mb-4">🏦 ข้อมูลบัญชีธนาคาร</h3>
+
             {isEditing ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(bankInfo).map(([key, value]) => (
                   <div key={key}>
-                    <label className="block mb-1">{key.replace(/([A-Z])/g, ' $1')}</label>
+                    <label className="block mb-1">
+                      {labelMapping[key] || key.replace(/([A-Z])/g, ' $1')}
+                    </label>
                     {key === 'bank_name' ? (
                       <Select onValueChange={bankSelect} defaultValue={bankInfo.bank_name}>
                         <SelectTrigger>
@@ -298,23 +315,23 @@ export default function Farm() {
                           ))}
                         </SelectContent>
                       </Select>
-                      ) : key === 'bank_number' ? (
-                        <input
-                          name={key}
-                          value={value}
-                          onChange={handleChange}
-                          className="p-2 border rounded-lg w-full"
-                          placeholder="เลขบัญชีธนาคาร"
-                          maxLength={12} // กำหนดความยาวสูงสุดเป็น 12 หลัก
-                        />
-                      ) : (
-                        <input
-                          name={key}
-                          value={value}
-                          onChange={handleChange}
-                          className="p-2 border rounded-lg w-full"
-                          placeholder={key}
-                        />
+                    ) : key === 'bank_number' ? (
+                      <input
+                        name={key}
+                        value={value}
+                        onChange={handleChange}
+                        className="p-2 border rounded-lg w-full"
+                        placeholder="Enter bank number"
+                        maxLength={12}
+                      />
+                    ) : (
+                      <input
+                        name={key}
+                        value={value}
+                        onChange={handleChange}
+                        className="p-2 border rounded-lg w-full"
+                        placeholder="Enter bank account"
+                      />
                     )}
                   </div>
                 ))}
@@ -326,11 +343,12 @@ export default function Farm() {
             ) : (
               <div>
                 {Object.entries(bankInfo).map(([key, value]) => (
-                  <p key={key}>{key.replace(/([A-Z])/g, ' $1')}: {value || '-'}</p>
+                  <p key={key}>{labelMapping[key] || key.replace(/([A-Z])/g, ' $1')}: {value || '-'}</p>
                 ))}
                 <button onClick={handleEditBankInfo} className="text-blue-500 mt-4">✏️ แก้ไขข้อมูลบัญชีธนาคาร</button>
               </div>
             )}
+
           </div>
           {/* Edit Profile Dialog */}
           <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
@@ -433,12 +451,13 @@ export default function Farm() {
                     <Label htmlFor="phoneNumber">Phone Number</Label>
                     <Input
                       id="phoneNumber"
+                      name="phoneNumber"
                       value={farmData.phoneNumber}
-                      onChange={(e) => setFarmData({ ...farmData, phoneNumber: e.target.value })}
+                      onChange={handlePhoneNumberChange}
                       required
+                      maxLength={10} // กำหนดความยาวสูงสุดให้กับเบอร์โทรศัพท์
                     />
                   </div>
-                  
                   <div>
                     <Label htmlFor="province">Province</Label>
                     <Input
