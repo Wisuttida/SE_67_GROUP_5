@@ -13,26 +13,16 @@ import Image from "next/image";
 import axios from "axios";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface FragranceTone {
+interface Ingredient {
   id: number;
   name: string;
-}
-
-interface SelectedTone {
-  id: number;
-  name: string;
-  percentage: number;
+  percentage?: number; // ใช้ optional field สำหรับกรณี selected ingredients
 }
 
 interface Shop {
   shopId: number;
   shopName: string;
   shopImage: string;
-}
-
-interface Ingredient {
-  ingredient_id: number;
-  ingredient_percentage: number;
 }
 
 interface CustomPerfume {
@@ -42,22 +32,22 @@ interface CustomPerfume {
   intensity_level: number;
   volume_ml: number;
   is_tester: string;
-  ingredients: Ingredient[];
+  ingredients: { ingredient_id: number; ingredient_percentage: number }[];
 }
 
 const CustomPerfumePage = () => {
   const router = useRouter();
   const params = useParams();
-  const shopId = params?.shopId; // <-- ได้ค่า shopId ตรงนี้
+  const shopId = params?.shopId;
 
   const [shop, setShop] = useState<Shop | null>(null);
-  const [fragranceTones, setFragranceTones] = useState<FragranceTone[]>([]);
-  const [selectedTones, setSelectedTones] = useState<SelectedTone[]>([]);
+  const [ingredientOptions, setIngredientOptions] = useState<Ingredient[]>([]);
+  const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>([]);
   const [fragranceName, setFragranceName] = useState("");
   const [description, setDescription] = useState("");
   const [intensity, setIntensity] = useState(50);
   const [volume, setVolume] = useState("");
-  const [toneSearch, setToneSearch] = useState("");
+  const [ingredientSearch, setIngredientSearch] = useState("");
   const [shopSearch, setShopSearch] = useState("");
   const [isTester, setIsTester] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
@@ -67,23 +57,17 @@ const CustomPerfumePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // ดึง csrf-token และ cart จาก API
         const [csrfResponse] = await Promise.all([
           axios.get(`http://localhost:8000/csrf-token`, { withCredentials: true }),
         ]);
 
         setCsrfToken(csrfResponse.data.csrf_token);
 
-        // ✅ ดึง address จาก localStorage แทน API
         const addressFromStorage = localStorage.getItem('addresses');
         if (addressFromStorage) {
           const addressData = JSON.parse(addressFromStorage);
-          const sortedAddresses = addressData.sort(
-            (a: any, b: any) => b.is_default - a.is_default
-          );
+          const sortedAddresses = addressData.sort((a: any, b: any) => b.is_default - a.is_default);
           setAddresses(sortedAddresses);
-  
-          // ✅ auto select default address
           if (sortedAddresses.length > 0) {
             setSelectedAddress(sortedAddresses[0].address_id.toString());
           }
@@ -91,7 +75,6 @@ const CustomPerfumePage = () => {
         } else {
           console.warn("⚠️ No address data found in localStorage");
         }
-
       } catch (error) {
         console.error("❌ Error fetching data:", error);
       }
@@ -110,37 +93,36 @@ const CustomPerfumePage = () => {
     const foundShop = dummyShops.find((s) => s.shopId.toString() === shopId);
     setShop(foundShop || null);
 
-    setFragranceTones([
-      { id: 1, name: "Floral" },
-      { id: 2, name: "Fruity" },
-      { id: 3, name: "Spicy" },
-      { id: 4, name: "Woody" },
+    // Mock Ingredient options
+    setIngredientOptions([
+      { id: 1, name: "กุหลาบ" },
+      { id: 2, name: "มะลิ" },
+      { id: 3, name: "ลาเวนเดอร์" },
+      { id: 4, name: "กระดังงา" },
     ]);
   }, [shopId]);
 
-  const handleToneSelect = (tone: FragranceTone) => {
-    setSelectedTones((prev) =>
-      prev.some((t) => t.id === tone.id)
-        ? prev.filter((t) => t.id !== tone.id)
-        : [...prev, { ...tone, percentage: 50 }]
+  const handleIngredientSelect = (ingredient: Ingredient) => {
+    setSelectedIngredients((prev) =>
+      prev.some((i) => i.id === ingredient.id)
+        ? prev.filter((i) => i.id !== ingredient.id)
+        : [...prev, { ...ingredient, percentage: 50 }] // ค่าเริ่มต้น 50%
     );
   };
-
+  
   const handlePercentageChange = (id: number, value: number) => {
-    setSelectedTones((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, percentage: value } : t))
+    setSelectedIngredients((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, percentage: value } : i))
     );
   };
 
   const handleSubmit = async () => {
-    // ตรวจสอบว่าเลือก tone หรือไม่
-    if (selectedTones.length === 0) {
-      alert("กรุณาเลือกโทนกลิ่นอย่างน้อย 1 โทน");
+    if (selectedIngredients.length === 0) {
+      alert("กรุณาเลือกส่วนผสมอย่างน้อย 1 รายการ");
       return;
     }
 
-    // ตรวจสอบข้อมูลที่กรอกครบหรือไม่
-    if (!fragranceName || intensity === 0 || !volume) {
+    if (!fragranceName || intensity === 0 || (!volume && !isTester)) {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน (ชื่อกลิ่น, ความเข้มข้น, ปริมาตร)");
       return;
     }
@@ -155,11 +137,11 @@ const CustomPerfumePage = () => {
       fragrance_name: fragranceName,
       description: description || null,
       intensity_level: intensity,
-      volume_ml: isTester ? 1 : Number(volume), // ✅ ถ้า tester ให้ส่ง 0 ไป
+      volume_ml: isTester ? 1 : Number(volume),
       is_tester: isTester ? "yes" : "no",
-      ingredients: selectedTones.map((tone) => ({
-        ingredient_id: tone.id,
-        ingredient_percentage: tone.percentage,
+      ingredients: selectedIngredients.map((ing) => ({
+        ingredient_id: ing.id,
+        ingredient_percentage: ing.percentage ?? 0, // ป้องกัน undefined
       })),
     };
 
@@ -173,7 +155,6 @@ const CustomPerfumePage = () => {
           headers: {
             "Content-Type": "application/json",
             "X-CSRF-TOKEN": csrfToken,
-            // ถ้า Auth ต้องใส่ Authorization: `Bearer ${token}`,
           },
           withCredentials: true,
         }
@@ -192,10 +173,8 @@ const CustomPerfumePage = () => {
     }
   };
 
-
-
-  const filteredTones = fragranceTones.filter((tone) =>
-    tone.name.toLowerCase().includes(toneSearch.toLowerCase())
+  const filteredIngredients = ingredientOptions.filter((ingredient) =>
+    ingredient.name.toLowerCase().includes(ingredientSearch.toLowerCase())
   );
 
   const filteredShops = [shop].filter((shop) =>
@@ -206,7 +185,6 @@ const CustomPerfumePage = () => {
     <div>
       <Navbar />
       <div className="container mx-auto p-8">
-        {/* ปุ่ม Back */}
         <Button variant="outline" onClick={() => router.back()} className="mb-8">
           Back
         </Button>
@@ -226,11 +204,10 @@ const CustomPerfumePage = () => {
 
         <h2 className="text-2xl font-semibold mb-6">Create Your Custom Fragrance</h2>
 
-        {/* Address Selection */}
         <div className="flex items-center space-x-4 mb-4">
           <label className="font-semibold">เลือกที่อยู่จัดส่ง:</label>
           <Select value={selectedAddress} onValueChange={setSelectedAddress}>
-            <SelectTrigger className="w-full max-w-[1000px]"> {/* Adjust width here */}
+            <SelectTrigger className="w-full max-w-[1000px]">
               <SelectValue placeholder="เลือกที่อยู่" />
             </SelectTrigger>
             <SelectContent>
@@ -246,26 +223,24 @@ const CustomPerfumePage = () => {
           </Select>
         </div>
 
-        {/* ค้นหา Tone */}
         <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">Search Fragrance Tones</label>
+          <label className="block text-gray-700 font-semibold mb-2">Search Ingredients</label>
           <Input
-            value={toneSearch}
-            onChange={(e) => setToneSearch(e.target.value)}
-            placeholder="Search tones"
+            value={ingredientSearch}
+            onChange={(e) => setIngredientSearch(e.target.value)}
+            placeholder="Search ingredients"
             className="w-full"
           />
         </div>
 
-        {/* เลือกโทนกลิ่น */}
         <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4">Select Fragrance Tones</h3>
+          <h3 className="text-xl font-semibold mb-4">Select Ingredients *</h3>
           <div className="grid grid-cols-2 gap-6">
-            {filteredTones.map((tone) => (
-              <div key={tone.id} className="flex items-center space-x-3">
-                <Checkbox onCheckedChange={() => handleToneSelect(tone)} />
-                <span className="text-lg">{tone.name}</span>
-                {selectedTones.some((t) => t.id === tone.id) && (
+            {filteredIngredients.map((ingredient) => (
+              <div key={ingredient.id} className="flex items-center space-x-3">
+                <Checkbox onCheckedChange={() => handleIngredientSelect(ingredient)} />
+                <span className="text-lg">{ingredient.name}</span>
+                {selectedIngredients.some((i) => i.id === ingredient.id) && (
                   <div className="flex items-center space-x-2 w-full">
                     <Slider
                       className="w-full"
@@ -273,9 +248,9 @@ const CustomPerfumePage = () => {
                       min={0}
                       max={100}
                       step={1}
-                      onValueChange={(val) => handlePercentageChange(tone.id, val[0])}
+                      onValueChange={(val) => handlePercentageChange(ingredient.id, val[0])}
                     />
-                    <span className="w-12 text-right">{selectedTones.find((t) => t.id === tone.id)?.percentage}%</span>
+                    <span className="w-12 text-right">{selectedIngredients.find((i) => i.id === ingredient.id)?.percentage}%</span>
                   </div>
                 )}
               </div>
@@ -283,7 +258,6 @@ const CustomPerfumePage = () => {
           </div>
         </div>
 
-        {/* ฟอร์มกรอกข้อมูล */}
         <div className="mb-8">
           <label className="block text-gray-700 font-semibold mb-2">Fragrance Name *</label>
           <Input
@@ -319,7 +293,6 @@ const CustomPerfumePage = () => {
           </div>
         </div>
 
-        {/* ฟิลด์ Volume */}
         <div className="mb-8">
           <label className="block text-gray-700 font-semibold mb-2">Volume (ml) *</label>
           <Input
@@ -331,7 +304,6 @@ const CustomPerfumePage = () => {
           />
         </div>
 
-        {/* ปุ่มกด */}
         <div className="flex items-center space-x-6">
           <Checkbox checked={isTester} onCheckedChange={(checked) => setIsTester(!!checked)} />
           <span className="text-lg">Use Tester</span>

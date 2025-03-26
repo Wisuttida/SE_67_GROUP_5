@@ -288,7 +288,7 @@ const CartPage = () => {
                   />
                   <div>
                     <h2 className="font-semibold">{item.product.name}</h2>
-                    <p className="text-gray-500">Price: ${item.price}</p>
+                    <p className="text-gray-500">Price: ฿{item.price}</p>
                     <p className="text-sm text-gray-600">Shop: {item.product.shop.shop_name}</p>
                   </div>
                 </div>
