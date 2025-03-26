@@ -125,10 +125,23 @@ const ProfileShop = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setBankInfo((prev) => ({ ...prev, [name]: value }));
+    // ตรวจสอบว่าเป็นเลขเท่านั้น และต้องไม่เกิน 12 หลัก (ปรับจำนวนหลักตามต้องการ)
+    if (name === "เลขบัญชี") {
+      const numericValue = value.replace(/[^0-9]/g, ''); // ลบตัวอักษรที่ไม่ใช่เลข
+      if (numericValue.length <= 12) {
+        setBankInfo((prev) => ({ ...prev, [name]: numericValue }));
+      }
+    } else {
+      setBankInfo((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSave = () => {
+    const bankNumber = bankInfo.เลขบัญชี.replace(/\D/g, '');
+    if (bankNumber.length !== 12) {
+      toast("กรุณากรอกเลขบัญชีให้ครบ 12 หลัก");
+      return;
+    }
     console.log('Bank Info Saved:', bankInfo);
     setIsEditing(false);
     axios.put(`${process.env.NEXT_PUBLIC_API_URL}/shop/updateBank`,
@@ -205,14 +218,22 @@ const ProfileShop = () => {
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setAddressInfo((prev) => ({ ...prev, [name]: value }));
+    // Handle phone number: only digits and max 10 digits
+    if (name === "phonenumber") {
+      const numericValue = value.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+      if (numericValue.length <= 10) {
+        setAddressInfo((prev) => ({ ...prev, [name]: numericValue })); // Update phone number
+      }
+    } else {
+      setAddressInfo((prev) => ({ ...prev, [name]: value })); // Update other fields
+    }
   };
 
   const handleAddressSave = () => {
     // ตรวจสอบเบอร์โทรศัพท์
     const phonePattern = /^[0-9]{10}$/; // ตรวจสอบว่าเบอร์ต้องเป็นตัวเลข 10 หลัก
     if (!phonePattern.test(addressInfo.phonenumber)) {
-      alert("กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)");
+      toast("กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)");
       return; // ไม่ทำการบันทึกหากเบอร์โทรศัพท์ไม่ถูกต้อง
     }
   
@@ -473,6 +494,15 @@ const ProfileShop = () => {
                           ))}
                         </SelectContent>
                       </Select>
+                    ) : key === 'เลขบัญชี' ? (
+                      <input
+                        name={key}
+                        value={value}
+                        onChange={handleChange}
+                        className="p-2 border rounded-lg w-full"
+                        placeholder="เลขบัญชีธนาคาร"
+                        maxLength={10} // กำหนดความยาวสูงสุดเป็น 10 หลัก
+                      />
                     ) : (
                       <input
                         name={key}

@@ -135,10 +135,10 @@ export default function Farm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
   
-    // ตรวจสอบว่าเป็นเลขเท่านั้น และต้องไม่เกิน 10 หลัก (ปรับจำนวนหลักตามต้องการ)
+    // ตรวจสอบว่าเป็นเลขเท่านั้น และต้องไม่เกิน 12 หลัก (ปรับจำนวนหลักตามต้องการ)
     if (name === "bank_number") {
       const numericValue = value.replace(/[^0-9]/g, ''); // ลบตัวอักษรที่ไม่ใช่เลข
-      if (numericValue.length <= 10) {
+      if (numericValue.length <= 12) {
         setBankInfo((prev) => ({ ...prev, [name]: numericValue }));
       }
     } else {
@@ -148,8 +148,8 @@ export default function Farm() {
   
   const handleSave = () => {
     const bankNumber = bankInfo.bank_number.replace(/\D/g, '');
-    if (bankNumber.length !== 10) {
-      toast("กรุณากรอกเลขบัญชีให้ครบ 10 หลัก");
+    if (bankNumber.length !== 12) {
+      toast("กรุณากรอกเลขบัญชีให้ครบ 12 หลัก");
       return;
     }
     console.log('Bank Info Saved:', bankInfo);
