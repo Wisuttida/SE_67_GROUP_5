@@ -39,6 +39,7 @@ const ProfileShop = () => {
   let csrf = localStorage.getItem('csrfToken');
   let token = localStorage.getItem('token');
   const { toast } = useToast();
+  const [isAddressAdding, setIsAddressAdding] = useState(false);
   const [isAddressEditing, setIsAddressEditing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState('');
@@ -87,9 +88,13 @@ const ProfileShop = () => {
   });
 
   // เปิดโหมดแก้ไขและเก็บค่าก่อนหน้า
-   const handleEditAddress = () => {
+  const handleEditAddress = () => {
     setTempAddressInfo({ ...addressInfo });
     setIsAddressEditing(true);
+  };
+  const handleAddAddress = () => {
+    setTempAddressInfo({ ...addressInfo });
+    setIsAddressAdding(true);
   };
 
   const handleEditDescription = () => {
@@ -283,6 +288,63 @@ const ProfileShop = () => {
       console.error("Error fetching address:", error);
     });
   };
+
+  const handleAddressAddSave = () => {
+    // ตรวจสอบเบอร์โทรศัพท์
+    const phonePattern = /^[0-9]{10}$/; // ตรวจสอบว่าเบอร์ต้องเป็นตัวเลข 10 หลัก
+    if (!phonePattern.test(addressInfo.phonenumber)) {
+      toast("กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)");
+      return; // ไม่ทำการบันทึกหากเบอร์โทรศัพท์ไม่ถูกต้อง
+    }
+  
+    setIsAddressAdding(false);
+    axios.post(`${process.env.NEXT_PUBLIC_API_URL}/addresses/`,
+      {
+        fname : addressInfo.fname,
+        lname : addressInfo.lname,
+        phonenumber : addressInfo.phonenumber,
+        street_name : addressInfo.street_name,
+        house_number : addressInfo.house_number,
+        building : addressInfo.building,
+        province : addressInfo.province,
+        district : addressInfo.district,
+        subDistrict : addressInfo.subDistrict,
+        zipcode : addressInfo.zipcode,
+        position_id: 2,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        withCredentials: true,
+      }
+    ).then(res => {
+      toast("เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว");
+    }).catch(error => {
+      console.error('Error saving address:', error.response ? error.response.data : error.message);
+    });
+  
+    // เรียกข้อมูลใหม่เพื่ออัพเดตที่อยู่
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrf,
+      },
+      withCredentials: true,
+    })
+    .then(res => {
+      localStorage.setItem('addresses', JSON.stringify(res.data.data));
+      window.location.reload();
+    })
+    .catch(error => {
+      console.error("Error fetching address:", error);
+    });
+  };
   
 
   interface ShopData {
@@ -323,27 +385,29 @@ const ProfileShop = () => {
       try {
         const data: AddressInfo[] = JSON.parse(addressGet);
         const filteredAddresses: AddressInfo[] = data.filter(address => Number(address.position_id) === 2);
-        setAddressInfo(prevState => ({
-          ...prevState,
-          fname: filteredAddresses[0].fname,
-          lname: filteredAddresses[0].lname,
-          building: filteredAddresses[0].building,
-          phonenumber: filteredAddresses[0].phonenumber,
-          house_number: filteredAddresses[0].house_number,
-          street_name: filteredAddresses[0].street_name,
-          subDistrict: filteredAddresses[0].subDistrict,
-          district: filteredAddresses[0].district,
-          province: filteredAddresses[0].province,
-          zipcode: filteredAddresses[0].zipcode,
-          address_id: filteredAddresses[0].address_id,
-          position_id: filteredAddresses[0].position_id,
-        }));
+        if(filteredAddresses.length > 0) {
+          setAddressInfo(prevState => ({
+            ...prevState,
+            fname: filteredAddresses[0].fname,
+            lname: filteredAddresses[0].lname,
+            building: filteredAddresses[0].building,
+            phonenumber: filteredAddresses[0].phonenumber,
+            house_number: filteredAddresses[0].house_number,
+            street_name: filteredAddresses[0].street_name,
+            subDistrict: filteredAddresses[0].subDistrict,
+            district: filteredAddresses[0].district,
+            province: filteredAddresses[0].province,
+            zipcode: filteredAddresses[0].zipcode,
+            address_id: filteredAddresses[0].address_id,
+            position_id: filteredAddresses[0].position_id,
+          }));
+        }
       } catch (error) {
         console.error('Error parsing shop data from localStorage:', error);
       }
     }
   }, []);
-  
+
   const bankOptions = [
     { value: 'ธนาคารกรุงเทพ (BBL)', label: 'ธนาคารกรุงเทพ (BBL)' },
     { value: 'ธนาคารกสิกรไทย (KBANK)', label: 'ธนาคารกสิกรไทย (KBANK)' },
@@ -415,9 +479,41 @@ const ProfileShop = () => {
                   return null; // Return null for keys that should not be rendered
               })}
             </div>
+            {(addressInfo.address_id === '') ? 
+              (<button onClick={handleAddAddress} className="text-blue-500 mt-4">➕ เพิ่มที่อยู่</button>) : (null)
+            }
             <button onClick={handleEditAddress} className="text-blue-500 mt-4">✏️ แก้ไขที่อยู่</button>
           </div>
-
+          {isAddressAdding && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+              <div className="bg-white p-8 rounded-2xl shadow-xl w-96">
+                <h2 className="text-2xl font-semibold mb-6">แก้ไขที่อยู่</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  {keyOrder.map((key) => {
+                      // Check if the key exists in addressInfo and is not excluded
+                      if (key in addressInfo) {
+                          return (
+                              <div key={key}>
+                                  <label>{keyMapping[key] || key.replace(/([A-Z])/g, ' $1')}</label>
+                                  <input
+                                    name={key}
+                                    value={addressInfo[key] as string}
+                                    onChange={handleAddressChange}
+                                    className="border p-2 rounded-lg w-full"
+                                  />
+                              </div>
+                          );
+                      }
+                      return null; // Return null for keys that should not be rendered
+                  })}
+                </div>
+                <div className="flex justify-end mt-6 space-x-4">
+                  <button onClick={handleCancelAddressEdit} className="bg-gray-300 px-4 py-2 rounded-lg">ยกเลิก</button>
+                  <button onClick={handleAddressAddSave} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">บันทึก</button>
+                </div>
+              </div>
+            </div>
+          )}
           {isAddressEditing && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
               <div className="bg-white p-8 rounded-2xl shadow-xl w-96">
