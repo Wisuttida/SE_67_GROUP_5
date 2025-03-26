@@ -40,7 +40,7 @@ export default function ProfileUser() {
   let token = localStorage.getItem('token');
   const router = useRouter();
   const { toast } = useToast();
-  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   interface UserData {
     user_id: number;
@@ -48,7 +48,6 @@ export default function ProfileUser() {
     email: string;
     first_name: string;
     last_name: string;
-    phone_number: string;
     profile_image: string | null;
   }
   const [user_data, setUserData] = useState<UserData | undefined>(undefined);
@@ -315,6 +314,60 @@ export default function ProfileUser() {
       address.province.toLowerCase().includes(searchQuery.toLowerCase()) ||
       address.district.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Save the profile (API call can be added here)
+    console.log("Saved Profile:", user_data);
+    
+    setIsLoading(false);
+    setIsProfileDialogOpen(false);
+  };
+  const getEmptyProfile = (): UserData => ({
+    user_id: 0,
+    username: '',
+    email: '',
+    first_name: '',
+    last_name: '',
+    profile_image: '',
+  });
+  const handleInputChangeProfile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUserData((prev) => {
+      if (!prev) return getEmptyProfile(); // ใช้ค่าเริ่มต้นหาก prev เป็น null หรือ undefined
+      return { ...prev, [name]: value }; // อัปเดตค่าใน state
+    });
+  };
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // สร้าง URL ชั่วคราวสำหรับแสดงรูปที่เลือก
+      const imageUrl = URL.createObjectURL(file);
+      
+      setUserData((prev) => {
+        if (!prev) {
+          // ถ้า prev เป็น undefined ให้คืนค่าฐานข้อมูลเริ่มต้นที่มีข้อมูลครบถ้วน
+          return {
+            profile_image: imageUrl,
+            user_id: -1, // กำหนด user_id เป็น -1 หรือค่าที่เหมาะสม
+            username: '',
+            email: '',
+            first_name: '',
+            last_name: '',
+          };
+        }
+        
+        return { 
+          ...prev, 
+          profile_image: imageUrl, // อัปเดตรูปโปรไฟล์
+        };
+      });
+    }
+  };
+  
+  
+  
   
   return (
     <div>
@@ -364,7 +417,7 @@ export default function ProfileUser() {
                 <div className="flex flex-col items-center">
                   <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 relative">
                     <Image 
-                      src={DEFAULT_IMAGES.profile}
+                      src={user_data?.profile_image || DEFAULT_IMAGES.profile}
                       alt="Profile"
                       width={96}
                       height={96}
@@ -376,7 +429,7 @@ export default function ProfileUser() {
                     variant="ghost" 
                     size="sm" 
                     className="mt-2"
-                    onClick={() => setShowEditDialog(true)}
+                    onClick={() => setIsProfileDialogOpen(true)}
                   >
                     <Edit className="w-4 h-4 mr-1" /> Edit Profile
                   </Button>
@@ -394,10 +447,6 @@ export default function ProfileUser() {
                       <p>{user_data?.email}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Phone</p>
-                      <p>{user_data?.phone_number}</p>
-                    </div>
-                    <div>
                       <p className="text-gray-500">User ID</p>
                       <p>{user_data?.user_id}</p>
                     </div>
@@ -406,6 +455,103 @@ export default function ProfileUser() {
               </div>
             </CardContent>
           </Card>
+          {/* Edit Profile */}
+<Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+  <DialogContent className="sm:max-w-2xl">
+    <DialogHeader>
+      <DialogTitle>แก้ไขโปรไฟล์</DialogTitle>
+    </DialogHeader>
+    
+    <form onSubmit={handleSaveProfile}>
+      {/* Section for Profile Image */}
+      <div className="flex flex-col items-center mb-6">
+        <Label htmlFor="profile_image" className="mb-2">รูปโปรไฟล์</Label>
+        <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
+          <img 
+            src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
+            alt="Profile Image" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <input
+          type="file"
+          id="profile_image"
+          name="profile_image"
+          accept="image/*"
+          onChange={handleImageChange}
+          disabled={isLoading}
+          className="file:py-2 file:px-4 file:border file:border-blue-600 file:rounded-md"
+        />
+      </div>
+
+      {/* Form fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="first_name">ชื่อจริง</Label>
+          <Input
+            id="first_name"
+            name="first_name"
+            value={user_data?.first_name || ''}
+            onChange={handleInputChangeProfile}
+            required
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="last_name">นามสกุล</Label>
+          <Input
+            id="last_name"
+            name="last_name"
+            value={user_data?.last_name || ''}
+            onChange={handleInputChangeProfile}
+            required
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="email">อีเมล</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={user_data?.email || ''}
+            onChange={handleInputChangeProfile}
+            required
+            disabled={isLoading}
+          />
+        </div>
+      </div>
+      
+      {/* Action Buttons */}
+      <div className="mt-6 flex justify-end space-x-4">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => setIsProfileDialogOpen(false)} 
+          disabled={isLoading}
+        >
+          ยกเลิก
+        </Button>
+        <Button 
+          type="submit"
+          disabled={isLoading}
+          className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          {isLoading ? (
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              กำลังบันทึก...
+            </div>
+          ) : (
+            "บันทึก"
+          )}
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
 
           {/* Address Section */}
           <Card>
