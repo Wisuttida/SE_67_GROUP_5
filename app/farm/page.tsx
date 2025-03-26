@@ -305,7 +305,7 @@ export default function Farm() {
                           onChange={handleChange}
                           className="p-2 border rounded-lg w-full"
                           placeholder="เลขบัญชีธนาคาร"
-                          maxLength={10} // กำหนดความยาวสูงสุดเป็น 10 หลัก
+                          maxLength={12} // กำหนดความยาวสูงสุดเป็น 12 หลัก
                         />
                       ) : (
                         <input
