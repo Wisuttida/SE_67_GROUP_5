@@ -34,7 +34,7 @@ const ShopPage = () => {
   }
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [shopDetails, setShopDetails] = useState();
+  const [shopDetails, setShopDetails] = useState<Product[]>([]);
 
   // Filter state
   const [minPrice, setMinPrice] = useState<string>("");
@@ -132,8 +132,8 @@ const ShopPage = () => {
       <Navbar />
       <div className="container mx-auto p-6">
         <div className="flex items-center mb-8">
-          <Image
-            src={shopDetails.shopImage}
+          <img
+            src={shopDetails.shop_image || "/path/to/default-image.jpg"}
             alt={shopDetails.shopName}
             width={100}
             height={100}
