@@ -34,15 +34,26 @@ export default function ProfileUser() {
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      const imageUrl = URL.createObjectURL(event.target.files[0]);
+      const file = event.target.files[0];
+  
+      // ล้าง URL เก่าก่อนเพื่อป้องกัน memory leak
+      if (tempProfileImage) {
+        URL.revokeObjectURL(tempProfileImage);
+      }
+  
+      // สร้าง URL ใหม่และเก็บไว้
+      const imageUrl = URL.createObjectURL(file);
       setTempProfileImage(imageUrl);
+      localStorage.setItem("profileImage", imageUrl);
     }
   };
+  
 
   const handleSaveProfile = () => {
     const updatedShopData = {
       ...shop_data,
       shop_name: tempUsername,
+      shop_image: tempProfileImage,
       accepts_custom: isChecked,
     };
   
@@ -58,6 +69,7 @@ export default function ProfileUser() {
     axios.put(`${process.env.NEXT_PUBLIC_API_URL}/shop/updateProfile`,
       {
         shop_name : updatedShopData.shop_name,
+        shop_image : tempProfileImage,
         accepts_custom : isChecked
       },
       {
@@ -124,7 +136,12 @@ export default function ProfileUser() {
       }
     }
   }, []);
-  
+  useEffect(() => {
+    const savedImage = localStorage.getItem("profileImage");
+    if (savedImage) {
+      setProfileImage(savedImage);
+    }
+  }, []);
 
 
   return (
