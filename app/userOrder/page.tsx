@@ -16,6 +16,7 @@ interface Order {
   total_amount: string;
   status: string;
   created_at: string;
+  updated_at: string;
   addresses_address_id: number;
   shops_shop_id: number;
   order_items: {
@@ -24,18 +25,30 @@ interface Order {
     price: string;
     products_product_id: number;
     product: {
+      product_id: number;
       name: string;
       description: string;
+      price: string;
       volume: number;
       stock_quantity: number;
       image_url: string;
       gender_target: string;
       fragrance_strength: string;
       status: string;
+      created_at: string;
+      updated_at: string;
       shop: {
+        shop_id: number;
         shop_name: string;
         shop_image: string | null;
         description: string;
+        accepts_custom: number;
+        bank_name: string;
+        bank_account: string;
+        bank_number: string;
+        is_activate: number;
+        users_user_id: number;
+        addresses_address_id: number;
       };
     };
   }[];
@@ -48,6 +61,7 @@ export default function UserOrder() {
   const [csrfToken, setCsrfToken] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState("pending"); // Default to "pending"
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,24 +95,26 @@ export default function UserOrder() {
   }, [csrfToken]);
 
   const filteredOrders = orders.filter(order =>
-    order.order_items.some(item =>
-      item.product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.product.shop.shop_name.toLowerCase().includes(searchQuery.toLowerCase())
+    order.status === statusFilter && (
+      order.order_items.some(item =>
+        item.product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.product.shop.shop_name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     )
   );
 
   const handleToggleOrderItems = (orderId: number) => {
-    setExpandedOrderId(prev => (prev === orderId ? null : orderId)); 
+    setExpandedOrderId(prev => (prev === orderId ? null : orderId));
   };
 
-  const handleDeleteOrder = async (orderId: number) => {
-    if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?')) return;
+  const handleCancelOrder = async (orderId: number) => {
+    if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการยกเลิกรายการนี้?')) return;
     setIsLoading(true);
     try {
       setOrders(prev => prev.filter(order => order.order_id !== orderId));
-      toast("ลบรายการสำเร็จ");
+      toast("ยกเลิกรายการสำเร็จ");
     } catch (error) {
-      toast("เกิดข้อผิดพลาดในการลบรายการ");
+      toast("เกิดข้อผิดพลาดในการยกเลิกรายการ");
     } finally {
       setIsLoading(false);
     }
@@ -113,22 +129,36 @@ export default function UserOrder() {
         <SideBarUser />
 
         <div className="w-full max-w-7xl mx-auto mt-8">
-          {/* Search Box */}
-          <div className="relative w-full max-w-md mx-auto mb-6">
-            <Input
-              type="text"
-              placeholder="ค้นหารายการ..."
-              className="w-full px-4 py-2 rounded-full bg-gray-50"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
+          {/* Search Box and Status Filter */}
+          <div className="flex justify-between items-center mb-6">
+            <div className="relative w-full max-w-md mx-auto">
+              <Input
+                type="text"
+                placeholder="ค้นหารายการ..."
+                className="w-full px-4 py-2 rounded-full bg-gray-50"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
+              >
+                <Search className="w-5 h-5 text-gray-500" />
+              </Button>
+            </div>
+
+            {/* Status Filter Dropdown */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="ml-4 p-2 border rounded"
             >
-              <Search className="w-5 h-5 text-gray-500" />
-            </Button>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="canceled">Canceled</option>
+              {/* Add other statuses here */}
+            </select>
           </div>
 
           <h1 className="text-2xl font-bold text-center mb-6">รายการสั่งซื้อ</h1>
@@ -159,7 +189,6 @@ export default function UserOrder() {
 
                     {/* สินค้าและรายละเอียด */}
                     <div className="flex items-start gap-4">
-                      {/* รูปสินค้า */}
                       <div className="w-28 h-36 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                         <Image
                           src={order.order_items[0].product.image_url || '/images/product.png'}
@@ -170,11 +199,10 @@ export default function UserOrder() {
                         />
                       </div>
 
-                      {/* รายละเอียด */}
                       <div className="flex-1 flex flex-col justify-between">
                         <div>
                           <p className="font-semibold text-base">{order.order_items[0].product.name}</p>
-                          <p className="text-gray-600 text-sm mt-1">ราคา: {order.total_amount}</p>
+                          <p className="text-gray-600 text-sm mt-1">ราคา: ฿ {order.total_amount}</p>
                           <p className="text-sm text-gray-500 mt-1">สถานะ: {order.status}</p>
                           <p className="text-sm text-gray-500 mt-1">วันที่สั่งซื้อ: {new Date(order.created_at).toLocaleDateString()}</p>
                         </div>
@@ -187,6 +215,18 @@ export default function UserOrder() {
                         >
                           {expandedOrderId === order.order_id ? "ซ่อนสินค้า" : "แสดงสินค้าทั้งหมด"}
                         </Button>
+
+                        {/* เพิ่มปุ่มยกเลิกการสั่งซื้อ */}
+                        {order.status !== 'canceled' && order.status !== 'confirmed' && (
+                          <Button
+                            variant="destructive"  // ใช้ variant destructive เพื่อให้ปุ่มดูเด่น
+                            size="sm"
+                            className="mt-2 self-start"
+                            onClick={() => handleCancelOrder(order.order_id)}
+                          >
+                            ยกเลิกการสั่งซื้อ
+                          </Button>
+                        )}
                       </div>
                     </div>
 
@@ -205,13 +245,14 @@ export default function UserOrder() {
                               />
                               <span className="text-sm">{item.product.name} x {item.quantity}</span>
                             </div>
-                            <span className="text-sm">{item.price}</span>
+                            <span className="text-sm">฿ {item.price}</span>
                           </div>
                         ))}
                       </div>
                     )}
                   </CardContent>
                 </Card>
+
               ))
             )}
           </div>
