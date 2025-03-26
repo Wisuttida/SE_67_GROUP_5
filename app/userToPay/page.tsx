@@ -124,8 +124,11 @@ export default function UserToPay() {
   return (
     <div>
         <Navbar />
-
-        <div className="mt-8">
+        <div className="flex p-4">
+          <div className="hidden md:block">
+            <SideBarUser />
+          </div>
+        <div className="flex-1 mt-8 pl-4">
             <h1 className="text-2xl font-bold text-center mb-6">รายการที่ต้องชำระ</h1>
             
             <div className="space-y-4">
@@ -156,12 +159,12 @@ export default function UserToPay() {
                                 </div>
 
                                 <div className="flex items-center space-x-4 mb-4">
-                                    <div className="w-24 h-32 bg-gray-100 flex items-center justify-center">
+                                    <div className="w-35 h-35 bg-gray-100 flex items-center justify-center">
                                         <Image 
                                             src={item.product.image_url}
                                             alt={item.product.name}
-                                            width={100}
-                                            height={100}
+                                            width={200}
+                                            height={200}
                                             className="w-full h-full object-cover rounded-lg mb-4"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
@@ -220,6 +223,7 @@ export default function UserToPay() {
                 ))}
             </div>
         </div>
+    </div>
     </div>
   );
 }
