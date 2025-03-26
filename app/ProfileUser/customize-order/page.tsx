@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
+import SideBarUser from '@/components/SideBarUser';
 
 interface OrderData {
   user: string;
@@ -31,34 +32,42 @@ export default function CustomizeOrder() {
   return (
     <div>
       <Navbar />
-      <div className="p-4">
-        <h2 className="text-xl font-semibold mb-4">Customize Order</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {orders.map((order, index) => (
-            <Card key={index} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <p className="font-medium">{order.user}</p>
-                <p>ชื่อหอม: {order.productName}</p>
-                <p>ความเข้มข้น: {order.strength}</p>
-                <p>ปริมาณ: {order.amount} ml</p>
-                <p>ราคา: {order.price} ฿</p>
-                <div className="flex space-x-2 mt-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handleApply(index)}
-                  >
-                    Apply
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="text-red-500"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="flex p-4">
+        {/* Sidebar */}
+        <div className="hidden md:block w-1/4">
+          <SideBarUser />
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-4">
+          <h2 className="text-xl font-semibold mb-4">Customize Order</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {orders.map((order, index) => (
+              <Card key={index} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <p className="font-medium">{order.user}</p>
+                  <p>ชื่อหอม: {order.productName}</p>
+                  <p>ความเข้มข้น: {order.strength}</p>
+                  <p>ปริมาณ: {order.amount} ml</p>
+                  <p>ราคา: {order.price} ฿</p>
+                  <div className="flex space-x-2 mt-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleApply(index)}
+                    >
+                      Apply
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="text-red-500"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     </div>

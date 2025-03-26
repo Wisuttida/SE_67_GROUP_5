@@ -48,7 +48,7 @@ export default function SideBarUser() {
     { icon: <User className="w-5 h-5" />, label: "Profile", href: "/ProfileUser" },
     { icon: <Store className="w-5 h-5" />, label: "My Shop", href: "/profileShop" },
     { icon: <Tractor className="w-5 h-5" />, label: "My Farm", href: "/farm" },
-    { icon: <Grid className="w-5 h-5" />, label: "Order Customize", href: "/customize" },
+    { icon: <Grid className="w-5 h-5" />, label: "Order Customize", href: "/ProfileUser/customize-order" },
     { icon: <ShoppingCart className="w-5 h-5" />, label: "Cart", href: "/cart" },
     { icon: <Clipboard className="w-5 h-5" />, label: "Order", href: "/userOrder" },
     { icon: <DollarSign className="w-5 h-5" />, label: "To Pay", href: "/userToPay" },
