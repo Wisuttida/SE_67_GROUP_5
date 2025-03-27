@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Params {
   params: Promise<{ productId: string }>;
@@ -32,7 +33,7 @@ interface Product {
 function ProductDetailPage({ params }: Params) {
   const resolvedParams = React.use(params);
   const productId = resolvedParams?.productId;
-
+   const { toast } = useToast();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -119,10 +120,10 @@ function ProductDetailPage({ params }: Params) {
           withCredentials: true,
         }
       );
-      alert("✅ เพิ่มสินค้าในตะกร้าสำเร็จ!");
+      toast("✅ เพิ่มสินค้าในตะกร้าสำเร็จ!");
     } catch (error: any) {
       console.error("Error adding to cart:", error);
-      alert(`❌ ไม่สามารถเพิ่มสินค้าในตะกร้า: ${error.response?.data?.error || error.message}`);
+      toast(`❌ ไม่สามารถเพิ่มสินค้าในตะกร้า: ${error.response?.data?.error || error.message}`);
     }
 
     setLoading(false);

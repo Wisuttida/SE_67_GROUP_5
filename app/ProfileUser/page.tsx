@@ -13,9 +13,6 @@ import Navbar from "@/components/Navbar";
 import SideBarUser from "@/components/SideBarUser";
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import fs from 'fs';
-import path from 'path';
-import { uploadImage } from '@/pages/api/upload';
 
 import { ImageKitProvider, IKImage, IKUpload } from "imagekitio-next";
 const publicKey = process.env.NEXT_PUBLIC_PUBLIC_KEY;
@@ -486,7 +483,7 @@ export default function ProfileUser() {
                 <div className="flex flex-col items-center">
                   <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
                   <img 
-                    src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
+                    src={user_data?.profile_image || DEFAULT_IMAGES} 
                     alt="Profile Image" 
                     className="w-full h-full object-cover"
                   />
@@ -535,7 +532,7 @@ export default function ProfileUser() {
         <Label htmlFor="profile_image" className="mb-2">รูปโปรไฟล์</Label>
         <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
           <img 
-            src={temp_user_data?.profile_image || DEFAULT_IMAGES.profile} 
+            src={temp_user_data?.profile_image || DEFAULT_IMAGES} 
             alt="Profile Image" 
             className="w-full h-full object-cover"
           />

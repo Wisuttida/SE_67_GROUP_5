@@ -6,20 +6,47 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import axios from 'axios';
 import Image from "next/image";
-
-const DEFAULT_PROFILE_IMAGE = "/default-profile.png"; // รูปโปรไฟล์เริ่มต้น
+import { useToast } from "@/components/ui/use-toast";
+import { ImageKitProvider, IKImage, IKUpload } from "imagekitio-next";
+const publicKey = process.env.NEXT_PUBLIC_PUBLIC_KEY;
+const urlEndpoint = process.env.NEXT_PUBLIC_URL_ENDPOINT;
+const authenticator = async () => {
+  try {
+    const response = await fetch("http://localhost:3000/api/auth");
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Request failed with status ${response.status}: ${errorText}`);
+    }
+    
+    const data = await response.json();
+    const { signature, expire, token } = data;
+    return { signature, expire, token };
+  } catch (error) {
+    throw new Error(`Authentication request failed: ${error.message}`);
+  }
+};
+const DEFAULT_IMAGE = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"; // รูปโปรไฟล์เริ่มต้น
 
 export default function ProfileUser() {
   let csrf = localStorage.getItem('csrfToken');
   let token = localStorage.getItem('token');
+  const { toast } = useToast();
   const [username, setUsername] = useState('');
-  const [profileImage, setProfileImage] = useState(DEFAULT_PROFILE_IMAGE);
+  const [profileImage, setProfileImage] = useState(DEFAULT_IMAGE);
   const [isEditing, setIsEditing] = useState(false);
   const [tempUsername, setTempUsername] = useState(username);
   const [tempProfileImage, setTempProfileImage] = useState(profileImage);
   const [isChecked, setIsChecked] = useState(false);
   const [tempIsChecked, setTempIsChecked] = useState(isChecked);
-
+  const [image_url, setImageUrl] = useState<String>('');
+  const onError = (err) => {
+    console.log("Error", err);
+  };
+  const onSuccess = (res) => {
+    console.log("Success", res);
+    setImageUrl(res.url);
+  };
   const menuItems = [
     { name: "Profile", icon: <User size={32} />, path: "/ProfileUser" },
     { name: "My Shop", icon: <Store size={32} />, path: "/profileShop" },
@@ -44,7 +71,6 @@ export default function ProfileUser() {
       // สร้าง URL ใหม่และเก็บไว้
       const imageUrl = URL.createObjectURL(file);
       setTempProfileImage(imageUrl);
-      localStorage.setItem("profileImage", imageUrl);
     }
   };
   
@@ -59,9 +85,6 @@ export default function ProfileUser() {
   
     // อัปเดต State
     //setShopData(updatedShopData.shop_name); 
-    
-    // อัปเดต LocalStorage
-    localStorage.setItem('shop', JSON.stringify(updatedShopData)); 
     setUsername(tempUsername); // อัปเดต username หลัก
     setProfileImage(tempProfileImage);
     setIsChecked(isChecked);
@@ -69,7 +92,7 @@ export default function ProfileUser() {
     axios.put(`${process.env.NEXT_PUBLIC_API_URL}/shop/updateProfile`,
       {
         shop_name : updatedShopData.shop_name,
-        shop_image : tempProfileImage,
+        shop_image : image_url,
         accepts_custom : isChecked
       },
       {
@@ -94,10 +117,12 @@ export default function ProfileUser() {
       withCredentials: true,
     })
     .then(res => {
+      toast("อัปเดตโปรไฟล์เรียบร้อยแล้ว");
       const updatedShop = res.data.data.shop[0];
       localStorage.setItem('shop', JSON.stringify(res.data.data.shop[0]));
       setShopData(updatedShop); // อัปเดตข้อมูล shop_data หลังเซฟ
       setUsername(updatedShop.shop_name); // อัปเดต username หลัก
+      window.location.reload();
     })
     .catch(error => {
       console.error("Error fetching address:", error);
@@ -130,19 +155,22 @@ export default function ProfileUser() {
         setShopData(data);
         setIsChecked(data.accepts_custom);
         setUsername(data.shop_name);
+        if(data.shop_image) {
+          setProfileImage(String(data.shop_image));
+          setTempProfileImage(String(data.shop_image));
+        }
         setTempUsername(data.shop_name); // ตั้งค่า username ชั่วคราวสำหรับ input
       } catch (error) {
         console.error('Error parsing shop data from localStorage:', error);
       }
     }
   }, []);
-  useEffect(() => {
-    const savedImage = localStorage.getItem("profileImage");
-    if (savedImage) {
-      setProfileImage(savedImage);
-    }
-  }, []);
 
+  useEffect(() => {
+    if (image_url) {
+      return; // Set loading to false when addressInfo is available
+    }
+  }, [image_url]);
 
   return (
     <aside className="w-64 bg-white shadow-md rounded-lg p-6 h-full"> {/* เปลี่ยนที่นี่ */}
@@ -150,7 +178,7 @@ export default function ProfileUser() {
       <div className="flex flex-col items-center mb-6 pb-6 border-b border-gray-200">
         <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 mb-3">
           <Image 
-            src={profileImage} 
+            src={profileImage || DEFAULT_IMAGE} 
             alt="Profile" 
             width={80}
             height={80}
@@ -202,12 +230,17 @@ export default function ProfileUser() {
               </div>
               <div className="flex flex-col items-center mb-4">
                 <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 shadow-md border mb-4">
-                  <Image src={tempProfileImage} alt="Temp Profile" width={96} height={96} className="object-cover" />
+                  <img 
+                    src={tempProfileImage}
+                    alt="Profile Image" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <label className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-full cursor-pointer transition">
-                  Upload Image
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                </label>
+                <ImageKitProvider publicKey={publicKey} urlEndpoint={urlEndpoint} authenticator={authenticator}>
+                  <div>
+                    <IKUpload fileName="test-upload.png" onError={onError} onSuccess={onSuccess} onChange={handleImageChange} className="file:py-2 file:px-4 file:border file:border-blue-600 file:rounded-md file:bg-gray-800 file:hover:bg-gray-700 file:text-white file:px-4 file:py-2 file:rounded-full file:cursor-pointer file:transition"/>
+                  </div>
+                </ImageKitProvider>
               </div>
 
               {/* Label และ input สำหรับ Username */}
