@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,7 @@ import axios from "axios";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Ingredient {
-  id: number;
+  ingredient_id: number;
   name: string;
   percentage?: number; // ใช้ optional field สำหรับกรณี selected ingredients
 }
@@ -40,7 +39,6 @@ const CustomPerfumePage = () => {
   const params = useParams();
   const shopId = params?.shopId;
 
-  const [shop, setShop] = useState<Shop | null>(null);
   const [ingredientOptions, setIngredientOptions] = useState<Ingredient[]>([]);
   const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>([]);
   const [fragranceName, setFragranceName] = useState("");
@@ -48,36 +46,25 @@ const CustomPerfumePage = () => {
   const [intensity, setIntensity] = useState(50);
   const [volume, setVolume] = useState("");
   const [ingredientSearch, setIngredientSearch] = useState("");
-  const [shopSearch, setShopSearch] = useState("");
   const [isTester, setIsTester] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
-  const [addresses, setAddresses] = useState<any[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [csrfResponse] = await Promise.all([
-          axios.get(`http://localhost:8000/csrf-token`, { withCredentials: true }),
-        ]);
-
+        // ดึง CSRF Token
+        const csrfResponse = await axios.get(`http://localhost:8000/csrf-token`, { withCredentials: true });
         setCsrfToken(csrfResponse.data.csrf_token);
 
-        const addressFromStorage = localStorage.getItem('addresses');
-        if (addressFromStorage) {
-          const addressData = JSON.parse(addressFromStorage);
-          const positionFourAddresses = addressData.filter((addr: any) => addr.position_id === 4);
-          const sortedAddresses = positionFourAddresses.sort(
-            (a: any, b: any) => b.is_default - a.is_default
-          );
-          setAddresses(sortedAddresses);
+        // ดึงข้อมูลส่วนผสมจาก API
+        const ingredientResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/ingredients`, {
+          withCredentials: true,
+        });
 
-          if (sortedAddresses.length > 0) {
-            setSelectedAddress(sortedAddresses[0].address_id.toString());
-          }
-          console.log("✅ Address from localStorage:", sortedAddresses);
+        if (Array.isArray(ingredientResponse.data.ingredients)) {
+          setIngredientOptions(ingredientResponse.data.ingredients);
         } else {
-          console.warn("⚠️ No address data found in localStorage");
+          console.error("ข้อมูลที่ได้รับไม่ใช่ Array:", ingredientResponse.data);
         }
       } catch (error) {
         console.error("❌ Error fetching data:", error);
@@ -87,36 +74,17 @@ const CustomPerfumePage = () => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const dummyShops: Shop[] = Array.from({ length: 14 }, (_, i) => ({
-      shopId: i + 1,
-      shopName: `Shop${i + 1}`,
-      shopImage: "/placeholder-profile.jpg",
-    }));
-
-    const foundShop = dummyShops.find((s) => s.shopId.toString() === shopId);
-    setShop(foundShop || null);
-
-    // Mock Ingredient options
-    setIngredientOptions([
-      { id: 1, name: "กุหลาบ" },
-      { id: 2, name: "มะลิ" },
-      { id: 3, name: "ลาเวนเดอร์" },
-      { id: 4, name: "กระดังงา" },
-    ]);
-  }, [shopId]);
-
   const handleIngredientSelect = (ingredient: Ingredient) => {
     setSelectedIngredients((prev) =>
-      prev.some((i) => i.id === ingredient.id)
-        ? prev.filter((i) => i.id !== ingredient.id)
+      prev.some((i) => i.ingredient_id === ingredient.ingredient_id)
+        ? prev.filter((i) => i.ingredient_id !== ingredient.ingredient_id)
         : [...prev, { ...ingredient, percentage: 50 }] // ค่าเริ่มต้น 50%
     );
   };
 
   const handlePercentageChange = (id: number, value: number) => {
     setSelectedIngredients((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, percentage: value } : i))
+      prev.map((i) => (i.ingredient_id === id ? { ...i, percentage: value } : i))
     );
   };
 
@@ -144,7 +112,7 @@ const CustomPerfumePage = () => {
       volume_ml: isTester ? 1 : Number(volume),
       is_tester: isTester ? "yes" : "no",
       ingredients: selectedIngredients.map((ing) => ({
-        ingredient_id: ing.id,
+        ingredient_id: ing.ingredient_id,
         ingredient_percentage: ing.percentage ?? 0, // ป้องกัน undefined
       })),
     };
@@ -165,8 +133,8 @@ const CustomPerfumePage = () => {
       );
 
       if (response.status === 201 || response.status === 200) {
-        alert("สั่งสินค้าแล้ว กรุณาตรวจสอบการชำระเงินที่ To Pay");
-        router.push("/to-pay");
+        alert("สั่งซื้อสำเร็จ");
+        router.push("/");
       } else {
         console.error("❌ Failed:", response);
         alert(response);
@@ -181,10 +149,6 @@ const CustomPerfumePage = () => {
     ingredient.name.toLowerCase().includes(ingredientSearch.toLowerCase())
   );
 
-  const filteredShops = [shop].filter((shop) =>
-    shop?.shopName.toLowerCase().includes(shopSearch.toLowerCase())
-  );
-
   return (
     <div>
       <Navbar />
@@ -193,39 +157,7 @@ const CustomPerfumePage = () => {
           Back
         </Button>
 
-        {filteredShops.length > 0 && (
-          <div className="flex items-center space-x-4 mb-8">
-            <Image
-              src={filteredShops[0]?.shopImage || "/placeholder-profile.jpg"}
-              alt={filteredShops[0]?.shopName || "Shop"}
-              width={80}
-              height={80}
-              className="w-20 h-20 rounded-full"
-            />
-            <h1 className="text-3xl font-bold">{filteredShops[0]?.shopName}</h1>
-          </div>
-        )}
-
         <h2 className="text-2xl font-semibold mb-6">Create Your Custom Fragrance</h2>
-
-        <div className="flex items-center space-x-4 mb-4">
-          <label className="font-semibold">เลือกที่อยู่จัดส่ง:</label>
-          <Select value={selectedAddress} onValueChange={setSelectedAddress}>
-            <SelectTrigger className="w-full max-w-[1000px]">
-              <SelectValue placeholder="เลือกที่อยู่" />
-            </SelectTrigger>
-            <SelectContent>
-              {addresses.map((addr) => (
-                <SelectItem key={addr.address_id} value={addr.address_id.toString()} className="text-left">
-                  {`${addr.fname} ${addr.lname} 
-                  | ${addr.house_number} ${addr.building} ${addr.street_name} ต.${addr.subDistrict} อ.${addr.district} จ.${addr.province} ${addr.zipcode} 
-                  | โทร ${addr.phonenumber}`}
-                  {addr.is_default === 1 ? ' (ค่าเริ่มต้น)' : ''}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
         <div className="mb-6">
           <label className="block text-gray-700 font-semibold mb-2">Search Ingredients</label>
@@ -241,10 +173,10 @@ const CustomPerfumePage = () => {
           <h3 className="text-xl font-semibold mb-4">Select Ingredients *</h3>
           <div className="grid grid-cols-2 gap-6">
             {filteredIngredients.map((ingredient) => (
-              <div key={ingredient.id} className="flex items-center space-x-3">
+              <div key={ingredient.ingredient_id} className="flex items-center space-x-3">
                 <Checkbox onCheckedChange={() => handleIngredientSelect(ingredient)} />
                 <span className="text-lg">{ingredient.name}</span>
-                {selectedIngredients.some((i) => i.id === ingredient.id) && (
+                {selectedIngredients.some((i) => i.ingredient_id === ingredient.ingredient_id) && (
                   <div className="flex items-center space-x-2 w-full">
                     <Slider
                       className="w-full"
@@ -252,9 +184,9 @@ const CustomPerfumePage = () => {
                       min={0}
                       max={100}
                       step={1}
-                      onValueChange={(val) => handlePercentageChange(ingredient.id, val[0])}
+                      onValueChange={(val) => handlePercentageChange(ingredient.ingredient_id, val[0])}
                     />
-                    <span className="w-12 text-right">{selectedIngredients.find((i) => i.id === ingredient.id)?.percentage}%</span>
+                    <span className="w-12 text-right">{selectedIngredients.find((i) => i.ingredient_id === ingredient.ingredient_id)?.percentage}%</span>
                   </div>
                 )}
               </div>
