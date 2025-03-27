@@ -13,10 +13,12 @@ import Navbar from "@/components/Navbar";
 import SideBarUser from "@/components/SideBarUser";
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 
-const DEFAULT_IMAGES = {
-  profile: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f3f4f6'/%3E%3Cpath d='M48 48C54.6274 48 60 42.6274 60 36C60 29.3726 54.6274 24 48 24C41.3726 24 36 29.3726 36 36C36 42.6274 41.3726 48 48 48ZM48 52C40.0474 52 33.5 58.5474 33.5 66.5H62.5C62.5 58.5474 55.9526 52 48 52Z' fill='%239ca3af'/%3E%3C/svg%3E"
-};
+//import formidable from 'formidable';
+
+const DEFAULT_IMAGES = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
 
 interface AddressData {
   address_id: string;
@@ -394,14 +396,6 @@ export default function ProfileUser() {
                 <Search className="w-5 h-5 text-gray-500" />
               </Button>
             </div>
-            <div className="flex space-x-4 ml-4">
-              <Button variant="ghost" size="sm" className="p-1">
-                <ShoppingCart className="w-6 h-6" />
-              </Button>
-              <Button variant="ghost" size="sm" className="p-1">
-                <Bell className="w-6 h-6" />
-              </Button>
-            </div>
           </div>
 
           {/* Profile Section */}
@@ -409,14 +403,12 @@ export default function ProfileUser() {
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row items-center">
                 <div className="flex flex-col items-center">
-                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 relative">
-                    <Image 
-                      src={user_data?.profile_image || DEFAULT_IMAGES.profile}
-                      alt="Profile"
-                      width={96}
-                      height={96}
-                      className="object-cover"
-                    />
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
+                  <img 
+                    src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
+                    alt="Profile Image" 
+                    className="w-full h-full object-cover"
+                  />
                   </div>
                   <p className="mt-2 font-medium">{user_data?.username}</p>
                   <Button 
@@ -462,7 +454,7 @@ export default function ProfileUser() {
         <Label htmlFor="profile_image" className="mb-2">รูปโปรไฟล์</Label>
         <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
           <img 
-            src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
+            src={temp_user_data?.profile_image || DEFAULT_IMAGES.profile} 
             alt="Profile Image" 
             className="w-full h-full object-cover"
           />
@@ -504,7 +496,7 @@ export default function ProfileUser() {
           />
         </div>
 
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label htmlFor="email">อีเมล</Label>
           <Input
             id="email"
@@ -515,7 +507,7 @@ export default function ProfileUser() {
             required
             disabled={isLoading}
           />
-        </div>
+        </div> */}
       </div>
       
       {/* Action Buttons */}
