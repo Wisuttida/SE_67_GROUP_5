@@ -123,23 +123,42 @@ useEffect(() => {
     setForm({ ...form, [name]: value });
   };
   
-  const handleEditSubmit = (event: React.FormEvent) => {
+  const handleEditSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
+  
     const updatedForm = {
       ...editForm,
       price_per_unit: Number(editForm.price_per_unit),
       amount: Number(editForm.amount),
     };
-
-    setSalePosts(prevPosts =>
-      prevPosts.map(post =>
-        post.post_id === updatedForm.post_id ? { ...post, ...updatedForm } : post
-      )
-    );
-
-    setShowPopup(false);
+  
+    try {
+      const response = await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL}/sales-posts/${editForm.post_id}`,  // เพิ่ม URL ของโพสต์ที่จะแก้ไข
+        updatedForm,
+        {
+          headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+          },
+          withCredentials: true,
+        }
+      );
+      
+      const updatedPost = response.data.sales_post;  // ใช้ข้อมูลจาก response
+      setSalePosts(prevPosts =>
+        prevPosts.map(post =>
+          post.post_id === updatedPost.post_id ? { ...post, ...updatedPost } : post
+        )
+      );
+      setShowPopup(false);
+    } catch (error) {
+      console.error("Error updating post:", error.response || error.message || error);  // ปรับปรุงการแสดงข้อผิดพลาด
+      alert("เกิดข้อผิดพลาดในการอัปเดตโพสต์");
+    }
   };
+  
+  
 
   const handleEditChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
@@ -194,6 +213,28 @@ useEffect(() => {
     setShowPopup(true);
   };
 
+  const handleDelete = async (postId: number) => {
+    const confirmation = window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบโพสต์นี้?');
+    if (!confirmation) return;
+  
+    try {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/sales-posts/${postId}`, {
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json',
+        },
+        withCredentials: true,
+      });
+  
+      // Remove the deleted post from the salePosts state
+      setSalePosts(prevPosts => prevPosts.filter(post => post.post_id !== postId));
+      alert('โพสต์ลบสำเร็จ!');
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('เกิดข้อผิดพลาดในการลบโพสต์');
+    }
+  };
+  
   const handleCancel = (id: number) => {
     setSalePosts(salePosts.filter(post => post.post_id !== id));
   };
@@ -296,7 +337,7 @@ useEffect(() => {
                       <FiMoreVertical className="text-gray-600" />
                       <div className="hidden group-hover:block absolute right-0 bg-white shadow-md rounded-lg p-2">
                         <button onClick={() => handleEdit(post)} className="text-blue-500">แก้ไข</button>
-                        <button onClick={() => handleCancel(post.post_id)} className="text-red-500">ลบ</button>
+                        <button onClick={() => handleDelete(post.post_id)} className="text-red-500">ลบ</button>
                       </div>
                     </div>
                     <h3 className="font-bold">{post.ingredients.name}</h3>
