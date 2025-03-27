@@ -11,15 +11,33 @@ import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import SideBarUser from "@/components/SideBarUser";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
+import { uploadImage } from '@/pages/api/upload';
 
-//import formidable from 'formidable';
+import { ImageKitProvider, IKImage, IKUpload } from "imagekitio-next";
+const publicKey = process.env.NEXT_PUBLIC_PUBLIC_KEY;
+const urlEndpoint = process.env.NEXT_PUBLIC_URL_ENDPOINT;
+const authenticator = async () => {
+  try {
+    const response = await fetch("http://localhost:3000/api/auth");
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Request failed with status ${response.status}: ${errorText}`);
+    }
+    
+    const data = await response.json();
+    const { signature, expire, token } = data;
+    return { signature, expire, token };
+  } catch (error) {
+    throw new Error(`Authentication request failed: ${error.message}`);
+  }
+};
 
 const DEFAULT_IMAGES = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
-
 interface AddressData {
   address_id: string;
   fname: string;
@@ -64,7 +82,16 @@ export default function ProfileUser() {
     const [selectedFile, setSelectedFile] = useState<File>();
     const [uploadMessage, setUploadMessage] = useState<string>('');
     const formData = new FormData();
+    const [image_url, setImageUrl] = useState<String>('');
 
+    const onError = (err) => {
+      console.log("Error", err);
+    };
+    const onSuccess = (res) => {
+      console.log("Success", res);
+      setImageUrl(res.url);
+    };
+    
     useEffect(() => {
         const user_dataGet = localStorage.getItem('user_data');
         if (user_dataGet) {
@@ -323,60 +350,51 @@ export default function ProfileUser() {
     address.province.toLowerCase().includes(searchQuery.toLowerCase()) ||
     address.zipcode.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  const handleSaveProfile = async (e) => {
+
+  const sleep = (ms: number): Promise<void> => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  };
+  const handleSaveProfile = async (e : Event) => {
     e.preventDefault();
     setIsLoading(true);
-    if(selectedFile) {
-      formData.append('file', selectedFile);
-    }
-    axios.post('/api/upload', formData, {
-      headers: {
-          'Content-Type': 'multipart/form-data',
+    axios.put(`${process.env.NEXT_PUBLIC_API_URL}/user/updateProfile`,
+      {
+        first_name : user_data?.first_name,
+        last_name : user_data?.last_name,
+        profile_image : image_url
       },
-    }).then(response => {
-      setUploadMessage(response.data.message);
-      axios.put(`${process.env.NEXT_PUBLIC_API_URL}/user/updateProfile`,
-        {
-          first_name : user_data?.first_name,
-          last_name : user_data?.last_name,
-          profile_image : response.data.filePath
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrf,
-          },
-          withCredentials: true,
-        }
-      ).catch(error => {
-        console.error('Error saving profile:', error.response ? error.response.data : error.message);
-      });
-      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/user/get/${user_data?.user_id}`, {
+      {
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
           'X-CSRF-TOKEN': csrf,
         },
         withCredentials: true,
-      })
-      .then(res => {
-        localStorage.setItem('user_data', JSON.stringify(res.data.data));
-        window.location.reload();
-      })
-      .catch(error => {
-        console.error("Error fetching address:", error);
-      });
+      }
+    ).catch(error => {
+      console.error('Error saving profile:', error.response ? error.response.data : error.message);
+    });
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/user/get/${user_data?.user_id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrf,
+      },
+      withCredentials: true,
+    })
+    .then(res => {
+      localStorage.setItem('user_data', JSON.stringify(res.data.data));
+      window.location.reload();
     })
     .catch(error => {
-      console.error('Error uploading file:', error);
-      setUploadMessage('Error uploading file');
+      console.error("Error fetching address:", error);
     });
-    // Save the profile (API call can be added here)
+    //Save the profile (API call can be added here)
     console.log("Saved Profile:", user_data);
     
+    setImageUrl('');
     setIsLoading(false);
     setIsProfileDialogOpen(false);
   };
@@ -423,10 +441,10 @@ export default function ProfileUser() {
     }
   };
   useEffect(() => {
-    if (selectedFile) {
+    if (image_url) {
       return; // Set loading to false when addressInfo is available
     }
-  }, [selectedFile]);
+  }, [image_url]);
   
   return (
     <div>
@@ -522,15 +540,12 @@ export default function ProfileUser() {
             className="w-full h-full object-cover"
           />
         </div>
-        <input
-          type="file"
-          id="profile_image"
-          name="profile_image"
-          accept="image/*"
-          onChange={handleImageChange}
-          disabled={isLoading}
-          className="file:py-2 file:px-4 file:border file:border-blue-600 file:rounded-md"
-        />
+        <ImageKitProvider publicKey={publicKey} urlEndpoint={urlEndpoint} authenticator={authenticator}>
+          <div>
+            <h2>File upload</h2>
+            <IKUpload fileName="test-upload.png" onError={onError} onSuccess={onSuccess} onChange={handleImageChange} className="file:py-2 file:px-4 file:border file:border-blue-600 file:rounded-md"/>
+          </div>
+        </ImageKitProvider>
       </div>
 
       {/* Form fields */}

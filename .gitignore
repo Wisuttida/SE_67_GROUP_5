@@ -6,6 +6,9 @@
 !/node_modules/react-qr-code/
 !/node_modules/axios/
 !/node_modules/formidable
+!/node_modules/imagekit
+!/node_modules/imagekitio-next
+!/node_modules/hamming-distance
 /.pnp
 .pnp.*
 .yarn/*

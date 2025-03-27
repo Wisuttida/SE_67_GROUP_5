@@ -133,6 +133,7 @@ const CustomPerfumePage = () => {
       );
 
       if (response.status === 201 || response.status === 200) {
+        alert("สั่งซื้อสำเร็จ");
         router.push("/");
       } else {
         console.error("❌ Failed:", response);
