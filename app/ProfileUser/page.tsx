@@ -37,51 +37,58 @@ interface AddressData {
   position_id: number;
 }
 
-
 export default function ProfileUser() {
-  let csrf = localStorage.getItem('csrfToken');
-  let token = localStorage.getItem('token');
-  const router = useRouter();
-  const { toast } = useToast();
-  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  interface UserData {
-    user_id: number;
-    username: string;
-    email: string;
-    first_name: string;
-    last_name: string;
-    profile_image: string | null;
-  }
-  const [user_data, setUserData] = useState<UserData | undefined>(undefined);
-  const [addresses, setAddresses] = useState<AddressData[]>([]);
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
-  const [currentAddress, setCurrentAddress] = useState<AddressData | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  useEffect(() => {
-    const user_dataGet = localStorage.getItem('user_data');
-    if (user_dataGet) {
-        try {
-            const data: UserData = JSON.parse(user_dataGet);
-            setUserData(data);
-        } catch (error) {
-            console.error('Error parsing user data from localStorage:', error);
+    let csrf = localStorage.getItem('csrfToken');
+    let token = localStorage.getItem('token');
+    const router = useRouter();
+    const { toast } = useToast();
+    const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    interface UserData {
+        user_id: number;
+        username: string;
+        email: string;
+        first_name: string;
+        last_name: string;
+        profile_image: string | null;
+    }
+    const [user_data, setUserData] = useState<UserData | undefined>(undefined);
+    const [temp_user_data, setTempUserData] = useState<UserData | undefined>(undefined);
+    const [addresses, setAddresses] = useState<AddressData[]>([]);
+    
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+    const [currentAddress, setCurrentAddress] = useState<AddressData | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File>();
+    const [uploadMessage, setUploadMessage] = useState<string>('');
+    const formData = new FormData();
+
+    useEffect(() => {
+        const user_dataGet = localStorage.getItem('user_data');
+        if (user_dataGet) {
+            try {
+                const data: UserData = JSON.parse(user_dataGet);
+                setUserData(data);
+                setTempUserData(data);
+            } catch (error) {
+                console.error('Error parsing user data from localStorage:', error);
+            }
         }
-    }
-    const addressGet = localStorage.getItem('addresses');
-    if (addressGet) {
-      try {
-        const data: AddressData[] = JSON.parse(addressGet);
-        const filteredAddresses: AddressData[] = data.filter(address => address.position_id === 4);
-        setAddresses(filteredAddresses);
-      } catch (error) {
-        console.error('Error parsing shop data from localStorage:', error);
-      }
-    }
-  }, []);
-  const validatePhoneNumber = (phone: string) => {
+        const addressGet = localStorage.getItem('addresses');
+        if (addressGet) {
+          try {
+            const data: AddressData[] = JSON.parse(addressGet);
+            const filteredAddresses: AddressData[] = data.filter(address => address.position_id === 4);
+            setAddresses(filteredAddresses);
+          } catch (error) {
+            console.error('Error parsing shop data from localStorage:', error);
+          }
+        }
+      }, []);
+
+    const validatePhoneNumber = (phone: string) => {
     const phoneRegexZero = /^[1-9]\d+$/;
     const phoneRegexNumber = /[A-Za-z]+/;
     const phoneRegexLenght = /^\d{9,10}$/;
@@ -305,15 +312,68 @@ export default function ProfileUser() {
   };
 
   const filteredAddresses: AddressData[] = addresses.filter(address => 
-      address.fname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      address.lname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      address.province.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      address.district.toLowerCase().includes(searchQuery.toLowerCase())
+    address.fname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.lname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.phonenumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.house_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.building.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.street_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.subDistrict.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.district.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.province.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    address.zipcode.toLowerCase().includes(searchQuery.toLowerCase())
   );
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+    if(selectedFile) {
+      formData.append('file', selectedFile);
+    }
+    axios.post('/api/upload', formData, {
+      headers: {
+          'Content-Type': 'multipart/form-data',
+      },
+    }).then(response => {
+      setUploadMessage(response.data.message);
+      axios.put(`${process.env.NEXT_PUBLIC_API_URL}/user/updateProfile`,
+        {
+          first_name : user_data?.first_name,
+          last_name : user_data?.last_name,
+          profile_image : response.data.filePath
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrf,
+          },
+          withCredentials: true,
+        }
+      ).catch(error => {
+        console.error('Error saving profile:', error.response ? error.response.data : error.message);
+      });
+      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/user/get/${user_data?.user_id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        withCredentials: true,
+      })
+      .then(res => {
+        localStorage.setItem('user_data', JSON.stringify(res.data.data));
+        window.location.reload();
+      })
+      .catch(error => {
+        console.error("Error fetching address:", error);
+      });
+    })
+    .catch(error => {
+      console.error('Error uploading file:', error);
+      setUploadMessage('Error uploading file');
+    });
     // Save the profile (API call can be added here)
     console.log("Saved Profile:", user_data);
     
@@ -337,11 +397,12 @@ export default function ProfileUser() {
   };
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    
     if (file) {
-      // สร้าง URL ชั่วคราวสำหรับแสดงรูปที่เลือก
       const imageUrl = URL.createObjectURL(file);
-      
-      setUserData((prev) => {
+      setSelectedFile(file);
+      formData.append('file', file);
+      setTempUserData((prev) => {
         if (!prev) {
           // ถ้า prev เป็น undefined ให้คืนค่าฐานข้อมูลเริ่มต้นที่มีข้อมูลครบถ้วน
           return {
@@ -361,9 +422,11 @@ export default function ProfileUser() {
       });
     }
   };
-  
-  
-  
+  useEffect(() => {
+    if (selectedFile) {
+      return; // Set loading to false when addressInfo is available
+    }
+  }, [selectedFile]);
   
   return (
     <div>
