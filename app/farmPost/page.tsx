@@ -276,6 +276,84 @@ const FarmPost = () => {
           </div>
         </div>
       </div>
+      {showPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-2xl font-bold mb-4">Edit Post</h2>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="name" className="block text-sm font-semibold">ชื่อวัตถุดิบ</label>
+                <input
+                  id="name"
+                  name="name"
+                  placeholder="Enter product name"
+                  className="w-full p-2 border rounded"
+                  onChange={handleEditChange}
+                  value={editForm.ingredients.name}
+                />
+              </div>
+              <div>
+                <label htmlFor="price_per_unit" className="block text-sm font-semibold">ราคา(บาท) ต่อหน่วย</label>
+                <input
+                  id="price_per_unit"
+                  name="price_per_unit"
+                  placeholder="Enter price_per_unit"
+                  className="w-full p-2 border rounded"
+                  type="number"  // ใช้ type="number" เพื่อรับแค่ตัวเลข
+                  min="0"        // กำหนดขั้นต่ำที่ 0 หรือปรับตามต้องการ
+                  step="0.5"
+                  onChange={handleEditChange}
+                  value={editForm.price_per_unit}
+                />
+              </div>
+              <div>
+                <label htmlFor="unit" className="block text-sm font-semibold">หน่วย</label>
+                <input
+                  id="unit"
+                  name="unit"
+                  placeholder="Enter unit"
+                  className="w-full p-2 border rounded"
+                  onChange={handleEditChange}
+                  value={editForm.unit}
+                />
+              </div>
+              <div>
+                <label htmlFor="amount" className="block text-sm font-semibold">ปริมาณ</label>
+                <input
+                  id="amount"
+                  name="amount"
+                  placeholder="Enter amount"
+                  className="w-full p-2 border rounded"
+                  type="number"  // ใช้ type="number" เพื่อรับแค่ตัวเลข
+                  min="0"        // กำหนดขั้นต่ำที่ 0 หรือปรับตามต้องการ
+                  step="0.5"
+                  onChange={handleEditChange}
+                  value={editForm.amount}
+                />
+              </div>
+              <div>
+                <label htmlFor="description" className="block text-sm font-semibold">รายละเอียด</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  placeholder="Enter description"
+                  className="w-full p-2 border rounded"
+                  onChange={handleEditChange}
+                  value={editForm.description}
+                />
+              </div>
+              <button type="submit" className="w-full bg-black text-white py-2 rounded-md">แก้ไข</button>
+              <button
+                type="button"
+                className="w-full bg-gray-300 text-black py-2 rounded-md mt-2"
+                onClick={() => setShowPopup(false)}
+              >
+                ยกเลิก
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
