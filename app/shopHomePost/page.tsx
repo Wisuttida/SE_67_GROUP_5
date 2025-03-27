@@ -66,26 +66,26 @@ const ShopHomePost = () => {
       });
   }, []);
 
-  // useEffect(() => {
-  //   const fetchFarms = async () => {
-  //     const dummyFarms: SalePost[] = Array.from({ length: 14 }, (_, i) => ({
-  //       farm_id: "${i + 1}",
-  //       farm_name: `Farm${i + 1}`,
-  //       farm_image: "/placeholder-profile.jpg",
-  //       name: "ชื่อวัตถุดิบ",
-  //       price_per_unit: 50,
-  //       unit: "Kg",
-  //       amount: 10,
-  //       description: "รายละเอียด",
-  //       sold: 2,
-  //       bank_account: "ธนาคารกรุงไทย",
-  //       bank_number: "123-456-7890",
-  //       bank_name: "สมชาย รักษาคน",
-  //     }));
-  //     setSalePosts(dummyFarms);
-  //   };
-  //   fetchFarms();
-  // }, []);
+  useEffect(() => {
+    const fetchFarms = async () => {
+      const dummyFarms: SalePost[] = Array.from({ length: 14 }, (_, i) => ({
+        farm_id: "${i + 1}",
+        farm_name: `Farm${i + 1}`,
+        farm_image: "/placeholder-profile.jpg",
+        name: "ชื่อวัตถุดิบ",
+        price_per_unit: 50,
+        unit: "Kg",
+        amount: 10,
+        description: "รายละเอียด",
+        sold: 2,
+        bank_account: "ธนาคารกรุงไทย",
+        bank_number: "123-456-7890",
+        bank_name: "สมชาย รักษาคน",
+      }));
+      setSalePosts(dummyFarms);
+    };
+    fetchFarms();
+  }, []);
 
   const handleOrderCustomize = (farm: SalePost) => {
     setSelectedSalePost(farm);
