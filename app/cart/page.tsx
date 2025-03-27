@@ -50,27 +50,34 @@ const CartPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch csrf-token and cart items in parallel
-        const [csrfResponse, cartResponse, addressResponse] = await Promise.all([
+        // ดึง csrf-token และ cart จาก API
+        const [csrfResponse, cartResponse] = await Promise.all([
           axios.get(`http://localhost:8000/csrf-token`, { withCredentials: true }),
           axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cart/items`, { withCredentials: true }),
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, { withCredentials: true }),
         ]);
 
-        // Set csrf-token
         setCsrfToken(csrfResponse.data.csrf_token);
-
-        // Set cart items
         setCartItems(cartResponse.data.cart_items);
 
-        // Set addresses and select the default one
-        const sortedAddresses = addressResponse.data.data.sort(
-          (a: any, b: any) => b.is_default - a.is_default
-        );
-        setAddresses(sortedAddresses);
-        if (sortedAddresses.length > 0) {
-          setSelectedAddress(sortedAddresses[0].address_id.toString()); // Auto select the first address
+        // ✅ ดึง address จาก localStorage แทน API
+        const addressFromStorage = localStorage.getItem('addresses');
+        if (addressFromStorage) {
+          const addressData = JSON.parse(addressFromStorage);
+          const positionFourAddresses = addressData.filter((addr: any) => addr.position_id === 4);
+          const sortedAddresses = positionFourAddresses.sort(
+            (a: any, b: any) => b.is_default - a.is_default
+          );
+          setAddresses(sortedAddresses);
+
+          // ✅ auto select default address
+          if (sortedAddresses.length > 0) {
+            setSelectedAddress(sortedAddresses[0].address_id.toString());
+          }
+          console.log("✅ Address from localStorage:", sortedAddresses);
+        } else {
+          console.warn("⚠️ No address data found in localStorage");
         }
+
       } catch (error) {
         console.error("❌ Error fetching data:", error);
       }
@@ -78,6 +85,7 @@ const CartPage = () => {
 
     fetchData();
   }, []);
+
 
   useEffect(() => {
     // Check if the order was placed and open the dialog
@@ -87,7 +95,11 @@ const CartPage = () => {
       localStorage.removeItem('orderPlaced'); // Clear the status
     }
   }, []);
-  
+
+  useEffect(() => {
+    console.log("✅ Address Selected:", selectedAddress);
+  }, [selectedAddress]);
+
   const toggleSelectItem = (productId: number, shopId: number) => {
     // หากเลือกสินค้าจากร้านหนึ่งแล้วไม่ให้เลือกสินค้าจากร้านอื่น
     if (selectedItems.length > 0) {
@@ -225,7 +237,7 @@ const CartPage = () => {
               {addresses.map((addr) => (
                 <SelectItem key={addr.address_id} value={addr.address_id.toString()} className="text-left">
                   {`${addr.fname} ${addr.lname} 
-                  | ${addr.house_number} ${addr.building} ${addr.street_name} ต.${addr.tambon} อ.${addr.amphoe} จ.${addr.province} ${addr.zipcode} 
+                  | ${addr.house_number} ${addr.building} ${addr.street_name} ต.${addr.subDistrict} อ.${addr.district} จ.${addr.province} ${addr.zipcode} 
                   | โทร ${addr.phonenumber}`}
                   {addr.is_default === 1 ? ' (ค่าเริ่มต้น)' : ''}
                 </SelectItem>
@@ -277,16 +289,45 @@ const CartPage = () => {
                   />
                   <div>
                     <h2 className="font-semibold">{item.product.name}</h2>
-                    <p className="text-gray-500">Price: ${item.price}</p>
+                    <p className="text-gray-500">Price: ฿{item.price}</p>
                     <p className="text-sm text-gray-600">Shop: {item.product.shop.shop_name}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-4">
-                  <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity - 1)} disabled={item.quantity <= 1}>-</Button>
-                  <span>{item.quantity}</span>
-                  <Button variant="outline" onClick={() => updateQuantity(item.cart_item_id, item.quantity + 1)}>+</Button>
-                  <Button variant="outline" onClick={() => removeItemFromCart(item.cart_item_id)}>Remove</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => updateQuantity(item.cart_item_id, item.quantity - 1)}
+                    disabled={item.quantity <= 1}
+                  >
+                    -
+                  </Button>
+
+                  <input
+                    type="number"
+                    min={1}
+                    max={item.stock_quantity}
+                    value={item.quantity}
+                    onChange={(e) => {
+                      let newQty = parseInt(e.target.value);
+                      if (isNaN(newQty) || newQty < 1) newQty = 1;
+                      if (newQty > item.stock_quantity) newQty = item.stock_quantity;
+                      updateQuantity(item.cart_item_id, newQty);
+                    }}
+                    className="w-16 text-center border rounded px-2 py-1 no-spinner"
+                  />
+
+                  <Button
+                    variant="outline"
+                    onClick={() => updateQuantity(item.cart_item_id, item.quantity + 1)}
+                    disabled={item.quantity >= item.stock_quantity}
+                  >
+                    +
+                  </Button>
+
+                  <Button variant="outline" onClick={() => removeItemFromCart(item.cart_item_id)}>
+                    Remove
+                  </Button>
                 </div>
               </div>
             ))
@@ -299,7 +340,7 @@ const CartPage = () => {
       {/* Total & Place Order */}
       <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-t z-50">
         <div className="container mx-auto flex justify-between items-center">
-          <h2 className="text-xl font-bold">Total: ${calculateTotal()}</h2>
+          <h2 className="text-xl font-bold">Total: ฿{calculateTotal()}</h2>
           <Button variant="outline" onClick={handlePlaceOrder}>
             <ShoppingCart size={20} className="mr-2" /> Place Order
           </Button>

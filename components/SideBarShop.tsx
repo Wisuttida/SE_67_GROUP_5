@@ -34,20 +34,31 @@ export default function ProfileUser() {
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      const imageUrl = URL.createObjectURL(event.target.files[0]);
+      const file = event.target.files[0];
+  
+      // ล้าง URL เก่าก่อนเพื่อป้องกัน memory leak
+      if (tempProfileImage) {
+        URL.revokeObjectURL(tempProfileImage);
+      }
+  
+      // สร้าง URL ใหม่และเก็บไว้
+      const imageUrl = URL.createObjectURL(file);
       setTempProfileImage(imageUrl);
+      localStorage.setItem("profileImage", imageUrl);
     }
   };
+  
 
   const handleSaveProfile = () => {
     const updatedShopData = {
       ...shop_data,
       shop_name: tempUsername,
+      shop_image: tempProfileImage,
       accepts_custom: isChecked,
     };
   
     // อัปเดต State
-    setShopData(updatedShopData); 
+    //setShopData(updatedShopData.shop_name); 
     
     // อัปเดต LocalStorage
     localStorage.setItem('shop', JSON.stringify(updatedShopData)); 
@@ -57,7 +68,8 @@ export default function ProfileUser() {
     setIsEditing(false);
     axios.put(`${process.env.NEXT_PUBLIC_API_URL}/shop/updateProfile`,
       {
-        shop_name : shop_data?.shop_name,
+        shop_name : updatedShopData.shop_name,
+        shop_image : tempProfileImage,
         accepts_custom : isChecked
       },
       {
@@ -70,7 +82,7 @@ export default function ProfileUser() {
         withCredentials: true,
       }
     ).catch(error => {
-      console.error('Error saving address:', error.response ? error.response.data : error.message);
+      console.error('Error saving profile:', error.response ? error.response.data : error.message);
     });
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/shop/get`, {
       headers: {
@@ -124,27 +136,28 @@ export default function ProfileUser() {
       }
     }
   }, []);
-  
+  useEffect(() => {
+    const savedImage = localStorage.getItem("profileImage");
+    if (savedImage) {
+      setProfileImage(savedImage);
+    }
+  }, []);
 
 
   return (
-    <div className="flex min-h-screen bg-gray-300"> {/* เปลี่ยนที่นี่ */}
+    <aside className="w-64 bg-white shadow-md rounded-lg p-6 h-full"> {/* เปลี่ยนที่นี่ */}
       {/* Sidebar */}
-      <div className="w-64 bg-gray-300 text-black p-6"> {/* เปลี่ยนเป็น bg-gray-200 */}
-        <div className="flex items-center justify-center mb-8">
-        <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 shadow-md border">
+      <div className="flex flex-col items-center mb-6 pb-6 border-b border-gray-200">
+        <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 mb-3">
           <Image 
             src={profileImage} 
             alt="Profile" 
-            width={96} 
-            height={96} 
-            className="object-cover w-full h-full" 
-          />
+            width={80}
+            height={80}
+            className="object-cover"
+            />
         </div>
-
-        </div>
-        <div className="text-center mb-6">
-          <h2 className="text-lg font-semibold">{shop_data?.shop_name}</h2>
+          <h3 className="font-medium text-gray-800">{shop_data?.shop_name}</h3>
           <div className="mt-2 flex items-center justify-center gap-2">
             <input type="checkbox" checked={isChecked} disabled className="hidden" />
             <div className={`w-5 h-5 border-2 border-gray-400 rounded-md flex items-center justify-center ${isChecked ? 'bg-blue-500 border-blue-500' : ''}`}>
@@ -157,21 +170,24 @@ export default function ProfileUser() {
             size="sm"
             className="mt-2 flex items-center gap-1 text-black bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-full transition"
             onClick={() => setIsEditing(true)}
-          >
+            >
             <Edit className="w-4 h-4" /> Edit Profile
           </Button>
-        </div>
-        <div className="flex flex-col space-y-4">
+        
+      </div>
+        <nav className="space-y-1">
           {menuItems.map((item, index) => (
             <Link href={item.path} key={index}>
-              <div className="flex items-center space-x-3 hover:bg-gray-300 p-2 rounded-lg cursor-pointer">
-                {item.icon}
-                <p className="whitespace-nowrap">{item.name}</p> {/* Prevent text wrapping */}
-              </div>
+              <Button 
+              variant="ghost" 
+              className="w-full justify-start flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              <span className="text-gray-500">{item.icon}</span> 
+              <span>{item.name}</span>
+            </Button>
             </Link>
           ))}
-        </div>
-      </div>
+        </nav>
 
       {/* Main Content */}
       <div className="flex-1 p-6">
@@ -243,6 +259,6 @@ export default function ProfileUser() {
           </div>
         )}
       </div>
-    </div>
+      </aside>
   );
 }

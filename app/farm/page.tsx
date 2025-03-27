@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { Edit, Search, ShoppingCart, Bell, User, Package, Store } from 'lucide-react';
+import { Edit } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -8,9 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
-import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import SideBarFarm from "@/components/SideBarFarm"; // Importing the SideBarFarm component
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const DEFAULT_PROFILE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f3f4f6'/%3E%3Cpath d='M48 48C54.6274 48 60 42.6274 60 36C60 29.3726 54.6274 24 48 24C41.3726 24 36 29.3726 36 36C36 42.6274 41.3726 48 48 48ZM48 52C40.0474 52 33.5 58.5474 33.5 66.5H62.5C62.5 58.5474 55.9526 52 48 52Z' fill='%239ca3af'/%3E%3C/svg%3E";
 
@@ -48,12 +54,22 @@ export default function Farm() {
     houseNo: '123/45',
     description: 'ฟาร์มของเรามีการปลูกผักออแกนิคที่ได้มาตรฐาน...'
   });
-
+  const [profileImage, setProfileImage] = useState<string | null>(DEFAULT_PROFILE); // รูปในหน้าโปรไฟล์
+  const [previewImage, setPreviewImage] = useState<string | null>(DEFAULT_PROFILE); // รูปใน Edit Dialog
+  
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setPreviewImage(imageUrl);
+    }
+  };
   const handleSaveProfile = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
+      setProfileImage(previewImage);
       toast("บันทึกข้อมูลเรียบร้อยแล้ว");
       setShowEditDialog(false);
     } catch (error) {
@@ -62,9 +78,19 @@ export default function Farm() {
       setIsLoading(false);
     }
   };
-
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // ใช้การแทนที่เพื่อกรองเฉพาะตัวเลข
+    const value = e.target.value.replace(/[^0-9]/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
+    setFarmData({ ...farmData, phoneNumber: value }); // อัพเดทสถานะ
+  };
+  
   const handleSaveAddress = async (event: React.FormEvent) => {
     event.preventDefault();
+    const phonePattern = /^[0-9]{10}$/; // ตรวจสอบว่าเบอร์ต้องเป็นตัวเลข 10 หลัก
+    if (!phonePattern.test(farmData.phoneNumber)) {
+      toast("กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)");
+      return; // ไม่ทำการบันทึกหากเบอร์โทรศัพท์ไม่ถูกต้อง
+    }
     setIsLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -76,7 +102,106 @@ export default function Farm() {
       setIsLoading(false);
     }
   };
+  interface BankInfo {
+    bank_name: string;
+    bank_number: string;
+    bank_account: string;
+  }
+  const [tempBankInfo, setTempBankInfo] = useState<BankInfo | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [bankInfo, setBankInfo] = useState<BankInfo>({
+      bank_name: '',
+      bank_number: '',
+      bank_account: '',
+    });
+  const bankOptions = [
+    { value: 'ธนาคารกรุงเทพ (BBL)', label: 'ธนาคารกรุงเทพ (BBL)' },
+    { value: 'ธนาคารกสิกรไทย (KBANK)', label: 'ธนาคารกสิกรไทย (KBANK)' },
+    { value: 'ธนาคารไทยพาณิชย์ (SCB)', label: 'ธนาคารไทยพาณิชย์ (SCB)' },
+    { value: 'ธนาคารกรุงไทย (KTB)', label: 'ธนาคารกรุงไทย (KTB)' },
+    { value: 'ธนาคารกรุงศรีอยุธยา (BAY)', label: 'ธนาคารกรุงศรีอยุธยา (BAY)' },
+    { value: 'ธนาคารทหารไทยธนชาต (TTB)', label: 'ธนาคารทหารไทยธนชาต (TTB)' },
+    { value: 'ธนาคารซีไอเอ็มบี ไทย (CIMBT)', label: 'ธนาคารซีไอเอ็มบี ไทย (CIMBT)' },
+    { value: 'ธนาคารยูโอบี (UOB Thailand)', label: 'ธนาคารยูโอบี (UOB Thailand)' },
+    { value: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)', label: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)' },
+    { value: 'ธนาคารออมสิน (GSB)', label: 'ธนาคารออมสิน (GSB)' },
+  ];
+  const bankSelect = (value : string) => {
+    setBankInfo(prevState => ({
+      ...prevState,
+      bank_name: value,
+    }));
+  };
+  const handleEditBankInfo = () => {
+    setTempBankInfo({ ...bankInfo });
+    setIsEditing(true);
+  };
+  const handleCancelBankEdit = () => {
+    if (tempBankInfo) {
+      setBankInfo(tempBankInfo); // คืนค่าที่แก้ไขกลับไป
+    }
+    setIsEditing(false); // ปิดโหมดแก้ไข
+  };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
 
+    // ตรวจสอบว่าเป็นเลขเท่านั้น และต้องไม่เกิน 12 หลัก (ปรับจำนวนหลักตามต้องการ)
+    if (name === "bank_number") {
+      const numericValue = value.replace(/[^0-9]/g, ''); // ลบตัวอักษรที่ไม่ใช่เลข
+      if (numericValue.length <= 12) {
+        setBankInfo((prev) => ({ ...prev, [name]: numericValue }));
+      }
+    } else {
+      setBankInfo((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+  const handleSave = () => {
+    const bankNumber = bankInfo.bank_number.replace(/\D/g, '');
+    if (bankNumber.length !== 12) {
+      toast("กรุณากรอกเลขบัญชีให้ครบ 12 หลัก");
+      return;
+    }
+    console.log('Bank Info Saved:', bankInfo);
+    setIsEditing(false);
+    // axios.put(`${process.env.NEXT_PUBLIC_API_URL}/shop/updateBank`,
+    //   {
+    //     bank_name : bankInfo.bank_name,
+    //     bank_account : bankInfo.bank_account,
+    //     bank_number : bankInfo.bank_number,
+    //   },
+    //   {
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       'Authorization': `Bearer ${token}`,
+    //       'X-Requested-With': 'XMLHttpRequest',
+    //       'X-CSRF-TOKEN': csrf,
+    //     },
+    //     withCredentials: true,
+    //   }
+    // ).catch(error => {
+    //   console.error('Error saving address:', error.response ? error.response.data : error.message);
+    // });
+    // axios.get(`${process.env.NEXT_PUBLIC_API_URL}/shop/get`, {
+    //   headers: {
+    //     'Authorization': `Bearer ${token}`,
+    //     'Accept': 'application/json',
+    //     'X-Requested-With': 'XMLHttpRequest',
+    //     'X-CSRF-TOKEN': csrf,
+    //   },
+    //   withCredentials: true,
+    // })
+    // .then(res => {
+    //   localStorage.setItem('shop', JSON.stringify(res.data.data.shop[0]));
+    // })
+    // .catch(error => {
+    //   console.error("Error fetching address:", error);
+    // });
+  };
+  const labelMapping = {
+    bank_name: "Bank",
+    bank_number: "Bank number",
+    bank_account: "Account",
+  };
   return (
     <div>
       <Navbar />
@@ -90,31 +215,6 @@ export default function Farm() {
 
         {/* Main Content */}
         <div className="flex-1 p-4">
-          {/* Search Bar */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="relative w-full max-w-md">
-              <Input
-                type="text"
-                placeholder="Search Address"
-                className="w-full px-4 py-2 rounded-full bg-gray-50"
-              />
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
-              >
-                <Search className="w-5 h-5 text-gray-500" />
-              </Button>
-            </div>
-            <div className="flex space-x-4 ml-4">
-              <Button variant="ghost" size="sm" className="p-1">
-                <ShoppingCart className="w-6 h-6" />
-              </Button>
-              <Button variant="ghost" size="sm" className="p-1">
-                <Bell className="w-6 h-6" />
-              </Button>
-            </div>
-          </div>
 
           {/* Profile Section */}
           <Card className="mb-6">
@@ -123,7 +223,7 @@ export default function Farm() {
                 <div className="flex flex-col items-center">
                   <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 relative">
                     <Image 
-                      src={DEFAULT_PROFILE}
+                      src={profileImage || DEFAULT_PROFILE}
                       alt="Profile"
                       width={96}
                       height={96}
@@ -191,7 +291,65 @@ export default function Farm() {
               <p className="text-gray-600">{farmData.description}</p>
             </CardContent>
           </Card>
+          {/* ข้อมูลบัญชีธนาคาร */}
+          <div className="bg-white p-6 rounded-2xl shadow-lg mt-6">
+            <h3 className="text-xl font-semibold mb-4">🏦 ข้อมูลบัญชีธนาคาร</h3>
 
+            {isEditing ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(bankInfo).map(([key, value]) => (
+                  <div key={key}>
+                    <label className="block mb-1">
+                      {labelMapping[key] || key.replace(/([A-Z])/g, ' $1')}
+                    </label>
+                    {key === 'bank_name' ? (
+                      <Select onValueChange={bankSelect} defaultValue={bankInfo.bank_name}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a bank" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {bankOptions.map((bank) => (
+                            <SelectItem key={bank.value} value={bank.value}>
+                              {bank.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : key === 'bank_number' ? (
+                      <input
+                        name={key}
+                        value={value}
+                        onChange={handleChange}
+                        className="p-2 border rounded-lg w-full"
+                        placeholder="Enter bank number"
+                        maxLength={12}
+                      />
+                    ) : (
+                      <input
+                        name={key}
+                        value={value}
+                        onChange={handleChange}
+                        className="p-2 border rounded-lg w-full"
+                        placeholder="Enter bank account"
+                      />
+                    )}
+                  </div>
+                ))}
+                <div className="flex justify-end mt-4 space-x-4">
+                  <button onClick={handleCancelBankEdit} className="bg-gray-300 px-4 py-2 rounded-lg">ยกเลิก</button>
+                  <button onClick={handleSave} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">บันทึก</button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                {Object.entries(bankInfo).map(([key, value]) => (
+                  <p key={key}>{labelMapping[key] || key.replace(/([A-Z])/g, ' $1')}: {value || '-'}</p>
+                ))}
+                <button onClick={handleEditBankInfo} className="text-blue-500 mt-4">✏️ แก้ไขข้อมูลบัญชีธนาคาร</button>
+              </div>
+            )}
+
+          </div>
           {/* Edit Profile Dialog */}
           <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
             <DialogContent>
@@ -201,6 +359,23 @@ export default function Farm() {
               
               <form onSubmit={handleSaveProfile}>
                 <div className="space-y-4">
+                  <div className="text-center">
+                    <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 mx-auto">
+                      <Image
+                        src={previewImage || DEFAULT_PROFILE}
+                        alt="Profile Preview"
+                        width={96}
+                        height={96}
+                        className="object-cover"
+                      />
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="mt-4 text-sm"
+                      onChange={handleImageUpload}
+                    />
+                  </div>
                   <div>
                     <Label htmlFor="username">Username</Label>
                     <Input
@@ -276,12 +451,13 @@ export default function Farm() {
                     <Label htmlFor="phoneNumber">Phone Number</Label>
                     <Input
                       id="phoneNumber"
+                      name="phoneNumber"
                       value={farmData.phoneNumber}
-                      onChange={(e) => setFarmData({ ...farmData, phoneNumber: e.target.value })}
+                      onChange={handlePhoneNumberChange}
                       required
+                      maxLength={10} // กำหนดความยาวสูงสุดให้กับเบอร์โทรศัพท์
                     />
                   </div>
-                  
                   <div>
                     <Label htmlFor="province">Province</Label>
                     <Input

@@ -24,7 +24,7 @@ interface Product {
   shop_image: string;
   volume: number;
   description: string;
-  shop_id: number;
+  shops_shop_id: number;
   status: string;
   fragrance_tones: { fragrance_tone_id: number; fragrance_tone_name: string }[];
 }
@@ -39,6 +39,9 @@ function ProductDetailPage({ params }: Params) {
   const [csrfToken, setCsrfToken] = useState('');
   const [cartItems, setCartItems] = useState<any[]>([]); // รายการสินค้าทั้งหมดในตะกร้า
   const router = useRouter();
+
+  const [showDescription, setShowDescription] = useState(false);
+
 
   useEffect(() => {
     if (!productId) return;
@@ -107,7 +110,7 @@ function ProductDetailPage({ params }: Params) {
         {
           product_id: product?.product_id,
           quantity: newQuantity, // จำนวนใหม่ที่เพิ่มขึ้น
-          
+
         },
         {
           headers: {
@@ -117,7 +120,7 @@ function ProductDetailPage({ params }: Params) {
         }
       );
       alert("✅ เพิ่มสินค้าในตะกร้าสำเร็จ!");
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Error adding to cart:", error);
       alert(`❌ ไม่สามารถเพิ่มสินค้าในตะกร้า: ${error.response?.data?.error || error.message}`);
     }
@@ -160,7 +163,7 @@ function ProductDetailPage({ params }: Params) {
                     <span className="font-semibold">Volume:</span> {product?.volume}
                   </li>
                   <li className="text-lg text-gray-700">
-                    <span className="font-semibold">Fragrance Tone:</span>
+                    <span className="font-semibold">Fragrance Tone: </span>
                     {product?.fragrance_tones.map((tone) => tone.fragrance_tone_name).join(', ')}
                   </li>
                   <li className="text-lg text-gray-700">
@@ -180,7 +183,7 @@ function ProductDetailPage({ params }: Params) {
         {/* ข้อมูลร้านค้า */}
         {product && (
           <div className="bg-white p-3 rounded-lg shadow-lg flex items-center mt-4">
-            <Link href={`/shop/${product.shop_id}`} className="flex items-center">
+            <Link href={`/shop/${product.shops_shop_id}`} className="flex items-center">
               <img
                 src={product.shop_image}
                 alt={product.shop_name}
@@ -188,6 +191,25 @@ function ProductDetailPage({ params }: Params) {
               />
               <span className="text-lg font-semibold text-black-600">{product.shop_name}</span>
             </Link>
+          </div>
+        )}
+
+        {/* ปุ่มแสดงรายละเอียดสินค้า */}
+        <Button
+          variant="outline"
+          className="mt-4 w-full"
+          onClick={() => setShowDescription(!showDescription)}
+        >
+          {showDescription ? "Hide product detail" : "Show product detail"}
+        </Button>
+
+        {/* รายละเอียดสินค้าแบบแสดง/ซ่อน */}
+        {showDescription && (
+          <div className="mt-4 bg-gray-100 p-4 rounded-lg transition-all duration-300">
+            <h4 className="text-xl font-semibold mb-2">Product Detail</h4>
+            <p className="text-gray-700 text-lg leading-relaxed">
+              {product?.description || "ไม่มีรายละเอียดสินค้าเพิ่มเติม"}
+            </p>
           </div>
         )}
       </main>

@@ -7,8 +7,11 @@ import Link from "next/link";
 export default function SideBarFarm() {
   const menuItems = [
     { icon: <User className="w-5 h-5" />, label: "My Profile", href: "/ProfileUser" },
+    { icon: <User className="w-5 h-5" />, label: "My Farm", href: "/farm" },
+    { icon: <Package className="w-5 h-5" />, label: "Order", href: "/farm/order-post" },
     { icon: <Package className="w-5 h-5" />, label: "To Ship", href: "/farm/to-ship" },
-    { icon: <Store className="w-5 h-5" />, label: "Sell Ingredient", href: "/farm/sell-ingredient" },
+    { icon: <Store className="w-5 h-5" />, label: "Sell Ingredient", href: "/farmHomePost" },
+    { icon: <Store className="w-5 h-5" />, label: "Post Ingredient", href: "/farmPost" },
   ];
 
   return (

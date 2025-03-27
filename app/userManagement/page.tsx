@@ -1,19 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Pencil, Trash2, Check, X } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 
 // ประกาศ Type
+type Position = {
+  position_name: string;
+};
+
 type User = {
-  id: number;
+  user_id: number;
   username: string;
-  role: string;
-  lastUpdated: string;
-  activeShop: boolean;
-  activeFarm: boolean;
+  updated_at: string;
+  positions: Position[]; // เพิ่มการรับข้อมูล positions ที่เป็น array
+  shop: {
+    is_activate: boolean;
+  } | null;
+  farm: {
+    is_activate: boolean;
+  } | null;
 };
 
 type SortConfig = {
@@ -21,36 +29,58 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 };
 
-const initialUsers: User[] = [
-  { id: 1, username: 'Namo', role: 'Farmer', lastUpdated: 'DD/MM/YY', activeShop: false, activeFarm: false },
-  { id: 2, username: 'Title', role: 'Entrepreneur', lastUpdated: 'DD/MM/YY', activeShop: true, activeFarm: false },
-  { id: 3, username: 'Bas', role: 'Entrepreneur', lastUpdated: 'DD/MM/YY', activeShop: false, activeFarm: true },
-  { id: 4, username: 'John', role: 'Entrepreneur', lastUpdated: 'DD/MM/YY', activeShop: true, activeFarm: true },
-  { id: 5, username: 'Jane', role: 'Farmer', lastUpdated: 'DD/MM/YY', activeShop: false, activeFarm: false },
-  { id: 6, username: 'Doe', role: 'Entrepreneur', lastUpdated: 'DD/MM/YY', activeShop: false, activeFarm: false },
-];
-
 export default function UserManagement() {
   const router = useRouter();
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [editUserId, setEditUserId] = useState<number | null>(null);
-  const [tempData, setTempData] = useState<{ activeShop: boolean; activeFarm: boolean }>({ activeShop: false, activeFarm: false });
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'username', direction: 'asc' });
+  const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
+  const [newUser, setNewUser] = useState({
+    username: '',
+    email: '',
+    password: '',
+    first_name: '',
+    last_name: '',
+    phone_number: '',
+    position: 4 // Default to 'Customer' position
+  });
 
-  const deleteUser = (id: number) => setUsers(users.filter(user => user.id !== id));
+  const [userActivation, setUserActivation] = useState<{ [userId: number]: { shop: boolean; farm: boolean } }>({});
 
-  const handleEdit = (user: User) => {
-    setEditUserId(user.id);
-    setTempData({ activeShop: user.activeShop, activeFarm: user.activeFarm });
+  // ฟังก์ชันดึงข้อมูลผู้ใช้จาก API
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('User is not authenticated');
+        return;
+      }
+
+      const response = await fetch('http://localhost:8000/api/users', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+
+      const data = await response.json();
+      if (data.status === 'success') {
+        setUsers(data.data);
+      }
+    } catch (error) {
+      alert('Error fetching users');
+    }
   };
 
-  const handleSave = (id: number) => {
-    setUsers(users.map(user => user.id === id ? { ...user, ...tempData } : user));
-    setEditUserId(null);
-  };
-
-  const handleCancel = () => setEditUserId(null);
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleSort = (key: keyof User) => {
     const direction = sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc';
@@ -58,31 +88,19 @@ export default function UserManagement() {
   };
 
   const filteredUsers = users.filter(user => {
-    // ถ้า searchTerm เป็นตัวเลข => เช็ค id ด้วย
     if (!isNaN(Number(searchTerm))) {
-      return user.id === Number(searchTerm) || user.username.toLowerCase().includes(searchTerm.toLowerCase());
+      return user.user_id === Number(searchTerm) || user.username.toLowerCase().includes(searchTerm.toLowerCase());
     }
-    // ถ้าเป็น text => เช็คเฉพาะ username
     return user.username.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  // แก้ตรงนี้ให้ sort id, boolean แยกชัดเจน
   const sortedUsers = filteredUsers.sort((a, b) => {
     const { key, direction } = sortConfig;
 
-    // Sort Number (id)
-    if (key === 'id') {
-      return direction === 'asc' ? a.id - b.id : b.id - a.id;
+    if (key === 'user_id') {
+      return direction === 'asc' ? a.user_id - b.user_id : b.user_id - a.user_id;
     }
 
-    // Sort Boolean (activeShop, activeFarm)
-    if (typeof a[key] === 'boolean' && typeof b[key] === 'boolean') {
-      return direction === 'asc'
-        ? Number(b[key]) - Number(a[key])
-        : Number(a[key]) - Number(b[key]);
-    }
-
-    // Sort String
     const valA = String(a[key]).toLowerCase();
     const valB = String(b[key]).toLowerCase();
     if (valA < valB) return direction === 'asc' ? -1 : 1;
@@ -90,121 +108,213 @@ export default function UserManagement() {
     return 0;
   });
 
+  const handleEditClick = (userId: number) => {
+    setEditUserId(userId);
+    setUserActivation({
+      ...userActivation,
+      [userId]: {
+        shop: users.find(user => user.user_id === userId)?.shop?.is_activate ?? false,
+        farm: users.find(user => user.user_id === userId)?.farm?.is_activate ?? false,
+      },
+    });
+  };
+
+  const handleActivationChange = async (userId: number, shopActivate: boolean, farmActivate: boolean) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`http://localhost:8000/api/users/${userId}/updateActivation`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        shop_is_activate: shopActivate,
+        farm_is_activate: farmActivate,
+      }),
+    });
+
+    const data = await response.json();
+    if (data.status === 'success') {
+      alert('Activation status updated successfully');
+      fetchUsers();
+    }
+  };
+
+  const handleCreateUser = async () => {
+    try {
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('User is not authenticated');
+        return;
+      }
+
+      const response = await fetch('http://localhost:8000/api/users/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+
+        },
+        body: JSON.stringify(newUser),
+      });
+
+      const data = await response.json();
+      if (data.status === 'success') {
+        alert('User created successfully');
+        setUsers([...users, data.data]);
+        setIsCreateUserOpen(false);
+      }
+    } catch (error) {
+      alert('Error creating user');
+    }
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('User is not authenticated');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:8000/api/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (data.status === 'success') {
+        alert('User deleted successfully');
+        fetchUsers();
+      }
+    } catch (error) {
+      alert('Error deleting user');
+    }
+  };
+
   return (
     <div className="relative">
-      {/* Fixed Page Header */}
       <div className="fixed top-0 left-0 w-full bg-white z-50 p-4 shadow flex items-center">
         <Button variant="outline" onClick={() => router.back()} className="mr-4">Back</Button>
         <h1 className="text-xl font-bold">User Management</h1>
       </div>
 
-      {/* Add padding to prevent overlap */}
       <div className="pt-28 p-6">
-        {/* Search Box */}
-        <div className="mb-4 flex items-center">
-          <input
-            type="text"
-            placeholder="Search by userid or username"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="p-2 border rounded w-1/3"
-          />
-        </div>
+        <Button variant="outline" onClick={() => setIsCreateUserOpen(true)} className="mb-4">
+          Create User
+        </Button>
 
-        {/* Table */}
+        {isCreateUserOpen && (
+          <div className="p-4 border rounded mb-6">
+            <h3>Create User</h3>
+            <input
+              type="text"
+              placeholder="Username"
+              value={newUser.username}
+              onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+              className="p-2 border rounded w-full mb-2"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={newUser.email}
+              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+              className="p-2 border rounded w-full mb-2"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={newUser.password}
+              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+              className="p-2 border rounded w-full mb-2"
+            />
+            <input
+              type="text"
+              placeholder="First Name"
+              value={newUser.first_name}
+              onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })}
+              className="p-2 border rounded w-full mb-2"
+            />
+            <input
+              type="text"
+              placeholder="Last Name"
+              value={newUser.last_name}
+              onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })}
+              className="p-2 border rounded w-full mb-2"
+            />
+            <input
+              type="text"
+              placeholder="Phone Number"
+              value={newUser.phone_number}
+              onChange={(e) => setNewUser({ ...newUser, phone_number: e.target.value })}
+              className="p-2 border rounded w-full mb-2"
+            />
+            <div className="mt-4">
+              <Button variant="ghost" onClick={handleCreateUser}>Create</Button>
+              <Button variant="outline" onClick={() => setIsCreateUserOpen(false)}>Cancel</Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="pt-28 p-6">
+        <input
+          type="text"
+          placeholder="Search by userid or username"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="p-2 border rounded w-1/3"
+        />
+
         <div className="overflow-auto max-h-[70vh] border rounded">
           <table className="w-full border-collapse">
             <thead className="bg-gray-200">
               <tr>
-                <th
-                  className="p-2 border sticky top-0 bg-gray-200 z-40 cursor-pointer"
-                  onClick={() => handleSort('id')}
-                >
-                  User Id {sortConfig.key === 'id' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
-                </th>
-                <th
-                  className="p-2 border sticky top-0 bg-gray-200 z-40 cursor-pointer"
-                  onClick={() => handleSort('username')}
-                >
-                  Username {sortConfig.key === 'username' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
-                </th>
-                <th
-                  className="p-2 border sticky top-0 bg-gray-200 z-40 cursor-pointer"
-                  onClick={() => handleSort('role')}
-                >
-                  Role {sortConfig.key === 'role' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
-                </th>
-                <th
-                  className="p-2 border sticky top-0 bg-gray-200 z-40 cursor-pointer"
-                  onClick={() => handleSort('lastUpdated')}
-                >
-                  Last Updated {sortConfig.key === 'lastUpdated' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
-                </th>
-                <th
-                  className="p-2 border sticky top-0 bg-gray-200 z-40 cursor-pointer"
-                  onClick={() => handleSort('activeShop')}
-                >
-                  Active Shop {sortConfig.key === 'activeShop' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
-                </th>
-                <th
-                  className="p-2 border sticky top-0 bg-gray-200 z-40 cursor-pointer"
-                  onClick={() => handleSort('activeFarm')}
-                >
-                  Active Farm {sortConfig.key === 'activeFarm' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
-                </th>
+                <th className="p-2 border sticky top-0 bg-gray-200 z-40 cursor-pointer" onClick={() => handleSort('user_id')}>User Id</th>
+                <th className="p-2 border sticky top-0 bg-gray-200 z-40 cursor-pointer" onClick={() => handleSort('username')}>Username</th>
+                <th className="p-2 border sticky top-0 bg-gray-200 z-40 cursor-pointer">Position</th>
+                <th className="p-2 border sticky top-0 bg-gray-200 z-40 cursor-pointer" onClick={() => handleSort('updated_at')}>Last Updated</th>
+                <th className="p-2 border sticky top-0 bg-gray-200 z-40">Shop Status</th>
+                <th className="p-2 border sticky top-0 bg-gray-200 z-40">Farm Status</th>
                 <th className="p-2 border sticky top-0 bg-gray-200 z-40">Action</th>
               </tr>
             </thead>
             <tbody>
               {sortedUsers.map(user => (
-                <tr key={user.id} className="border-t">
-                  <td className="p-2 border">{user.id}</td>
+                <tr key={user.user_id} className="border-t">
+                  <td className="p-2 border">{user.user_id}</td>
                   <td className="p-2 border">{user.username}</td>
-                  <td className="p-2 border">{user.role}</td>
-                  <td className="p-2 border text-center">{user.lastUpdated}</td>
+                  <td className="p-2 border">
+                    {user.positions.map((position, index) => (
+                      <span key={index}>{position.position_name}{index < user.positions.length - 1 ? ', ' : ''}</span>
+                    ))}
+                  </td>
+                  <td className="p-2 border text-center">{user.updated_at}</td>
                   <td className="p-2 border text-center">
-                    {editUserId === user.id ? (
-                      <Checkbox
-                        checked={tempData.activeShop}
-                        onCheckedChange={(checked) => setTempData(prev => ({ ...prev, activeShop: !!checked }))}
-                      />
+                    {user.shop ? (
+                      <Checkbox checked={user.shop.is_activate} disabled />
                     ) : (
-                      <Checkbox checked={user.activeShop} disabled />
+                      <Checkbox disabled />
                     )}
                   </td>
                   <td className="p-2 border text-center">
-                    {editUserId === user.id ? (
-                      <Checkbox
-                        checked={tempData.activeFarm}
-                        onCheckedChange={(checked) => setTempData(prev => ({ ...prev, activeFarm: !!checked }))}
-                      />
+                    {user.farm ? (
+                      <Checkbox checked={user.farm.is_activate} disabled />
                     ) : (
-                      <Checkbox checked={user.activeFarm} disabled />
+                      <Checkbox disabled />
                     )}
                   </td>
                   <td className="p-2 border text-center">
-                    {editUserId === user.id ? (
-                      <>
-                        <Button variant="ghost" size="icon" onClick={() => handleSave(user.id)} title="Save">
-                          <Check size={16} className="text-green-600" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={handleCancel} title="Cancel">
-                          <X size={16} className="text-red-600" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteUser(user.id)} title="Delete">
-                          <Trash2 size={16} />
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button variant="ghost" size="icon" onClick={() => handleEdit(user)} title="Edit" className="w-20">
-                          <Pencil size={16} />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteUser(user.id)} title="Delete">
-                          <Trash2 size={16} />
-                        </Button>
-                      </>
-                    )}
+                    <Button variant="ghost" size="icon" title="Edit" onClick={() => handleEditClick(user.user_id)}>
+                      <Pencil size={16} />
+                    </Button>
+                    <Button variant="ghost" size="icon" title="Delete" onClick={() => handleDeleteUser(user.user_id)}>
+                      <Trash2 size={16} />
+                    </Button>
                   </td>
                 </tr>
               ))}

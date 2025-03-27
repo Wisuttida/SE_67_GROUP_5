@@ -7,7 +7,7 @@ import SideBarShop from "@/components/SideBarShop";
 
 interface Order {
   order_id: string;
-  userName: string;
+  username: string;
   name: string;
   total_amount: number;
   quantity: number;
@@ -57,7 +57,7 @@ const OrderCard = ({
             className="w-10 h-10 rounded-full mr-3"
           />
         )}
-        <h2 className="text-lg font-semibold">คุณ {order.userName}</h2>
+        <h2 className="text-lg font-semibold">คุณ {order.username}</h2>
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${order.status === "ยกเลิกแล้ว" ? "bg-red-300" : "bg-gray-200"}`}>
           {order.status}
         </span>
@@ -236,7 +236,7 @@ const OrderConfirmation = () => {
     setOrders([
       {
         order_id: "order-1",
-        userName: "whoami",
+        username: "whoami",
         name: "น้ำลูกเหม็น",
         total_amount: 500,
         quantity: 1,
@@ -259,7 +259,7 @@ const OrderConfirmation = () => {
       },
       {
         order_id: "order-2",
-        userName: "My name is Name",
+        username: "My name is Name",
         name: "น้ำหอม...ไหม",
         total_amount: 500,
         quantity: 1,
@@ -282,7 +282,7 @@ const OrderConfirmation = () => {
       },
       {
         order_id: "order-3",
-        userName: "John doe",
+        username: "John doe",
         name: "ไม่หอม",
         total_amount: 500,
         quantity: 1,
@@ -305,7 +305,7 @@ const OrderConfirmation = () => {
       },
       {
         order_id: "order-4",
-        userName: "John smith",
+        username: "John smith",
         name: "เลือกไปก่อน เดี๋ยวหอมเอง",
         total_amount: 500,
         quantity: 1,
@@ -328,7 +328,7 @@ const OrderConfirmation = () => {
       },
       {
         order_id: "order-4",
-        userName: "John smith",
+        username: "John smith",
         name: "เลือกไปก่อน เดี๋ยวหอมเอง",
         total_amount: 500,
         quantity: 1,
@@ -351,7 +351,7 @@ const OrderConfirmation = () => {
       },
       {
         order_id: "order-4",
-        userName: "John smith",
+        username: "John smith",
         name: "เลือกไปก่อน เดี๋ยวหอมเอง",
         total_amount: 500,
         quantity: 1,
@@ -374,7 +374,7 @@ const OrderConfirmation = () => {
       },
       {
         order_id: "order-5",
-        userName: "Lorla",
+        username: "Lorla",
         name: "หอมสดชื่น by Lorla",
         total_amount: 500,
         quantity: 1,

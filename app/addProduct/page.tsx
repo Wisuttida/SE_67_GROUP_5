@@ -4,12 +4,24 @@ import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import { useRouter } from 'next/navigation';
 import SideBarShop from '@/components/SideBarShop';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import axios from 'axios';
 
 const AddProduct = () => {
     const router = useRouter();
 
-    const [product, setProduct] = useState({
+    const [product, setProduct] = useState<{
+        name: string;
+        price: number;
+        stock_quantity: number;
+        quantity: number;
+        fragrance_tone_name: string;
+        fragrance_strength: string;
+        volume: number;
+        gender_target: string;
+        description: string;
+        image_url: string | null; // Allow image_url to be null or a string
+    }>({
         name: '',
         price: 0,
         stock_quantity: 0,
@@ -19,25 +31,31 @@ const AddProduct = () => {
         volume: 0,
         gender_target: '',
         description: '',
-        image_url: null,
+        image_url: null, // Default value
     });
-
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >) => {
         const { name, value, type } = e.target;
-        const parsedValue = type === 'number' ? Math.max(0, value) : value;
+        const parsedValue = type === 'number' ? parseFloat(value) || 0 : value;
         setProduct((prev) => ({ ...prev, [name]: parsedValue }));
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
             setProduct((prev) => ({ ...prev, image_url: URL.createObjectURL(file) }));
+        } else {
+            console.warn('No file selected');
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
+        if (!product.name || !product.price || !product.stock_quantity || !product.quantity || !product.fragrance_tone_name || !product.fragrance_strength || !product.volume || !product.gender_target || !product.description || !product.image_url) {
+            alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+            return;
+        }
         // ตรวจสอบข้อมูลที่เก็บใน state
         const formData = new FormData();
         formData.append('name', product.name);
@@ -51,32 +69,33 @@ const AddProduct = () => {
         formData.append('description', product.description);
 
         // ถ้ามีการเลือกไฟล์รูปภาพ
-        if (product.image_url) {
-            const imageFile = product.image_url.split(',')[1]; // ตัด URL ของรูปภาพที่เก็บใน state
-            const fileBlob = new Blob([new Uint8Array(atob(imageFile).split('').map(c => c.charCodeAt(0)))], { type: 'image/jpeg' });
-            formData.append('image', fileBlob, 'product-image.jpg');
-        }
-
-        // try {
-        //     // ส่งข้อมูลไปยัง backend
-        //     const response = await axios.post(
-        //         `${process.env.NEXT_PUBLIC_API_URL}/products/add`,  // ปรับ URL API ของคุณให้ตรง
-        //         formData,
-        //         {
-        //             headers: {
-        //                 'Content-Type': 'multipart/form-data',  // กำหนด Content-Type สำหรับการส่งไฟล์
-        //             },
-        //             withCredentials: true,  // ส่งคุกกี้สำหรับการยืนยัน
-        //         }
-        //     );
-
-        //     // ถ้าส่งข้อมูลสำเร็จ
-        //     alert("✅ เพิ่มสินค้าในร้านสำเร็จ!");
-        //     router.push("/myProductShop"); // ไปยังหน้าที่แสดงสินค้าของร้าน
-        // } catch (error) {
-        //     console.error("Error adding product:", error);
-        //     alert("❌ ไม่สามารถเพิ่มสินค้า: " + (error.response?.data?.error || error.message));
+        // if (product.image_url) {
+        //     const imageFile = product.image_url.split(',')[1]; // ตัด URL ของรูปภาพที่เก็บใน state
+        //     const fileBlob = new Blob([new Uint8Array(atob(imageFile).split('').map(c => c.charCodeAt(0)))], { type: 'image/jpeg' });
+        //     formData.append('image', fileBlob, 'product-image.jpg');
         // }
+
+    //     try {
+    //         // ส่งข้อมูลไปยัง backend
+    //         const response = await axios.post(
+    //             `${process.env.NEXT_PUBLIC_API_URL}/products`,  // ปรับ URL API ของคุณให้ตรง
+    //             formData,
+    //             {
+    //                 headers: {
+    //                     'Content-Type': 'multipart/form-data',  // กำหนด Content-Type สำหรับการส่งไฟล์
+    //                 },
+    //                 withCredentials: true,  // ส่งคุกกี้สำหรับการยืนยัน
+    //             }
+    //         );
+
+    //         // ถ้าส่งข้อมูลสำเร็จ
+    //         alert("✅ เพิ่มสินค้าในร้านสำเร็จ!");
+    //         router.push("/myProductShop"); // ไปยังหน้าที่แสดงสินค้าของร้าน
+    //     } catch (error) {
+    //         console.error("Error adding product:", error);
+    //         alert("❌ ไม่สามารถเพิ่มสินค้า: " + (error.response?.data?.error || error.message));
+    //     }
+    router.push('myProductShop');
     };
 
     return (
@@ -203,7 +222,7 @@ const AddProduct = () => {
                                         rows={5}
                                     />
                                 </div>
-
+                                
                                 <Button onClick={handleSubmit} className="col-span-2 bg-black text-white">
                                     Add to Shop
                                 </Button>

@@ -19,6 +19,8 @@ interface UserData {
 }
 
 export default function SideBarUser() {
+  const [hasShop, setHasShop] = useState(false);
+  const [hasFarm, setHasFarm] = useState(false);
   const [userData, setUserData] = useState<UserData>({
     user_id: 0,
     username: 'User',
@@ -39,6 +41,20 @@ export default function SideBarUser() {
         console.error('Error parsing user data from localStorage:', error);
       }
     }
+    const shopGet = localStorage.getItem('shop');
+    if (shopGet && shopGet !== 'undefined') {
+      const shop = JSON.parse(shopGet);
+      if (shop.shop_id) {
+        setHasShop(true);
+      }
+    }
+    const farmGet = localStorage.getItem('farm');
+    if (farmGet && farmGet !== 'undefined') {
+      const farm = JSON.parse(farmGet);
+      if (farm.farm_id) {
+        setHasFarm(true);
+      }
+    }
   }, []);
 
   const menuItems = [
@@ -57,13 +73,11 @@ export default function SideBarUser() {
     <aside className="w-64 bg-white shadow-md rounded-lg p-6 h-full">
       {/* User Profile Section */}
       <div className="flex flex-col items-center mb-6 pb-6 border-b border-gray-200">
-        <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 mb-3">
-          <Image 
-            src={userData.profile_image || DEFAULT_PROFILE_IMAGE}
-            alt="Profile"
-            width={80}
-            height={80}
-            className="object-cover"
+        <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
+          <img 
+            src={userData.profile_image || DEFAULT_IMAGES.profile} 
+            alt="Profile Image" 
+            className="w-full h-full object-cover"
           />
         </div>
         <h3 className="font-medium text-gray-800">{userData.username}</h3>
@@ -72,17 +86,45 @@ export default function SideBarUser() {
       
       {/* Navigation Menu */}
       <nav className="space-y-1">
-        {menuItems.map(({ icon, label, href }, index) => (
-          <Link href={href} key={index}>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-            >
-              <span className="text-gray-500">{icon}</span> 
-              <span>{label}</span>
-            </Button>
-          </Link>
-        ))}
+        {menuItems.map(({ icon, label, href }, index) => {
+          if (label === "My Shop" && !hasShop) {
+            return (
+              <Link href="/registerShop" key={index}>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                >
+                  <span className="text-gray-500">{icon}</span> 
+                  <span>Register Shop</span>
+                </Button>
+              </Link>
+            )
+          }
+          if (label === "My Farm" && !hasFarm) {
+            return (
+              <Link href="/registerFarm" key={index}>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                >
+                  <span className="text-gray-500">{icon}</span> 
+                  <span>Register Farm</span>
+                </Button>
+              </Link>
+            )
+          }
+          return (
+            <Link href={href} key={index}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <span className="text-gray-500">{icon}</span> 
+                <span>{label}</span>
+              </Button>
+            </Link>
+          )
+          })}
       </nav>
     </aside>
   );

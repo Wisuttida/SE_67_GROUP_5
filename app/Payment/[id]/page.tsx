@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronRight, Upload } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+import axios from 'axios';
+import LoadingPage from '@/components/LoadingPage';
 
 // Default images for fallback
 const DEFAULT_IMAGES = {
@@ -16,46 +18,80 @@ const DEFAULT_IMAGES = {
   qr: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='24'%3EQR Code%3C/text%3E%3C/svg%3E"
 };
 
-interface Address {
-  name: string;
-  phoneNumber: string;
-  province: string;
-  district: string;
-  subDistrict: string;
-  postalCode: string;
-  streetName: string;
-  building: string;
-  houseNo: string;
-}
-
-interface Shop {
-  id: string;
-  name: string;
-  avatar: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  amount: number;
-  price: number;
-  image: string;
-  estimatedDate: string;
-}
-
-interface PaymentData {
-  address: Address;
-  shop: Shop;
-  product: Product;
-  bankName: string;
-  accountName: string;
-  qrCode: string;
-}
-
 type PaymentParams = {
   id: string;
 };
+
+interface Shop {
+  shop_id: number;
+  shop_name: string;
+  shop_image: string | null;
+  description: string;
+  accepts_custom: number;
+  bank_name: string;
+  bank_account: string;
+  bank_number: string;
+  is_activate: number;
+  users_user_id: number;
+  addresses_address_id: number;
+}
+
+interface Product {
+  product_id: number;
+  name: string;
+  description: string | null;
+  price: string;
+  volume: number;
+  stock_quantity: number;
+  image_url: string;
+  gender_target: string;
+  fragrance_strength: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  shops_shop_id: number;
+  shop: Shop;
+}
+
+interface OrderItem {
+  order_item_id: number;
+  quantity: number;
+  price: string;
+  created_at: string;
+  updated_at: string;
+  products_product_id: number;
+  orders_order_id: number;
+  product: Product;
+}
+
+interface Order {
+  order_id: number;
+  total_amount: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  addresses_address_id: number;
+  shops_shop_id: number;
+  users_user_id: number;
+  order_items: OrderItem[];
+}
+type OrdersResponse = Order[];
+
+interface AddressInfo {
+  address_id: string;
+  fname: string;
+  lname: string;
+  phonenumber: string;
+  street_name: string;
+  building: string;
+  subDistrict: string;
+  district: string;
+  province: string;
+  zipcode: string;
+  house_number: string;
+  is_default: boolean;
+  position_id: string;
+}
 
 export default function Payment() {
   const params = useParams() as PaymentParams;
@@ -64,10 +100,27 @@ export default function Payment() {
   const [isLoading, setIsLoading] = useState(true);
   const [showProofDialog, setShowProofDialog] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
+  const [orders, setOrders] = useState<OrdersResponse>([]);
+  const [selectedOrders, setSelectedOrders] = useState<OrderItem[]>([]);
+  const [addressInfo, setAddressInfo] = useState<AddressInfo>();
+  const cardRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const fetchAddress = async (addressId: number) => {
+      try {
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${addressId}`, {})
+        .then(res => {
+          setAddressInfo(res.data.data[0]);
+        })
+        .catch(error => {
+          console.error("Error fetching address:", error);
+        });
+      } catch (error) {
+        toast("ไม่สามารถเรียกที่อยู่ได้ กรุณาลองใหม่อีกครั้ง");
+      }
+    }
     const fetchPaymentData = async () => {
+      let addressId = 0;
       try {
         setIsLoading(true);
 
@@ -80,51 +133,35 @@ export default function Payment() {
 
         // Simulated data fetch with delay
         await new Promise(resolve => setTimeout(resolve, 500));
+        const storedOrders = localStorage.getItem('ordersPending');
+        if (storedOrders) {
+            const parsedOrders = JSON.parse(storedOrders);
+            setOrders(parsedOrders);
 
-        const mockPaymentData: PaymentData = {
-          address: {
-            name: "John Doe",
-            phoneNumber: "0891234567",
-            province: "กรุงเทพมหานคร",
-            district: "วัฒนา",
-            subDistrict: "คลองตันเหนือ",
-            postalCode: "10110",
-            streetName: "สุขุมวิท",
-            building: "อาคาร A",
-            houseNo: "123/45"
-          },
-          shop: {
-            id: "shop1",
-            name: "Shop1",
-            avatar: DEFAULT_IMAGES.profile
-          },
-          product: {
-            id: "prod1",
-            name: "Product Name",
-            description: "Description",
-            amount: 1,
-            price: 500,
-            image: DEFAULT_IMAGES.product,
-            estimatedDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          bankName: "ธนาคารกสิกรไทย",
-          accountName: "บริษัท ชอปปิ้ง จำกัด",
-          qrCode: DEFAULT_IMAGES.qr
-        };
+            // Filter the order items that match the ID
+            const matchingOrders = parsedOrders.flatMap((order:Order) => 
+                order.order_items.filter((item: OrderItem) => item.order_item_id === Number(params?.id))
+            );
+            setSelectedOrders(matchingOrders);
 
-        setPaymentData(mockPaymentData);
+            const firstOrder = parsedOrders.find((order:Order) => order.order_items.some((item: OrderItem) => item.order_item_id === Number(params?.id)));
+            if (firstOrder) {
+                addressId = firstOrder.addresses_address_id;
+            }
+        } else {
+            console.log("No orders found in localStorage."); // Log if no orders are found
+        }
       } catch (error) {
         toast("ไม่สามารถโหลดข้อมูลการชำระเงินได้");
         router.push('/userToPay');
       } finally {
-        setIsLoading(false);
+        fetchAddress(addressId);
       }
     };
-
+    
     fetchPaymentData();
-
+    
     return () => {
-      setPaymentData(null);
       setSelectedFile(null);
       setShowProofDialog(false);
     };
@@ -169,89 +206,101 @@ export default function Payment() {
     }
   };
 
-  if (isLoading || !paymentData) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex justify-center items-center">
-          <div className="flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-            <p className="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="min-h-screen flex flex-col">
+  //       <Navbar />
+  //       <div className="flex-1 flex justify-center items-center">
+  //         <div className="flex flex-col items-center">
+  //           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+  //           <p className="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+  useEffect(() => {
+    if (addressInfo) {
+        setIsLoading(false); // Set loading to false when addressInfo is available
+    }
+  }, [addressInfo]);
 
   return (
     <div>
       <Navbar />
+        {isLoading ? (
+        <div className="min-h-screen flex flex-col">
+        <div className="flex-1 flex justify-center items-center">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+              <p className="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
+            </div>
+          </div>
+        </div>) : (
 
       <div className="mt-8">
         <h1 className="text-2xl font-bold text-center mb-6">ชำระเงิน</h1>
-
         {/* Address Section */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">ที่อยู่จัดส่ง</h2>
-              <Button variant="ghost" className="text-blue-600">
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            </div>
-            
-            <div className="space-y-2">
-              <p className="font-medium">{paymentData.address.name}</p>
-              <p>{paymentData.address.phoneNumber}</p>
-              <p>{paymentData.address.building} {paymentData.address.houseNo}</p>
-              <p>{paymentData.address.streetName} {paymentData.address.subDistrict}</p>
-              <p>
-                {paymentData.address.district} {paymentData.address.province}{' '}
-                {paymentData.address.postalCode}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {selectedOrders.length > 0 ? (
+          selectedOrders.map((orderItem) => (
+              <div key={orderItem.order_item_id}>
+                  {/* Address Section */}
+                  <Card className="mb-6">
+                      <CardContent className="p-4">
+                          <div className="flex justify-between items-center mb-4">
+                              <h2 className="text-lg font-semibold">ที่อยู่จัดส่ง</h2>
+                              <Button variant="ghost" className="text-blue-600">
+                                  <ChevronRight className="h-5 w-5" />
+                              </Button>
+                          </div>
+                          
+                          <div className="space-y-2">
+                              <p className="font-medium font-semibold">{addressInfo?.fname} {addressInfo?.lname} | {addressInfo?.phonenumber}</p>
+                              <p>เลขที่ {addressInfo?.house_number} {addressInfo?.building ? `ตึก ${addressInfo?.building}` : ''} ถนน {addressInfo?.street_name}, ตำบล {addressInfo?.subDistrict}, อำเภอ {addressInfo?.district}, จังหวัด {addressInfo?.province}, {addressInfo?.zipcode} </p>
+                          </div>
+                      </CardContent>
+                  </Card>
 
-        {/* Shop and Product Section */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex items-center mb-4">
-              <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden mr-3">
-                <Image 
-                  src={paymentData.shop.avatar}
-                  alt={paymentData.shop.name}
-                  width={40}
-                  height={40}
-                  className="object-cover"
-                />
-              </div>
-              <span className="font-medium">{paymentData.shop.name}</span>
-            </div>
+                  {/* Shop and Product Section */}
+                  <Card className="mb-6">
+                      <CardContent className="p-4">
+                          <div className="flex items-center mb-4">
+                              <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden mr-3">
+                                  <Image 
+                                      src={orderItem.product.shop.shop_image}
+                                      alt={orderItem.product.shop.shop_name}
+                                      width={40}
+                                      height={40}
+                                      className="object-cover"
+                                  />
+                              </div>
+                              <span className="font-medium">{orderItem.product.shop.shop_name}</span>
+                          </div>
 
-            <div className="flex mb-4">
-              <div className="w-24 h-32 bg-gray-100 flex items-center justify-center">
-                <Image 
-                  src={paymentData.product.image}
-                  alt={paymentData.product.name}
-                  width={60}
-                  height={100}
-                  className="object-contain"
-                />
-              </div>
-              
-              <div className="ml-4 flex-grow">
-                <h3 className="font-medium">{paymentData.product.name}</h3>
-                <p className="text-gray-600 text-sm">{paymentData.product.description}</p>
-                <p className="text-sm">จำนวน: {paymentData.product.amount} ชิ้น</p>
-                <p className="font-medium">ราคา: ฿{paymentData.product.price.toLocaleString()}</p>
-                <p className="text-sm text-gray-600">
-                  วันที่คาดว่าจะได้รับ: {new Date(paymentData.product.estimatedDate).toLocaleDateString('th-TH')}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                          <div className="flex mb-4">
+                              <div className="w-30 h-30 bg-gray-100 flex items-center justify-center">
+                                  <Image 
+                                      src={orderItem.product.image_url}
+                                      alt={orderItem.product.name}
+                                      width={300}
+                                      height={300}
+                                      className="w-full h-full object-cover rounded-lg mb-4"
+                                  />
+                              </div>
+                              
+                              <div className="ml-4 flex-grow">
+                                  <h3 className="font-medium">{orderItem.product.name}</h3>
+                                  <p className="text-gray-600 text-sm">{orderItem.product.description}</p>
+                                  <p className="text-sm">จำนวน: {orderItem.quantity} ชิ้น</p>
+                                  <p className="font-medium">ราคา: ฿{(parseFloat(orderItem.price) * orderItem.quantity).toLocaleString()}</p>
+                                  <p className="text-sm text-gray-600">
+                                      วันที่คาดว่าจะได้รับ: {new Date(orderItem.created_at).toLocaleDateString('th-TH')}
+                                  </p>
+                              </div>
+                          </div>
+                      </CardContent>
+                  </Card>
+          
 
         {/* Payment Section */}
         <Card className="mb-6">
@@ -260,7 +309,7 @@ export default function Payment() {
             
             <div className="flex justify-center mb-4">
               <Image
-                src={paymentData.qrCode}
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/QR_Code_Example.svg/1200px-QR_Code_Example.svg.png"
                 alt="QR Code"
                 width={200}
                 height={200}
@@ -269,9 +318,9 @@ export default function Payment() {
             </div>
 
             <div className="text-center space-y-2 mb-4">
-              <p className="font-medium">{paymentData.bankName}</p>
-              <p>{paymentData.accountName}</p>
-              <p className="font-medium">฿{paymentData.product.price.toLocaleString()}</p>
+              <p className="font-medium">{orderItem.product.shop.bank_name}</p>
+              <p>{orderItem.product.shop.bank_account}</p>
+              <p className="font-medium">฿{(parseFloat(orderItem.price) * orderItem.quantity).toLocaleString()}</p>
             </div>
 
             <Button
@@ -296,9 +345,9 @@ export default function Payment() {
           <Button
             className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
             onClick={() => {
-                toast("กรุณาอัพโหลดหลักฐานการโอนก่อนยืนยันการสั่งซื้อ");
-                setShowProofDialog(true);
-              }}
+              toast("กรุณาอัพโหลดหลักฐานการโอนก่อนยืนยันการสั่งซื้อ");
+              setShowProofDialog(true);
+            }}
             disabled={isLoading}
           >
             สั่งซื้อ
@@ -307,13 +356,13 @@ export default function Payment() {
 
         {/* Upload Proof Dialog */}
         <Dialog 
-          open={showProofDialog} 
-          onOpenChange={(open) => {
-            if (!open) {
-              setSelectedFile(null);
-            }
-            setShowProofDialog(open);
-          }}
+        open={showProofDialog} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedFile(null);
+          }
+          setShowProofDialog(open);
+        }}
         >
           <DialogContent>
             <DialogHeader>
@@ -376,7 +425,13 @@ export default function Payment() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
+        ))
+        ) : (
+            <div className="text-center">ไม่มีข้อมูลการสั่งซื้อ</div> // Message when no selected orders are found
+        )}
       </div>
+      )}
     </div>
   );
 }
