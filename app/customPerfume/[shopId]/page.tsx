@@ -165,8 +165,7 @@ const CustomPerfumePage = () => {
       );
 
       if (response.status === 201 || response.status === 200) {
-        alert("สั่งสินค้าแล้ว กรุณาตรวจสอบการชำระเงินที่ To Pay");
-        router.push("/to-pay");
+        router.push("/");
       } else {
         console.error("❌ Failed:", response);
         alert(response);
