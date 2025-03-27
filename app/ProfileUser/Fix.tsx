@@ -1,9 +1,9 @@
 "use client";
-import { Edit, Search, ShoppingCart, Bell, Trash2 } from 'lucide-react';
+import { Edit, Search, ShoppingCart, Bell, Store, Tractor, Grid, Clipboard, DollarSign, Upload, Truck, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
@@ -15,28 +15,27 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
-
 //import formidable from 'formidable';
 
-// const DEFAULT_IMAGES = {
-//   profile: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-// };
+const DEFAULT_IMAGES = {
+    profile: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f3f4f6'/%3E%3Cpath d='M48 48C54.6274 48 60 42.6274 60 36C60 29.3726 54.6274 24 48 24C41.3726 24 36 29.3726 36 36C36 42.6274 41.3726 48 48 48ZM48 52C40.0474 52 33.5 58.5474 33.5 66.5H62.5C62.5 58.5474 55.9526 52 48 52Z' fill='%239ca3af'/%3E%3C/svg%3E"
+  };
 
 interface AddressData {
-  address_id: string;
-  fname: string;
-  lname: string;
-  phonenumber: string;
-  street_name: string;
-  building: string;
-  subDistrict: string;
-  district: string;
-  province: string;
-  zipcode: string;
-  house_number: string;
-  is_default: boolean;
-  users_user_id: number;
-  position_id: number;
+address_id: string;
+fname: string;
+lname: string;
+phonenumber: string;
+street_name: string;
+building: string;
+subDistrict: string;
+district: string;
+province: string;
+zipcode: string;
+house_number: string;
+is_default: boolean;
+users_user_id: number;
+position_id: number;
 }
 
 export default function ProfileUser() {
@@ -473,11 +472,11 @@ export default function ProfileUser() {
                         <div className="flex flex-col md:flex-row items-center">
                             <div className="flex flex-col items-center">
                                 <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
-                                    {/* <img 
-                                        src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
-                                        alt="Profile Image" 
-                                        className="w-full h-full object-cover"
-                                    /> */}
+                                    <img 
+                                    src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
+                                    alt="Profile Image" 
+                                    className="w-full h-full object-cover"
+                                    />
                                 </div>
                                 <p className="mt-2 font-medium">{user_data?.username}</p>
                                 <Button 
@@ -521,11 +520,11 @@ export default function ProfileUser() {
                             <div className="flex flex-col items-center mb-6">
                                 <Label htmlFor="profile_image" className="mb-2">รูปโปรไฟล์</Label>
                                 <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
-                                    {/* <img 
-                                        src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
+                                    <img 
+                                        src={temp_user_data?.profile_image || DEFAULT_IMAGES.profile} 
                                         alt="Profile Image" 
                                         className="w-full h-full object-cover"
-                                    /> */}
+                                    />
                                 </div>
                                 <input
                                     type="file"
@@ -837,7 +836,7 @@ export default function ProfileUser() {
                 <Card>
                     <CardContent className="p-6">
                         {filteredAddresses.map((address) => (
-                            <div key={address.address_id} className="bg-white rounded-lg border p-4 mb-4 relative">
+                            <div key={address.id} className="bg-white rounded-lg border p-4 mb-4 relative">
                                 <div className="absolute right-4 top-4 flex space-x-2">
                                     <Button
                                         variant="ghost"
@@ -850,7 +849,7 @@ export default function ProfileUser() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() => handleDeleteAddress(address.address_id)}
+                                        onClick={() => handleDeleteAddress(address.id)}
                                         disabled={isLoading}
                                     >
                                         <Trash2 className="w-4 h-4 mr-1 text-red-500" /> Delete
@@ -860,26 +859,26 @@ export default function ProfileUser() {
                                     <input
                                         type="checkbox"
                                         className="mr-4 h-4 w-4"
-                                        checked={address.is_default}
-                                        onChange={() => handleSetDefaultAddress(address.address_id)}
+                                        checked={address.isDefault}
+                                        onChange={() => handleSetDefaultAddress(address.id)}
                                         disabled={isLoading}
                                     />
-                                    {address.is_default && <span className="text-sm text-green-600">Default Address</span>}
+                                    {address.isDefault && <span className="text-sm text-green-600">Default Address</span>}
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <p className="font-medium">{address.fname} {address.lname}</p>
-                                        <p className="text-gray-600 mt-2">{address.phonenumber}</p>
+                                        <p className="font-medium">{address.firstname} {address.lastname}</p>
+                                        <p className="text-gray-600 mt-2">{address.phone}</p>
                                         <p className="text-gray-600 mt-2">{address.province}</p>
                                     </div>
                                     <div>
                                         <p className="text-gray-600">{address.district}, {address.subDistrict}</p>
-                                        <p className="text-gray-600 mt-2">{address.street_name}</p>
-                                        <p className="text-gray-600 mt-2">{address.zipcode}</p>
+                                        <p className="text-gray-600 mt-2">{address.streetName}</p>
+                                        <p className="text-gray-600 mt-2">{address.postalCode}</p>
                                     </div>
                                     <div>
                                         <p className="text-gray-600">{address.building}</p>
-                                        <p className="text-gray-600 mt-2">{address.house_number}</p>
+                                        <p className="text-gray-600 mt-2">{address.houseNumber}</p>
                                     </div>
                                 </div>
                             </div>
@@ -899,7 +898,7 @@ export default function ProfileUser() {
                                     <Input
                                         id="firstname"
                                         name="firstname"
-                                        value={currentAddress?.fname || ''}
+                                        value={currentAddress?.firstname || ''}
                                         onChange={handleInputChange}
                                         required
                                         disabled={isLoading}
@@ -910,7 +909,7 @@ export default function ProfileUser() {
                                     <Input
                                         id="lastname"
                                         name="lastname"
-                                        value={currentAddress?.lname || ''}
+                                        value={currentAddress?.lastname || ''}
                                         onChange={handleInputChange}
                                         required
                                         disabled={isLoading}
@@ -921,7 +920,7 @@ export default function ProfileUser() {
                                     <Input
                                         id="phone"
                                         name="phone"
-                                        value={currentAddress?.phonenumber || ''}
+                                        value={currentAddress?.phone || ''}
                                         onChange={handleInputChange}
                                         required
                                         pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
@@ -930,44 +929,44 @@ export default function ProfileUser() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label htmlFor="province">จังหวัด</Label>
-                                    <Input
-                                        id="province"
-                                        name="province"
-                                        value={currentAddress?.province || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={isLoading}
+                                    <DropdownList
+                                        label="จังหวัด"
+                                        id="province_id"
+                                        list={provinces}
+                                        child="amphure"
+                                        childsId={["amphure_id", "tambon_id"]}
+                                        setChilds={[setAmphures, setTambons]}
+                                        selected={selected}
+                                        setSelected={setSelected}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label htmlFor="district">อำเภอ</Label>
-                                  <Input
-                                      id="district"
-                                      name="district"
-                                      value={currentAddress?.district || ''}
-                                      onChange={handleInputChange}
-                                      required
-                                      disabled={isLoading}
-                                  />
+                                    <DropdownList
+                                        label="เขต/อำเภอ"
+                                        id="amphure_id"
+                                        list={amphures}
+                                        child="tambon"
+                                        childsId={["tambon_id"]}
+                                        setChilds={[setTambons]}
+                                        selected={selected}
+                                        setSelected={setSelected}
+                                    />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label htmlFor="subDistrict">ตำบล</Label>
-                                  <Input
-                                      id="subDistrict"
-                                      name="subDistrict"
-                                      value={currentAddress?.subDistrict || ''}
-                                      onChange={handleInputChange}
-                                      required
-                                      disabled={isLoading}
-                                  />
+                                    <DropdownList
+                                        label="แขวง/ตำบล"
+                                        id="tambon_id"
+                                        list={tambons}
+                                        selected={selected}
+                                        setSelected={setSelected}
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="streetName">ถนน</Label>
                                     <Input
                                         id="streetName"
                                         name="streetName"
-                                        value={currentAddress?.street_name || ''}
+                                        value={currentAddress?.streetName || ''}
                                         onChange={handleInputChange}
                                         disabled={isLoading}
                                     />
@@ -987,7 +986,7 @@ export default function ProfileUser() {
                                     <Input
                                         id="houseNumber"
                                         name="houseNumber"
-                                        value={currentAddress?.house_number || ''}
+                                        value={currentAddress?.houseNumber || ''}
                                         onChange={handleInputChange}
                                         required
                                         disabled={isLoading}
@@ -998,7 +997,7 @@ export default function ProfileUser() {
                                     <Input
                                         id="postalCode"
                                         name="postalCode"
-                                        value={currentAddress?.zipcode || ''}
+                                        value={currentAddress?.postalCode || ''}
                                         onChange={handleInputChange}
                                         required
                                         pattern="[0-9]{5}"
