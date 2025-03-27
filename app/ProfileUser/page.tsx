@@ -18,9 +18,7 @@ import path from 'path';
 
 //import formidable from 'formidable';
 
-// const DEFAULT_IMAGES = {
-//   profile: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-// };
+const DEFAULT_IMAGES = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
 
 interface AddressData {
   address_id: string;
@@ -473,11 +471,13 @@ export default function ProfileUser() {
                         <div className="flex flex-col md:flex-row items-center">
                             <div className="flex flex-col items-center">
                                 <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
-                                    {/* <img 
-                                        src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
-                                        alt="Profile Image" 
+                                    <Image 
+                                        src={user_data?.profile_image || DEFAULT_IMAGES} 
+                                        alt="Profile Image"
+                                        width={100}  // Add the width
+                                        height={100} // Add the height 
                                         className="w-full h-full object-cover"
-                                    /> */}
+                                    />
                                 </div>
                                 <p className="mt-2 font-medium">{user_data?.username}</p>
                                 <Button 
@@ -521,11 +521,13 @@ export default function ProfileUser() {
                             <div className="flex flex-col items-center mb-6">
                                 <Label htmlFor="profile_image" className="mb-2">รูปโปรไฟล์</Label>
                                 <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
-                                    {/* <img 
-                                        src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
-                                        alt="Profile Image" 
+                                    <Image
+                                        src={user_data?.profile_image || DEFAULT_IMAGES} 
+                                        alt="Profile Image"
+                                        width={100}  // Add the width
+                                        height={100} // Add the height
                                         className="w-full h-full object-cover"
-                                    /> */}
+                                    />
                                 </div>
                                 <input
                                     type="file"
