@@ -26,6 +26,16 @@ const authenticator = async () => {
     throw new Error(`Authentication request failed: ${error.message}`);
   }
 };
+const fragranceTones = [
+  { id: 1, name: "Floral" },
+  { id: 2, name: "Fruity" },
+  { id: 3, name: "Spicy" },
+  { id: 4, name: "Woody" },
+  { id: 5, name: "Fresh" },
+  { id: 6, name: "Oriental" },
+  { id: 7, name: "Herbal" },
+  { id: 8, name: "Gourmand" },
+];
 interface Product {
     name: string;
     price: number;
@@ -209,7 +219,7 @@ const AddProduct = () => {
                                 <input
                                     id="price"
                                     name="price"
-                                    type="number"
+                                    type="text" // เปลี่ยนเป็น type="text"
                                     value={product.price}
                                     onChange={handleChange}
                                     required
@@ -221,7 +231,7 @@ const AddProduct = () => {
                                 <input
                                     id="stock_quantity"
                                     name="stock_quantity"
-                                    type="number"
+                                    type="text" // เปลี่ยนเป็น type="text"
                                     value={product.stock_quantity}
                                     onChange={handleChange}
                                     required
@@ -233,7 +243,7 @@ const AddProduct = () => {
                                 <input
                                     id="volume"
                                     name="volume"
-                                    type="number"
+                                    type="text" // เปลี่ยนเป็น type="text"
                                     value={product.volume}
                                     onChange={handleChange}
                                     required
@@ -264,7 +274,7 @@ const AddProduct = () => {
                                 required
                                 className="p-2 border rounded-lg w-full"
                             >
-                                <option value="">เลือกเพศ</option>
+                                <option value="">สำหรับเพศ</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
                                 <option value="Unisex">Unisex</option>
@@ -292,17 +302,17 @@ const AddProduct = () => {
 
                         <div className="mt-4">
                             <label className="block mb-1 text-sm font-medium text-gray-700">เลือก Tone น้ำหอม</label>
-                            <div className="space-y-2">
-                                {[1, 2, 3, 4].map((toneId) => (
-                                    <div key={toneId} className="flex items-center">
+                            <div className="space-y-2 grid grid-cols-3">
+                                {fragranceTones.map((tone) => (
+                                    <div key={tone.id} className="flex items-center">
                                         <input
                                             type="checkbox"
-                                            value={toneId}
-                                            checked={product.fragrance_tone_ids.includes(toneId)}
-                                            onChange={(e) => handleFragranceToneChange(e, toneId)}
+                                            value={tone.id}
+                                            checked={product.fragrance_tone_ids.includes(tone.id)}
+                                            onChange={(e) => handleFragranceToneChange(e, tone.id)}
                                             className="mr-2"
                                         />
-                                        <label>Tone {toneId}</label>
+                                        <label>{tone.name}</label>
                                     </div>
                                 ))}
                             </div>
