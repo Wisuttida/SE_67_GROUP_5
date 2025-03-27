@@ -5,6 +5,8 @@ import SideBarShop from '@/components/SideBarShop';
 import { useState, useEffect } from "react";
 import { FiMoreVertical } from "react-icons/fi";
 import axios from 'axios';
+import { useRouter } from "next/navigation";
+
 
 interface Ingredient {
   ingredient_id: number;
@@ -36,6 +38,7 @@ interface Seller {
   bank_account: string;  // Account holder's name
 }
 const ShopPost = () => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("MyPost");
   const [posts, setPosts] = useState<Post[]>([]);
   const [form, setForm] = useState({
@@ -101,6 +104,7 @@ useEffect(() => {
     const seller = sellers.find(seller => seller.farm_id === sellerId);
     if (seller) {
       alert(`รับซื้อ`);
+      router.push("/shopToRecieve");
     }
   };
   
