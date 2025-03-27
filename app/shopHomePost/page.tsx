@@ -47,24 +47,27 @@ const ShopHomePost = () => {
   const [selectedSalePost, setSelectedSalePost] = useState<SalePost | null>(null);
 
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/show-salesposts`, { withCredentials: true })
-      .then(response => {
-        console.log(response.data);
-
-        // const updatedSalePosts = response.data.sale_posts.map((post: SalePost) => ({
-        //   ...post,
-        //   price_per_unit: Number(post.price_per_unit), // แปลงเป็น number
-        //   amount: Number(post.amount), // แปลงเป็น number
-        //   sold_amount: Number(post.sold_amount), // แปลงเป็น number
-        // }));
-        // // ✅ ดึงเฉพาะ buy_posts มาจาก response
-        // setSalePosts(updatedSalePosts);
-        // console.log(updatedSalePosts);
-      })
-      .catch(error => {
-        console.error("Error fetching buy posts:", error);
-      });
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/show-salesposts`, { 
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      withCredentials: true // ตรวจสอบคุกกี้ CSRF
+    })
+    .then(response => {
+      console.log(response.data); // Check if data is correct
+      const updatedsalesPosts = response.data.sales_posts.map((post: any) => ({
+        ...post,
+        price_per_unit: Number(post.price_per_unit),
+        amount: Number(post.amount),
+        sold_amount: Number(post.sold_amount),
+      }));
+      setSalePosts(updatedsalesPosts);
+    })
+    .catch(error => {
+      console.error("Error fetching sales posts:", error);
+    });    
   }, []);
+  
 
   useEffect(() => {
     const fetchFarms = async () => {
@@ -139,11 +142,13 @@ const ShopHomePost = () => {
         {/* Main Content */}
         <div className="container mx-auto p-6">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {salePosts.map((post) => (
-              <div
-                key={post.post_id}
-                className="flex flex-col p-6 border rounded-lg shadow-lg bg-white"
-              >
+          {salePosts.map((post) => {
+          console.log(post.post_id); // Log post_id to verify it is always unique and defined
+          return (
+            <div
+            key={post.post_id} // Ensure post_id is unique
+          className="flex flex-col p-6 border rounded-lg shadow-lg bg-white"
+          >
                 <div className="flex items-center mb-3">
                   <Image
                     src={post.farm_image || "/path/to/default-image.jpg"}
@@ -155,10 +160,15 @@ const ShopHomePost = () => {
                   <h2 className="text-lg font-bold text-gray-800">{post.farm_name}</h2>
                 </div>
                 <div className="text-left text-black">
-                  <p className="text-sm">{post.ingredient_name}</p>
+                <p className="text-md font-semibold text-lg">{post.ingredient_name}</p>
+                <p className="text-sm text-gray-700">{post.description}</p>
                   <p className="text-md font-semibold">{post.price_per_unit} ต่อ {post.unit}</p>
                   <p className="text-sm">ประกาศขาย {post.amount} {post.unit}</p>
-                  <p className="text-sm">ซื้อแล้ว {post.sold_amount} {post.unit}</p>
+                  <div className="border border-blue-400 bg-blue-50 rounded-lg p-2">
+                    <p className="text-sm text-blue-700 font-semibold">
+                    ขายแล้ว {post.sold_amount} {post.unit}
+                    </p>
+                  </div>
                 </div>
                 <Button
                   variant="outline"
@@ -168,7 +178,7 @@ const ShopHomePost = () => {
                   ซื้อวัตถุดิบ
                 </Button>
               </div>
-            ))}
+            )})}
           </div>
         </div>
       </div>

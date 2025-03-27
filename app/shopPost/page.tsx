@@ -15,6 +15,7 @@ interface Ingredient {
 
 interface Post {
   ingredients_id: string;
+  ingredient_name : string;
   name: string;
   price_per_unit: number;
   unit: string;
@@ -160,16 +161,20 @@ const ShopPost = () => {
   }, []);
 
   useEffect(() => {
-    // ดึงข้อมูลโพสต์จาก API
     axios.get('http://localhost:8000/api/buy-posts', { withCredentials: true })
       .then(response => {
-        setPosts(response.data.buy_posts);
+        const updatedPosts = response.data.buy_posts.map((post: Post) => {
+          // ตรวจสอบการตั้งค่าของ ingredient_name
+          const ingredientName = post.ingredient_name || (post.ingredients && post.ingredients.name) || "ไม่ระบุชื่อวัตถุดิบ";
+          return { ...post, ingredient_name: ingredientName };
+        });
+        setPosts(updatedPosts); // Update the posts state with the correct ingredient_name
       })
       .catch(error => {
         console.error('Error fetching posts:', error);
       });
-  }, []);
-
+  }, []); // Empty dependency array, runs once when the component is mounted
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
@@ -260,9 +265,24 @@ const ShopPost = () => {
       alert("เกิดข้อผิดพลาดในการอัปเดตโพสต์");
     });
   };
-
+  const handleConfirmBuy = (offerId: string) => {
+    axios.post(`http://localhost:8000/api/buy-offers/${offerId}/confirm`, {}, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,  // ส่ง auth token สำหรับการยืนยันการทำงาน
+        'X-CSRF-TOKEN': csrfToken,  // ส่ง CSRF token
+        'Accept': 'application/json', 
+      },
+      withCredentials: true,  // ต้องการให้มีการส่งคุกกี้ในการตรวจสอบ
+    })
+    .then(response => {
+      alert('ข้อเสนอได้รับการยืนยันแล้ว');
+    })
+    .catch(error => {
+      console.error('Error confirming offer:', error);
+      alert('เกิดข้อผิดพลาดในการยืนยันข้อเสนอ');
+    });
+  };
   
-
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
@@ -364,7 +384,9 @@ const ShopPost = () => {
                         <button onClick={() => handleEdit(post)} className="block text-gray-700 px-3 py-1">แก้ไข</button>
                       </div>
                     </div>
-                    <h3 className="text-lg font-semibold mt-2">{post.name}</h3>
+                    <h3 className="text-lg font-semibold mt-2">{post.ingredient_name}</h3>
+    {/* ตรวจสอบค่าของ ingredient_name */}
+    {console.log('Ingredient Name:', post.ingredient_name)}  
                     <p>{post.price_per_unit} บาท ต่อ {post.unit}</p>
                     <p>ประกาศรับซื้อ {post.amount} {post.unit}</p>
                     <p>ซื้อแล้ว {post.bought} {post.unit}</p>
@@ -378,10 +400,17 @@ const ShopPost = () => {
                 {offers.map((offer) => (
                   <div key={offer.offer_id} className="bg-white p-4 shadow-md rounded-lg border border-gray-200 relative">
                     <h3 className="text-lg font-semibold">{offer.farm?.farm_name || "ไม่มีชื่อฟาร์ม"}</h3>
+                    
                     <p>ราคา: {offer.price_per_unit} บาท ต่อ {offer.unit}</p>
                     <p>ปริมาณที่เสนอ: {offer.quantity} {offer.unit}</p>
                     <p>สถานะ: {offer.status}</p>
-                    <button className="bg-green-500 text-white py-2 px-4 rounded mt-2">รับซื้อ</button>
+                    <button
+  onClick={() => handleConfirmBuy(offer.offer_id)}  // ส่ง offerId ให้กับฟังก์ชัน
+  className="bg-green-500 text-white py-2 px-4 rounded mt-2"
+>
+  รับซื้อ
+</button>
+
                   </div>
                 ))}
               </div>

@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import SideBarFarm from "@/components/SideBarFarm";
+import axios from 'axios';
 
 interface Order {
   shop_name: string;
@@ -13,15 +14,6 @@ interface Order {
   unit: string;
   status: "รอจัดส่ง" | "กำลังจัดส่ง" | "จัดส่งแล้ว";
 }
-
-const initialOrders: Order[] = [
-  { shop_name: "Shop 1", order_id: "order-1", name: "สินค้า 1", total_price: 500, quantity: 1, unit:"Kg", status: "รอจัดส่ง" },
-  { shop_name: "Shop 2", order_id: "order-2", name: "สินค้า 2", total_price: 1200, quantity: 2, unit:"Kg", status: "รอจัดส่ง" },
-  { shop_name: "Shop 3", order_id: "order-3", name: "สินค้า 3", total_price: 2100, quantity: 3, unit:"Kg", status: "กำลังจัดส่ง" },
-  { shop_name: "Shop 4", order_id: "order-4", name: "สินค้า 4", total_price: 3200, quantity: 4, unit:"Kg", status: "จัดส่งแล้ว" },
-  { shop_name: "Shop 5", order_id: "order-5", name: "สินค้า 5", total_price: 4500, quantity: 5, unit:"Kg", status: "จัดส่งแล้ว" },
-  { shop_name: "Shop 6", order_id: "order-6", name: "สินค้า 6", total_price: 6000, quantity: 6, unit:"Kg", status: "รอจัดส่ง" },
-];
 
 const TABS = ["รอจัดส่ง", "กำลังจัดส่ง", "จัดส่งแล้ว"];
 
@@ -58,27 +50,113 @@ const OrderCard = ({ order, updateOrderStatus }: { order: Order; updateOrderStat
 
 const ShippingDashboard = () => {
   const [selectedTab, setSelectedTab] = useState("รอจัดส่ง");
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const updateOrderStatus = (order_id : string) => {
-    setOrders(prevOrders =>
-      prevOrders.map(order =>
-        order.order_id === order_id ? { ...order, status: "กำลังจัดส่ง" } : order
-      )
-    );
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      try {
+        const statusMap = {
+          "รอจัดส่ง": "confirmed",
+          "กำลังจัดส่ง": "shipped",
+          "จัดส่งแล้ว": "delivered",
+        };
+    
+        const token = localStorage.getItem('token');  // หรือดึงจากคุกกี้หรือการเก็บข้อมูลอื่น ๆ
+        
+        const response = await axios.get(`http://localhost:8000/api/ingredient-orders/farms?status=${statusMap[selectedTab]}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,  // ส่ง Token ในหัวข้อ Authorization
+          }
+        });
+    
+        const transformedOrders = response.data.orders.map((order: any) => {
+          const buyOffer = order.buy_offer;
+          const salesOffer = order.sales_offer;
+
+          // ดึงข้อมูลชื่อสินค้าจาก ingredients.name ของ buy_offer หรือ sales_offer
+          let name = "ไม่ทราบชื่อสินค้า";
+          let quantity = 0;
+          let unit = "Kg"; // กำหนดเป็นค่าเริ่มต้น หากไม่มีข้อมูลจาก API
+
+          // ตรวจสอบ buy_offer ก่อน
+          if (buyOffer) {
+            name = buyOffer?.buy_post?.ingredients?.name || "ไม่ทราบชื่อสินค้า";  // ใช้ buy_post.ingredients.name
+            quantity = parseFloat(buyOffer?.quantity || "0");
+            unit = buyOffer?.buy_post?.unit || "Kg";
+          } else if (salesOffer) {  // ถ้าไม่มี buy_offer ให้ตรวจสอบ sales_offer
+            name = salesOffer?.sale_post?.ingredients?.name || "ไม่ทราบชื่อสินค้า";
+            quantity = parseFloat(salesOffer?.quantity || "0");
+            unit = salesOffer?.sale_post?.unit || "Kg";
+          }
+
+          return {
+            order_id: order.ingredient_orders_id.toString(),
+            shop_name: `Shop ${order.shops_shop_id}`,  // หรือดึงข้อมูลชื่อร้านจาก API อื่นๆ
+            name: name,
+            total_price: parseFloat(order.total),
+            quantity: quantity,
+            unit: unit,
+            status: order.status === 'delivered' ? 'จัดส่งแล้ว' : order.status === 'shipped' ? 'กำลังจัดส่ง' : 'รอจัดส่ง',
+          };
+        });
+
+        setOrders(transformedOrders);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [selectedTab]);
+
+  const updateOrderStatus = async (order_id: string) => {
+    try {
+      // 1. เรียก CSRF cookie ก่อน
+      await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
+        withCredentials: true, // ให้แน่ใจว่าเรียกใช้ cookies
+      });
+  
+      const token = localStorage.getItem("token"); // Token จาก localStorage หรือที่อื่นๆ
+  
+      // 2. ส่งคำขอ PUT ไปยัง API เพื่ออัปเดตสถานะ
+      const response = await axios.put(
+        `http://localhost:8000/api/ingredient-orders/${order_id}/update-to-shipped`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // ส่ง Token ในหัวข้อ Authorization
+          },
+          withCredentials: true, // ให้แน่ใจว่า CSRF cookie ถูกส่ง
+        }
+      );
+  
+      // 3. อัปเดตสถานะใน local state เมื่อได้รับการตอบกลับจาก API
+      if (response.data.message === 'อัปเดตสถานะคำสั่งซื้อเป็น "shipped" สำเร็จ') {
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.order_id === order_id
+              ? { ...order, status: "กำลังจัดส่ง" }
+              : order
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error);
+    }
   };
-
-  const filteredOrders = orders.filter(order => order.status === selectedTab);
+  
 
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="flex">
-        {/* Sidebar */}
         <div>
-        <SideBarFarm />
+          <SideBarFarm />
         </div>
-        {/* Main content area */}
         <div className="flex-1 p-6 bg-gray-100">
           <div className="bg-gradient-to-br from-gray-100 to-white p-6 rounded-2xl shadow-lg">
             <h1 className="text-2xl font-bold mb-4">การจัดส่งวัตถุดิบ</h1>
@@ -94,13 +172,17 @@ const ShippingDashboard = () => {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order, index) => <OrderCard key={index} order={order} updateOrderStatus={updateOrderStatus} />)
-              ) : (
-                <p className="text-gray-500">ไม่มีคำสั่งซื้อในหมวดนี้</p>
-              )}
-            </div>
+            {loading ? (
+              <div className="text-center">กำลังโหลดข้อมูล...</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {orders.length > 0 ? (
+                  orders.map((order, index) => <OrderCard key={index} order={order} updateOrderStatus={updateOrderStatus} />)
+                ) : (
+                  <p className="text-gray-500">ไม่มีคำสั่งซื้อในหมวดนี้</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
