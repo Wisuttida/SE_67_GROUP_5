@@ -1,9 +1,9 @@
 "use client";
-import { Edit, Search, ShoppingCart, Bell, Store, Tractor, Grid, Clipboard, DollarSign, Upload, Truck, Trash2 } from 'lucide-react';
+import { Edit, Search, ShoppingCart, Bell, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
@@ -34,6 +34,7 @@ interface AddressData {
   users_user_id: number;
   position_id: number;
 }
+
 
 export default function ProfileUser() {
   let csrf = localStorage.getItem('csrfToken');
@@ -83,229 +84,222 @@ export default function ProfileUser() {
     const phoneRegexNumber = /[A-Za-z]+/;
     const phoneRegexLenght = /^\d{9,10}$/;
     if(phoneRegexZero.test(phone)) {
-      return 0;
+        return 0;
     }
     else if(phoneRegexNumber.test(phone)) {
-      return 1;
+        return 1;
     }
     else if(!phoneRegexLenght.test(phone)) {
-      return 2;
+        return 2;
     }
     else
-      return 3;
-  };
-  const getEmptyAddress = (): AddressData => ({
-    address_id: '',
-    fname: '',
-    lname: '',
-    phonenumber: '',
-    province: '',
-    district: '',
-    subDistrict: '',
-    zipcode: '',
-    street_name: '',
-    building: '',
-    house_number: '',
-    is_default: false,
-    users_user_id: user_data?.user_id ?? 0,
-    position_id: 0,
-  });
+        return 3;
+    };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setCurrentAddress((prev) => {
-      if (!prev) return getEmptyAddress();
-      return { ...prev, [name]: value } as AddressData;
+    const getEmptyAddress = (): AddressData => ({
+        address_id: '',
+        fname: '',
+        lname: '',
+        phonenumber: '',
+        province: '',
+        district: '',
+        subDistrict: '',
+        zipcode: '',
+        street_name: '',
+        building: '',
+        house_number: '',
+        is_default: false,
+        users_user_id: user_data?.user_id ?? 0,
+        position_id: 0,
     });
-  };
-
-  const handleAddAddress = () => {
-    setCurrentAddress(getEmptyAddress());
-    setIsEditing(false);
-    setIsAddressDialogOpen(true);
-  };
-
-  const handleEditAddress = (address: AddressData) => {
-    setCurrentAddress({ ...address });
-    setIsEditing(true);
-    setIsAddressDialogOpen(true);
-  };
-
-  const handleDeleteAddress = async (id: string) => {
-    try {
-      if (confirm("คุณต้องการลบที่อยู่นี้ใช่หรือไม่?")) {
-        setIsLoading(true);
-        const updatedAddresses = addresses.filter(addr => addr.address_id !== id);
-        setAddresses(updatedAddresses);
-        toast("ลบที่อยู่เรียบร้อยแล้ว");
-      }
-    } catch (error) {
-      toast("ไม่สามารถลบที่อยู่ได้ กรุณาลองใหม่อีกครั้ง");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSetDefaultAddress = async (id: string) => {
-    try {
-      setIsLoading(true);
-      const updatedAddresses = addresses.map(address => ({
-        ...address,
-        isDefault: address.address_id === id
-      }));
-      setAddresses(updatedAddresses);
-      axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${id}`,
-        {
-          is_default: true,
-          position_id: 4,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setCurrentAddress((prev) => {
+            if (!prev) return getEmptyAddress();
+            return { ...prev, [name]: value } as AddressData;
+        });
+    };
+    const handleAddAddress = () => {
+        setCurrentAddress(getEmptyAddress());
+        setIsEditing(false);
+        setIsAddressDialogOpen(true);
+    };
+    const handleEditAddress = (address: AddressData) => {
+        setCurrentAddress({ ...address });
+        setIsEditing(true);
+        setIsAddressDialogOpen(true);
+    };
+    const handleDeleteAddress = async (id: string) => {
+        try {
+          if (confirm("คุณต้องการลบที่อยู่นี้ใช่หรือไม่?")) {
+            setIsLoading(true);
+            const updatedAddresses = addresses.filter(addr => addr.address_id !== id);
+            setAddresses(updatedAddresses);
+            toast("ลบที่อยู่เรียบร้อยแล้ว");
+          }
+        } catch (error) {
+          toast("ไม่สามารถลบที่อยู่ได้ กรุณาลองใหม่อีกครั้ง");
+        } finally {
+          setIsLoading(false);
+        }
+    };
+    const handleSetDefaultAddress = async (id: string) => {
+        try {
+          setIsLoading(true);
+          const updatedAddresses = addresses.map(address => ({
+            ...address,
+            isDefault: address.address_id === id
+          }));
+          setAddresses(updatedAddresses);
+          axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${id}`,
+            {
+              is_default: true,
+              position_id: 4,
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrf,
+              },
+              withCredentials: true,
+            }
+          )
+          .then(res => {
+            toast("ตั้งเป็นที่อยู่หลักเรียบร้อยแล้ว");
+          })
+          .catch(error => {
+            console.error('Error saving address:', error.response ? error.response.data : error.message);
+          });
+          
+          // เรียกข้อมูลใหม่เพื่ออัพเดตที่อยู่
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': csrf,
+            },
+            withCredentials: true,
+          })
+          .then(res => {
+            localStorage.setItem('addresses', JSON.stringify(res.data.data));
+            window.location.reload();
+          })
+          .catch(error => {
+            console.error("Error fetching address:", error);
+          });
+        } catch (error) {
+          toast("ไม่สามารถตั้งค่าที่อยู่หลักได้ กรุณาลองใหม่อีกครั้ง");
+        } finally {
+          setIsLoading(false);
+        }
+    };
+    const handleSaveAddress = async (event: React.FormEvent) => {
+        event.preventDefault();
+        if (!currentAddress) return;
+    
+        if (validatePhoneNumber(currentAddress.phonenumber) == 0) {
+          toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณาเริ่มต้นด้วย 0");
+          return;
+        }else if (validatePhoneNumber(currentAddress.phonenumber) == 1){
+          toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณากรอกตัวเลข");
+          return;
+        }else if (validatePhoneNumber(currentAddress.phonenumber) == 2) {
+          toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณากรอกระหว่าง 9-10 ตัว");
+          return;
+        }
+    
+        try {
+          setIsLoading(true);
+          if (isEditing) {
+            const updatedAddresses = addresses.map(addr => 
+              addr.address_id === currentAddress.address_id ? currentAddress : addr
+            );
+            setAddresses(updatedAddresses);
+            axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${currentAddress.address_id}`,
+              {
+                fname : currentAddress.fname,
+                lname : currentAddress.lname,
+                phonenumber : currentAddress.phonenumber,
+                street_name : currentAddress.street_name,
+                house_number : currentAddress.house_number,
+                building : currentAddress.building,
+                province : currentAddress.province,
+                district : currentAddress.district,
+                subDistrict : currentAddress.subDistrict,
+                zipcode : currentAddress.zipcode,
+              },
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'X-CSRF-TOKEN': csrf,
+                },
+                withCredentials: true,
+              }
+            ).then(res => {
+              toast("อัปเดตที่อยู่เรียบร้อยแล้ว");
+            }).catch(error => {
+              console.error('Error saving address:', error.response ? error.response.data : error.message);
+            });
+          } else {
+            setAddresses(prev => [...prev, currentAddress]);
+            axios.post(`${process.env.NEXT_PUBLIC_API_URL}/addresses/`,
+              {
+                fname : currentAddress.fname,
+                lname : currentAddress.lname,
+                phonenumber : currentAddress.phonenumber,
+                street_name : currentAddress.street_name,
+                house_number : currentAddress.house_number,
+                building : currentAddress.building,
+                province : currentAddress.province,
+                district : currentAddress.district,
+                subDistrict : currentAddress.subDistrict,
+                zipcode : currentAddress.zipcode,
+                position_id: 4,
+              },
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'X-CSRF-TOKEN': csrf,
+                },
+                withCredentials: true,
+              }
+            ).then(res => {
+              toast("เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว");
+            }).catch(error => {
+              console.error('Error saving address:', error.response ? error.response.data : error.message);
+            });
+          }
+        // เรียกข้อมูลใหม่เพื่ออัพเดตที่อยู่
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
+            headers: {
             'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': csrf,
-          },
-          withCredentials: true,
+            },
+            withCredentials: true,
+        })
+        .then(res => {
+            localStorage.setItem('addresses', JSON.stringify(res.data.data));
+        })
+        .catch(error => {
+            console.error("Error fetching address:", error);
+        });
+
+        setIsAddressDialogOpen(false);
+        setCurrentAddress(null);
+        } catch (error) {
+        toast("ไม่สามารถบันทึกที่อยู่ได้ กรุณาลองใหม่อีกครั้ง");
+        } finally {
+        setIsLoading(false);
         }
-      )
-      .then(res => {
-        toast("ตั้งเป็นที่อยู่หลักเรียบร้อยแล้ว");
-      })
-      .catch(error => {
-        console.error('Error saving address:', error.response ? error.response.data : error.message);
-      });
-      
-      // เรียกข้อมูลใหม่เพื่ออัพเดตที่อยู่
-      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': csrf,
-        },
-        withCredentials: true,
-      })
-      .then(res => {
-        localStorage.setItem('addresses', JSON.stringify(res.data.data));
-        window.location.reload();
-      })
-      .catch(error => {
-        console.error("Error fetching address:", error);
-      });
-    } catch (error) {
-      toast("ไม่สามารถตั้งค่าที่อยู่หลักได้ กรุณาลองใหม่อีกครั้ง");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSaveAddress = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!currentAddress) return;
-
-    if (validatePhoneNumber(currentAddress.phonenumber) == 0) {
-      toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณาเริ่มต้นด้วย 0");
-      return;
-    }else if (validatePhoneNumber(currentAddress.phonenumber) == 1){
-      toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณากรอกตัวเลข");
-      return;
-    }else if (validatePhoneNumber(currentAddress.phonenumber) == 2) {
-      toast("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง กรุณากรอกระหว่าง 9-10 ตัว");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      if (isEditing) {
-        const updatedAddresses = addresses.map(addr => 
-          addr.address_id === currentAddress.address_id ? currentAddress : addr
-        );
-        setAddresses(updatedAddresses);
-        axios.put(`${process.env.NEXT_PUBLIC_API_URL}/addresses/${currentAddress.address_id}`,
-          {
-            fname : currentAddress.fname,
-            lname : currentAddress.lname,
-            phonenumber : currentAddress.phonenumber,
-            street_name : currentAddress.street_name,
-            house_number : currentAddress.house_number,
-            building : currentAddress.building,
-            province : currentAddress.province,
-            district : currentAddress.district,
-            subDistrict : currentAddress.subDistrict,
-            zipcode : currentAddress.zipcode,
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-              'X-Requested-With': 'XMLHttpRequest',
-              'X-CSRF-TOKEN': csrf,
-            },
-            withCredentials: true,
-          }
-        ).then(res => {
-          toast("อัปเดตที่อยู่เรียบร้อยแล้ว");
-        }).catch(error => {
-          console.error('Error saving address:', error.response ? error.response.data : error.message);
-        });
-      } else {
-        setAddresses(prev => [...prev, currentAddress]);
-        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/addresses/`,
-          {
-            fname : currentAddress.fname,
-            lname : currentAddress.lname,
-            phonenumber : currentAddress.phonenumber,
-            street_name : currentAddress.street_name,
-            house_number : currentAddress.house_number,
-            building : currentAddress.building,
-            province : currentAddress.province,
-            district : currentAddress.district,
-            subDistrict : currentAddress.subDistrict,
-            zipcode : currentAddress.zipcode,
-            position_id: 4,
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-              'X-Requested-With': 'XMLHttpRequest',
-              'X-CSRF-TOKEN': csrf,
-            },
-            withCredentials: true,
-          }
-        ).then(res => {
-          toast("เพิ่มที่อยู่ใหม่เรียบร้อยแล้ว");
-        }).catch(error => {
-          console.error('Error saving address:', error.response ? error.response.data : error.message);
-        });
-      }
-      
-    
-      // เรียกข้อมูลใหม่เพื่ออัพเดตที่อยู่
-      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/addresses`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': csrf,
-        },
-        withCredentials: true,
-      })
-      .then(res => {
-        localStorage.setItem('addresses', JSON.stringify(res.data.data));
-      })
-      .catch(error => {
-        console.error("Error fetching address:", error);
-      });
-
-      setIsAddressDialogOpen(false);
-      setCurrentAddress(null);
-    } catch (error) {
-      toast("ไม่สามารถบันทึกที่อยู่ได้ กรุณาลองใหม่อีกครั้ง");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const filteredAddresses: AddressData[] = addresses.filter(address => 
