@@ -9,6 +9,8 @@
 !/node_modules/imagekit
 !/node_modules/imagekitio-next
 !/node_modules/hamming-distance
+!/node_modules/lodash
+!/node_modules/uuid
 /.pnp
 .pnp.*
 .yarn/*
