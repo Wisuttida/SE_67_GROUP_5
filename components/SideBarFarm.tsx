@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function SideBarFarm() {
   const menuItems = [
-    { icon: <User className="w-5 h-5" />, label: "My Profile", href: "/farm/profile" },
+    { icon: <User className="w-5 h-5" />, label: "My Profile", href: "/ProfileUser" },
     { icon: <Package className="w-5 h-5" />, label: "To Ship", href: "/farm/to-ship" },
     { icon: <Store className="w-5 h-5" />, label: "Sell Ingredient", href: "/farm/sell-ingredient" },
   ];

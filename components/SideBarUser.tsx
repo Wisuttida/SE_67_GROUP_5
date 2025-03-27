@@ -1,14 +1,12 @@
 "use client";
 
-import { Store, Tractor, Grid, ShoppingCart, Clipboard, DollarSign, Upload, Truck, User, Settings } from 'lucide-react';
-import { Button } from "@/components/ui/button"; // Corrected import path
+import { Store, Tractor, Grid, ShoppingCart, Clipboard, DollarSign, Upload, Truck, User } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from 'react';
 
-const DEFAULT_IMAGES = {
-  profile: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f3f4f6'/%3E%3Cpath d='M48 48C54.6274 48 60 42.6274 60 36C60 29.3726 54.6274 24 48 24C41.3726 24 36 29.3726 36 36C36 42.6274 41.3726 48 48 48ZM48 52C40.0474 52 33.5 58.5474 33.5 66.5H62.5C62.5 58.5474 55.9526 52 48 52Z' fill='%239ca3af'/%3E%3C/svg%3E"
-};
+const DEFAULT_PROFILE_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23f3f4f6'/%3E%3Cpath d='M48 48C54.6274 48 60 42.6274 60 36C60 29.3726 54.6274 24 48 24C41.3726 24 36 29.3726 36 36C36 42.6274 41.3726 48 48 48ZM48 52C40.0474 52 33.5 58.5474 33.5 66.5H62.5C62.5 58.5474 55.9526 52 48 52Z' fill='%239ca3af'/%3E%3C/svg%3E";
 
 interface UserData {
   user_id: number;
@@ -39,7 +37,6 @@ export default function SideBarUser() {
         setUserData(data);
       } catch (error) {
         console.error('Error parsing user data from localStorage:', error);
-        // Optionally, you can set a default state or show an error message in the UI
       }
     }
   }, []);
@@ -48,7 +45,7 @@ export default function SideBarUser() {
     { icon: <User className="w-5 h-5" />, label: "Profile", href: "/ProfileUser" },
     { icon: <Store className="w-5 h-5" />, label: "My Shop", href: "/profileShop" },
     { icon: <Tractor className="w-5 h-5" />, label: "My Farm", href: "/farm" },
-    { icon: <Grid className="w-5 h-5" />, label: "Order Customize", href: "/customize" },
+    { icon: <Grid className="w-5 h-5" />, label: "Order Customize", href: "/ProfileUser/customize-order" },
     { icon: <ShoppingCart className="w-5 h-5" />, label: "Cart", href: "/cart" },
     { icon: <Clipboard className="w-5 h-5" />, label: "Order", href: "/userOrder" },
     { icon: <DollarSign className="w-5 h-5" />, label: "To Pay", href: "/userToPay" },
@@ -62,7 +59,7 @@ export default function SideBarUser() {
       <div className="flex flex-col items-center mb-6 pb-6 border-b border-gray-200">
         <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 mb-3">
           <Image 
-            src={userData.profile_image || DEFAULT_IMAGES.profile}
+            src={userData.profile_image || DEFAULT_PROFILE_IMAGE}
             alt="Profile"
             width={80}
             height={80}
