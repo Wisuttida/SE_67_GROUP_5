@@ -293,7 +293,7 @@ export default function Farm() {
           </Card>
           {/* ข้อมูลบัญชีธนาคาร */}
           <div className="bg-white p-6 rounded-2xl shadow-lg mt-6">
-            <h3 className="text-xl font-semibold mb-4">🏦 ข้อมูลบัญชีธนาคาร</h3>
+            <h3 className="text-xl font-semibold mb-4">🏦 Bank</h3>
 
             {isEditing ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -336,8 +336,8 @@ export default function Farm() {
                   </div>
                 ))}
                 <div className="flex justify-end mt-4 space-x-4">
-                  <button onClick={handleCancelBankEdit} className="bg-gray-300 px-4 py-2 rounded-lg">ยกเลิก</button>
-                  <button onClick={handleSave} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">บันทึก</button>
+                  <button onClick={handleCancelBankEdit} className="bg-gray-300 px-4 py-2 rounded-lg">Cancle</button>
+                  <button onClick={handleSave} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Save</button>
                 </div>
               </div>
             ) : (
@@ -345,7 +345,7 @@ export default function Farm() {
                 {Object.entries(bankInfo).map(([key, value]) => (
                   <p key={key}>{labelMapping[key] || key.replace(/([A-Z])/g, ' $1')}: {value || '-'}</p>
                 ))}
-                <button onClick={handleEditBankInfo} className="text-blue-500 mt-4">✏️ แก้ไขข้อมูลบัญชีธนาคาร</button>
+                <button onClick={handleEditBankInfo} className="text-blue-500 mt-4">✏️ Edit Bank</button>
               </div>
             )}
 
