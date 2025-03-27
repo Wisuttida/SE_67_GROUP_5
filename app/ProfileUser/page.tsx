@@ -430,619 +430,414 @@ export default function ProfileUser() {
   
   return (
     <div>
-        <Navbar />
-        <div className="flex min-h-screen bg-gray-50">
-            {/* Sidebar */}
-            <div className="hidden md:block">
-                <SideBarUser />
-            </div>
-            {/* Main Content */}
-            <div className="flex-1 p-4">
-                {/* Search Bar */}
-                <div className="flex justify-between items-center mb-6">
-                    <div className="relative w-full max-w-md">
-                        <Input
-                            type="text"
-                            placeholder="Search Address"
-                            className="w-full px-4 py-2 rounded-full bg-gray-50"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
-                        >
-                            <Search className="w-5 h-5 text-gray-500" />
-                        </Button>
-                    </div>
-                    <div className="flex space-x-4 ml-4">
-                        <Button variant="ghost" size="sm" className="p-1">
-                            <ShoppingCart className="w-6 h-6" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="p-1">
-                            <Bell className="w-6 h-6" />
-                        </Button>
-                    </div>
-                </div>
-                {/* Profile Section */}
-                <Card className="mb-6">
-                    <CardContent className="p-6">
-                        <div className="flex flex-col md:flex-row items-center">
-                            <div className="flex flex-col items-center">
-                                <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
-                                    <Image 
-                                        src={user_data?.profile_image || DEFAULT_IMAGES} 
-                                        alt="Profile Image"
-                                        width={100}  // Add the width
-                                        height={100} // Add the height 
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                                <p className="mt-2 font-medium">{user_data?.username}</p>
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="mt-2"
-                                    onClick={() => setIsProfileDialogOpen(true)}
-                                >
-                                    <Edit className="w-4 h-4 mr-1" /> Edit Profile
-                                </Button>
-                            </div>
-            
-                            <div className="mt-6 md:mt-0 md:ml-10 text-center md:text-left">
-                                <h2 className="text-xl font-semibold mb-2">Profile Information</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-gray-500">Full Name</p>
-                                        <p>{user_data?.first_name} {user_data?.last_name}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-500">Email</p>
-                                        <p>{user_data?.email}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-500">User ID</p>
-                                        <p>{user_data?.user_id}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                {/* Edit Profile */}
-                <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
-                    <DialogContent className="sm:max-w-2xl">
-                        <DialogHeader>
-                            <DialogTitle>แก้ไขโปรไฟล์</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleSaveProfile}>
-                            {/* Section for Profile Image */}
-                            <div className="flex flex-col items-center mb-6">
-                                <Label htmlFor="profile_image" className="mb-2">รูปโปรไฟล์</Label>
-                                <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
-                                    <Image
-                                        src={user_data?.profile_image || DEFAULT_IMAGES} 
-                                        alt="Profile Image"
-                                        width={100}  // Add the width
-                                        height={100} // Add the height
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                                <input
-                                    type="file"
-                                    id="profile_image"
-                                    name="profile_image"
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    disabled={isLoading}
-                                    className="file:py-2 file:px-4 file:border file:border-blue-600 file:rounded-md"
-                                />
-                            </div>
-                            {/* Form fields */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="first_name">ชื่อจริง</Label>
-                                    <Input
-                                        id="first_name"
-                                        name="first_name"
-                                        value={user_data?.first_name || ''}
-                                        onChange={handleInputChangeProfile}
-                                        required
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="last_name">นามสกุล</Label>
-                                        <Input
-                                            id="last_name"
-                                            name="last_name"
-                                            value={user_data?.last_name || ''}
-                                            onChange={handleInputChangeProfile}
-                                            required
-                                            disabled={isLoading}
-                                        />
-                                </div>
-                                {/* <div className="space-y-2">
-                                <Label htmlFor="email">อีเมล</Label>
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    value={user_data?.email || ''}
-                                    onChange={handleInputChangeProfile}
-                                    required
-                                    disabled={isLoading}
-                                />
-                                </div> */}
-                            </div>
-                            {/* Action Buttons */}
-                            <div className="mt-6 flex justify-end space-x-4">
-                                <Button 
-                                    type="button" 
-                                    variant="outline" 
-                                    onClick={() => setIsProfileDialogOpen(false)} 
-                                    disabled={isLoading}
-                                >
-                                ยกเลิก
-                                </Button>
-                                <Button 
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
-                                >
-                                {isLoading ? (
-                                    <div className="flex items-center">
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                        กำลังบันทึก...
-                                    </div>
-                                ) : (
-                                    "บันทึก"
-                                )}
-                                </Button>
-                            </div>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-                {/* Address Section */}
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-medium">Address</h2>
-                            <Button variant="outline" onClick={handleAddAddress} disabled={isLoading}>
-                                <Search className="w-5 h-5 text-gray-500" />
-                            </Button>
-                        </div>
-                        {filteredAddresses.length === 0 ? (
-                            <div className="text-center py-6 text-gray-500">
-                                {searchQuery ? "ไม่พบที่อยู่ที่ค้นหา" : "ไม่มีที่อยู่ โปรดเพิ่มที่อยู่ใหม่"}
-                            </div>
-                        ) : (
-                            <>
-                                {filteredAddresses.map((address) => (
-                                    <div key={address.address_id} className="bg-white rounded-lg border p-4 mb-4 relative">
-                                        <div className="absolute right-4 top-4 flex space-x-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleEditAddress(address)}
-                                                disabled={isLoading}
-                                            >
-                                                <Edit className="w-4 h-4 mr-1" /> Edit
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleDeleteAddress(address.address_id)}
-                                                disabled={isLoading}
-                                            >
-                                                <Trash2 className="w-4 h-4 mr-1 text-red-500" /> Delete
-                                            </Button>
-                                        </div>
+      <Navbar />
 
-                                        <div className="flex items-center mb-2">
-                                            <input
-                                                type="checkbox"
-                                                className="mr-4 h-4 w-4"
-                                                checked={address.is_default}
-                                                onChange={() => handleSetDefaultAddress(address.address_id)}
-                                                disabled={isLoading}
-                                            />
-                                            {address.is_default ? <span className="text-sm text-green-600">Default Address</span> : null}
-                                        </div>
-
-                                        <p className="mt-2 font-medium">{user_data?.username}</p>
-                                        <Button variant="ghost" size="sm" className="mt-2">
-                                            <Edit className="w-4 h-4 mr-1" /> Edit Profile
-                                        </Button>
-
-                                        <div className="mt-6 md:mt-0 md:ml-10 text-center md:text-left">
-                                            <h2 className="text-xl font-semibold mb-2">Profile Information</h2>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <p className="font-medium">{address.fname} {address.lname}</p>
-                                                    <p className="text-gray-600 mt-2">{address.phonenumber}</p>
-                                                    <p className="text-gray-600 mt-2">{address.province}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-gray-600">{address.district}, {address.subDistrict}</p>
-                                                    <p className="text-gray-600 mt-2">{address.street_name}</p>
-                                                    <p className="text-gray-600 mt-2">{address.zipcode}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-gray-600">{address.building}</p>
-                                                    <p className="text-gray-600 mt-2">{address.house_number}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </>
-                        )}
-                    </CardContent>
-                </Card>
-                {/* Address Form Dialog */}
-                <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                    <DialogContent className="sm:max-w-2xl">
-                        <DialogHeader>
-                            <DialogTitle>{isEditing ? 'แก้ไขที่อยู่' : 'เพิ่มที่อยู่ใหม่'}</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleSaveAddress}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="fname">ชื่อจริง</Label>
-                                    <Input
-                                        id="fname"
-                                        name="fname"
-                                        value={currentAddress?.fname || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="lname">นามสกุล</Label>
-                                    <Input
-                                        id="lname"
-                                        name="lname"
-                                        value={currentAddress?.lname || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                            
-                                <div className="space-y-2">
-                                    <Label htmlFor="phonenumber">เบอร์โทรศัพท์ (0XXXXXXXXX)</Label>
-                                    <Input
-                                        id="phonenumber"
-                                        name="phonenumber"
-                                        value={currentAddress?.phonenumber || ''}
-                                        onChange={handleInputChange}
-                                        // pattern="^0[0-9]{8,9}$"
-                                        required
-                                        placeholder="0XXXXXXXXX"
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="street_name">ถนน</Label>
-                                    <Input
-                                        id="street_name"
-                                        name="street_name"
-                                        value={currentAddress?.street_name || ''}
-                                        onChange={handleInputChange}
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="building">อาคาร/หมู่บ้าน</Label>
-                                    <Input
-                                        id="building"
-                                        name="building"
-                                        value={currentAddress?.building || ''}
-                                        onChange={handleInputChange}
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                            
-                                <div className="space-y-2">
-                                    <Label htmlFor="house_number">บ้านเลขที่</Label>
-                                    <Input
-                                        id="house_number"
-                                        name="house_number"
-                                        value={currentAddress?.house_number || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="subDistrict">ตำบล</Label>
-                                    <Input
-                                        id="subDistrict"
-                                        name="subDistrict"
-                                        value={currentAddress?.subDistrict || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="district">อำเภอ</Label>
-                                    <Input
-                                        id="district"
-                                        name="district"
-                                        value={currentAddress?.district || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="province">จังหวัด</Label>
-                                    <Input
-                                        id="province"
-                                        name="province"
-                                        value={currentAddress?.province || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="zipcode">รหัสไปรษณีย์</Label>
-                                    <Input
-                                        id="zipcode"
-                                        name="zipcode"
-                                        value={currentAddress?.zipcode || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        pattern="[0-9]{5}"
-                                        placeholder="XXXXX"
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                            </div>
-                            <div className="mt-6 flex justify-end space-x-4">
-                                <Button 
-                                    type="button" 
-                                    variant="outline" 
-                                    onClick={() => {
-                                        setIsAddressDialogOpen(false);
-                                        setCurrentAddress(null);
-                                    }}
-                                    disabled={isLoading}
-                                    className="min-w-[100px]"
-                                >
-                                    ยกเลิก
-                                </Button>
-                                <Button 
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
-                                >
-                                    {isLoading ? (
-                                    <div className="flex items-center">
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2">
-                                            กำลังบันทึก...
-                                        </div>
-                                    </div>
-                                    ) : (
-                                        "บันทึก"
-                                    )}
-                                </Button>
-                            </div>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-                <Card>
-                    <CardContent className="p-6">
-                        {filteredAddresses.map((address) => (
-                            <div key={address.address_id} className="bg-white rounded-lg border p-4 mb-4 relative">
-                                <div className="absolute right-4 top-4 flex space-x-2">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleEditAddress(address)}
-                                        disabled={isLoading}
-                                    >
-                                    <Edit className="w-4 h-4 mr-1" /> Edit
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleDeleteAddress(address.address_id)}
-                                        disabled={isLoading}
-                                    >
-                                        <Trash2 className="w-4 h-4 mr-1 text-red-500" /> Delete
-                                    </Button>
-                                </div>
-                                <div className="flex items-center mb-2">
-                                    <input
-                                        type="checkbox"
-                                        className="mr-4 h-4 w-4"
-                                        checked={address.is_default}
-                                        onChange={() => handleSetDefaultAddress(address.address_id)}
-                                        disabled={isLoading}
-                                    />
-                                    {address.is_default && <span className="text-sm text-green-600">Default Address</span>}
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <p className="font-medium">{address.fname} {address.lname}</p>
-                                        <p className="text-gray-600 mt-2">{address.phonenumber}</p>
-                                        <p className="text-gray-600 mt-2">{address.province}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-600">{address.district}, {address.subDistrict}</p>
-                                        <p className="text-gray-600 mt-2">{address.street_name}</p>
-                                        <p className="text-gray-600 mt-2">{address.zipcode}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-600">{address.building}</p>
-                                        <p className="text-gray-600 mt-2">{address.house_number}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-                {/* Address Form Dialog */}
-                <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                    <DialogContent className="sm:max-w-2xl">
-                        <DialogHeader>
-                            <DialogTitle>{isEditing ? 'แก้ไขที่อยู่' : 'เพิ่มที่อยู่ใหม่'}</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleSaveAddress}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="firstname">ชื่อจริง</Label>
-                                    <Input
-                                        id="firstname"
-                                        name="firstname"
-                                        value={currentAddress?.fname || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="lastname">นามสกุล</Label>
-                                    <Input
-                                        id="lastname"
-                                        name="lastname"
-                                        value={currentAddress?.lname || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="phone">เบอร์โทรศัพท์ (0XX-XXX-XXXX)</Label>
-                                    <Input
-                                        id="phone"
-                                        name="phone"
-                                        value={currentAddress?.phonenumber || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
-                                        placeholder="0XX-XXX-XXXX"
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="province">จังหวัด</Label>
-                                    <Input
-                                        id="province"
-                                        name="province"
-                                        value={currentAddress?.province || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="district">อำเภอ</Label>
-                                  <Input
-                                      id="district"
-                                      name="district"
-                                      value={currentAddress?.district || ''}
-                                      onChange={handleInputChange}
-                                      required
-                                      disabled={isLoading}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="subDistrict">ตำบล</Label>
-                                  <Input
-                                      id="subDistrict"
-                                      name="subDistrict"
-                                      value={currentAddress?.subDistrict || ''}
-                                      onChange={handleInputChange}
-                                      required
-                                      disabled={isLoading}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="streetName">ถนน</Label>
-                                    <Input
-                                        id="streetName"
-                                        name="streetName"
-                                        value={currentAddress?.street_name || ''}
-                                        onChange={handleInputChange}
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="building">อาคาร/หมู่บ้าน</Label>
-                                    <Input
-                                        id="building"
-                                        name="building"
-                                        value={currentAddress?.building || ''}
-                                        onChange={handleInputChange}
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="houseNumber">บ้านเลขที่</Label>
-                                    <Input
-                                        id="houseNumber"
-                                        name="houseNumber"
-                                        value={currentAddress?.house_number || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="postalCode">รหัสไปรษณีย์</Label>
-                                    <Input
-                                        id="postalCode"
-                                        name="postalCode"
-                                        value={currentAddress?.zipcode || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                        pattern="[0-9]{5}"
-                                        placeholder="XXXXX"
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                            </div>
-                            <div className="mt-6 flex justify-end space-x-4">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => {
-                                        setIsAddressDialogOpen(false);
-                                        setCurrentAddress(null);
-                                    }}
-                                    disabled={isLoading}
-                                    className="min-w-[100px]"
-                                >
-                                ยกเลิก
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
-                                >
-                                    {isLoading ? (
-                                        <div className="flex items-center">
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2">
-                                                กำลังบันทึก...
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        "บันทึก"
-                                    )}
-                                </Button>
-                            </div>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            </div>
+      {/* Main Content with Sidebar Layout */}
+      <div className="flex min-h-screen bg-gray-50">
+        {/* Sidebar */}
+        <div className="hidden md:block">
+          <SideBarUser />
         </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-4">
+          {/* Search Bar */}
+          <div className="flex justify-between items-center mb-6">
+            <div className="relative w-full max-w-md">
+              <Input
+                type="text"
+                placeholder="Search Address"
+                className="w-full px-4 py-2 rounded-full bg-gray-50"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
+              >
+                <Search className="w-5 h-5 text-gray-500" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Profile Section */}
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center">
+                <div className="flex flex-col items-center">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
+                  <img 
+                    src={user_data?.profile_image || DEFAULT_IMAGES.profile} 
+                    alt="Profile Image" 
+                    className="w-full h-full object-cover"
+                  />
+                  </div>
+                  <p className="mt-2 font-medium">{user_data?.username}</p>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => setIsProfileDialogOpen(true)}
+                  >
+                    <Edit className="w-4 h-4 mr-1" /> Edit Profile
+                  </Button>
+                </div>
+
+                <div className="mt-6 md:mt-0 md:ml-10 text-center md:text-left">
+                  <h2 className="text-xl font-semibold mb-2">Profile Information</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-gray-500">Full Name</p>
+                      <p>{user_data?.first_name} {user_data?.last_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Email</p>
+                      <p>{user_data?.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">User ID</p>
+                      <p>{user_data?.user_id}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Edit Profile */}
+<Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+  <DialogContent className="sm:max-w-2xl">
+    <DialogHeader>
+      <DialogTitle>แก้ไขโปรไฟล์</DialogTitle>
+    </DialogHeader>
+    
+    <form onSubmit={handleSaveProfile}>
+      {/* Section for Profile Image */}
+      <div className="flex flex-col items-center mb-6">
+        <Label htmlFor="profile_image" className="mb-2">รูปโปรไฟล์</Label>
+        <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-4">
+          <img 
+            src={temp_user_data?.profile_image || DEFAULT_IMAGES.profile} 
+            alt="Profile Image" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <input
+          type="file"
+          id="profile_image"
+          name="profile_image"
+          accept="image/*"
+          onChange={handleImageChange}
+          disabled={isLoading}
+          className="file:py-2 file:px-4 file:border file:border-blue-600 file:rounded-md"
+        />
+      </div>
+
+      {/* Form fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="first_name">ชื่อจริง</Label>
+          <Input
+            id="first_name"
+            name="first_name"
+            value={user_data?.first_name || ''}
+            onChange={handleInputChangeProfile}
+            required
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="last_name">นามสกุล</Label>
+          <Input
+            id="last_name"
+            name="last_name"
+            value={user_data?.last_name || ''}
+            onChange={handleInputChangeProfile}
+            required
+            disabled={isLoading}
+          />
+        </div>
+
+        {/* <div className="space-y-2">
+          <Label htmlFor="email">อีเมล</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={user_data?.email || ''}
+            onChange={handleInputChangeProfile}
+            required
+            disabled={isLoading}
+          />
+        </div> */}
+      </div>
+      
+      {/* Action Buttons */}
+      <div className="mt-6 flex justify-end space-x-4">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => setIsProfileDialogOpen(false)} 
+          disabled={isLoading}
+        >
+          ยกเลิก
+        </Button>
+        <Button 
+          type="submit"
+          disabled={isLoading}
+          className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          {isLoading ? (
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              กำลังบันทึก...
+            </div>
+          ) : (
+            "บันทึก"
+          )}
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
+
+          {/* Address Section */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-medium">Address</h2>
+                <Button 
+                  variant="outline" 
+                  onClick={handleAddAddress}
+                  disabled={isLoading}
+                >
+                  + Add New Address
+                </Button>
+              </div>
+              
+              {filteredAddresses.length === 0 ? (
+                <div className="text-center py-6 text-gray-500">
+                  {searchQuery ? "ไม่พบที่อยู่ที่ค้นหา" : "ไม่มีที่อยู่ โปรดเพิ่มที่อยู่ใหม่"}
+                </div>
+              ) : (
+                filteredAddresses.map((address) => (
+                  <div key={address.address_id} className="bg-white rounded-lg border p-4 mb-4 relative">
+                    <div className="absolute right-4 top-4 flex space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleEditAddress(address)}
+                        disabled={isLoading}
+                      >
+                        <Edit className="w-4 h-4 mr-1" /> Edit
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteAddress(address.address_id)}
+                        disabled={isLoading}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1 text-red-500" /> Delete
+                      </Button>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <input 
+                        type="checkbox" 
+                        className="mr-4 h-4 w-4" 
+                        checked={address.is_default}
+                        onChange={() => handleSetDefaultAddress(address.address_id)}
+                        disabled={isLoading}
+                      />
+                      {address.is_default ? <span className="text-sm text-green-600">Default Address</span> : null}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <p className="font-medium">{address.fname} {address.lname}</p>
+                        <p className="text-gray-600 mt-2">{address.phonenumber}</p>
+                        <p className="text-gray-600 mt-2">{address.province}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">{address.district}, {address.subDistrict}</p>
+                        <p className="text-gray-600 mt-2">{address.street_name}</p>
+                        <p className="text-gray-600 mt-2">{address.zipcode}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">{address.building}</p>
+                        <p className="text-gray-600 mt-2">{address.house_number}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Address Form Dialog */}
+      <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{isEditing ? 'แก้ไขที่อยู่' : 'เพิ่มที่อยู่ใหม่'}</DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleSaveAddress}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="fname">ชื่อจริง</Label>
+                <Input
+                  id="fname"
+                  name="fname"
+                  value={currentAddress?.fname || ''}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="lname">นามสกุล</Label>
+                <Input
+                  id="lname"
+                  name="lname"
+                  value={currentAddress?.lname || ''}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phonenumber">เบอร์โทรศัพท์ (0XXXXXXXXX)</Label>
+                <Input
+                  id="phonenumber"
+                  name="phonenumber"
+                  value={currentAddress?.phonenumber || ''}
+                  onChange={handleInputChange}
+                  // pattern="^0[0-9]{8,9}$"
+                  required
+                  placeholder="0XXXXXXXXX"
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="street_name">ถนน</Label>
+                <Input
+                  id="street_name"
+                  name="street_name"
+                  value={currentAddress?.street_name || ''}
+                  onChange={handleInputChange}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="building">อาคาร/หมู่บ้าน</Label>
+                <Input
+                  id="building"
+                  name="building"
+                  value={currentAddress?.building || ''}
+                  onChange={handleInputChange}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="house_number">บ้านเลขที่</Label>
+                <Input
+                  id="house_number"
+                  name="house_number"
+                  value={currentAddress?.house_number || ''}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="subDistrict">ตำบล</Label>
+                <Input
+                  id="subDistrict"
+                  name="subDistrict"
+                  value={currentAddress?.subDistrict || ''}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="district">อำเภอ</Label>
+                <Input
+                  id="district"
+                  name="district"
+                  value={currentAddress?.district || ''}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="province">จังหวัด</Label>
+                <Input
+                  id="province"
+                  name="province"
+                  value={currentAddress?.province || ''}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="zipcode">รหัสไปรษณีย์</Label>
+                <Input
+                  id="zipcode"
+                  name="zipcode"
+                  value={currentAddress?.zipcode || ''}
+                  onChange={handleInputChange}
+                  required
+                  pattern="[0-9]{5}"
+                  placeholder="XXXXX"
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end space-x-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setIsAddressDialogOpen(false);
+                  setCurrentAddress(null);
+                }}
+                disabled={isLoading}
+                className="min-w-[100px]"
+              >
+                ยกเลิก
+              </Button>
+              <Button 
+                type="submit"
+                disabled={isLoading}
+                className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    กำลังบันทึก...
+                  </div>
+                ) : (
+                  "บันทึก"
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
