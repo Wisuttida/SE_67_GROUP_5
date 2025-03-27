@@ -58,41 +58,46 @@ const ShopPost = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
-  const [sellers, setSellers] = useState<Seller[]>([]);
+  const [offers, setOffers] = useState([]);
+  const authToken = localStorage.getItem('token');
+  
+  // ตรวจสอบว่า authToken มีค่าไหม
+  if (!authToken) {
+    console.error('Authorization token not found');
+  }
+  
+  // useEffect สำหรับดึง CSRF Token
+  useEffect(() => {
+    if (!authToken) return;
+    axios.get('http://localhost:8000/csrf-token', { withCredentials: true })
+      .then(response => {
+        setCsrfToken(response.data.csrf_token);
+      })
+      .catch(error => {
+        console.error("Error fetching CSRF Token:", error);
+      });
+  }, [authToken]); // useEffect นี้ไม่ต้องการการเช็ค authToken
 
-useEffect(() => {
-  // ตัวอย่างข้อมูลผู้ขาย (อาจดึงจาก API)
-  setSellers([
-    {
-      farm_id: "1",
-      farm_name: "สมชาย ขายดี",
-      farm_image: "https://via.placeholder.com/50", // ใส่ URL รูปจริง
-      name: "มะนาว",
-      price_per_unit: 20,
-      unit: "กิโลกรัม",
-      amount: 50,
-      total_price: 1000,
-      description: "มะนาวสดจากสวน ปลูกแบบออร์แกนิค",
-      bank_name : "ไทยพาณิชย์",
-      bank_number: "123456789",
-      bank_account: "สมชาย ขายดี",
-    },
-    {
-      farm_id: "2",
-      farm_name: "แม่ส้ม แม่ค้าใจดี",
-      farm_image: "https://via.placeholder.com/50",
-      name: "พริกแดง",
-      price_per_unit: 150,
-      unit: "กิโลกรัม",
-      amount: 20,
-      total_price: 3000,
-      description: "พริกแดงแห้งคุณภาพดี เผ็ดสะใจ",
-      bank_name : "ไทยพาณิชย์",
-      bank_number: "123456789",
-      bank_account: "สมชาย ขายดี",
-    },
-  ]);
-}, []);
+  // useEffect สำหรับดึงข้อมูลโพสต์และข้อเสนอจาก API
+  useEffect(() => {
+    if (authToken && csrfToken) {
+      axios.get('http://localhost:8000/api/offers-by-user-posts', {
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'Authorization': `Bearer ${authToken}`,  // ส่ง token ที่ได้จากการล็อกอิน
+        },
+        withCredentials: true
+      })
+      .then(response => {
+        setPosts(response.data.posts);
+        setOffers(response.data.offers);
+      })
+      .catch(error => {
+        console.error('Error fetching offers:', error);
+      });
+    }
+  }, [authToken, csrfToken]);
+
   const handleBuy = (sellerId: string) => {
     if (!slipPreviews[sellerId]) {
       alert("กรุณาอัพโหลดหลักฐานการโอน");
@@ -366,84 +371,13 @@ useEffect(() => {
             )}
             {activeTab === "Buy" && (
               <div className="grid grid-cols-2 gap-4 mt-4">
-                {sellers.map((seller) => (
-                  <div key={seller.farm_id} className="bg-white p-4 shadow-md rounded-lg border border-gray-200 relative">
-                    {/* รูปโปรไฟล์ + ชื่อผู้ขาย */}
-                    <div className="flex items-center gap-3">
-                      <img src={seller.farm_image} alt="profile" className="w-12 h-12 rounded-full object-cover border" />
-                      <div>
-                        <h3 className="text-lg font-semibold">{seller.farm_name}</h3>
-                      </div>
-                    </div>
-                    {/* รายละเอียดสินค้า */}
-                    <div className="mt-3">
-                      <p className="text-gray-700"><span className="font-medium">วัตถุดิบ:</span> {seller.name}</p>
-                      <p className="text-gray-700"><span className="font-medium">ปริมาณที่ขาย:</span> {seller.amount} {seller.unit}</p>
-                      <p className="text-gray-700"><span className="font-medium">ราคา:</span> {seller.price_per_unit} บาท ต่อ {seller.unit}</p>
-                      <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {seller.total_price} บาท</p>
-                      {/* ข้อมูลธนาคาร */}
-                      <div className="mt-2 p-3 border rounded bg-gray-100">
-                        <h4 className="text-lg font-semibold">ข้อมูลธนาคาร</h4>
-                        <p className="text-gray-700"><span className="font-medium">ชื่อบัญชี:</span> {seller.bank_account}</p>
-                        <p className="text-gray-700"><span className="font-medium">เลขบัญชี:</span> {seller.bank_number}</p>
-                        <p className="text-gray-700"><span className="font-medium">ธนาคาร:</span> {seller.bank_name}</p>
-                      </div>
-
-                      {/* input รับรูปสลิปโอนเงิน */}
-                      <div className="mt-4">
-                        <label className="block text-gray-1000 font-medium mb-2">อัพโหลดสลิปโอนเงิน</label>
-
-                        <label className="cursor-pointer flex items-center justify-center border-2 border-dashed border-gray-400 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => handleSlipUpload(e, seller.farm_id)} // ใช้ seller.id
-                          />
-                          <span className="text-gray-600">เลือกไฟล์...</span>
-                        </label>
-
-                        {slipPreviews[seller.farm_id] && (
-                          <div className="mt-3 relative inline-block"> {/* เพิ่ม relative ที่นี่ */}
-                            <p className="text-gray-700">ตัวอย่างสลิป:</p>
-                            <img
-                              src={slipPreviews[seller.farm_id]}
-                              alt="Slip Preview"
-                              className="w-full h-auto rounded-lg shadow-md border mt-2"
-                            />
-                            {/* ปุ่มกากบาท */}
-                            <button
-                              onClick={() => removePreview(seller.farm_id)} // ใช้ seller.id แทนการฮาร์ดโค้ด
-                              className="absolute top-8 right-1 bg-gray-500 text-white rounded-full p-1 shadow hover:bg-gray-600 transition opacity-10absolute top-2 right-2 bg-gray-500 text-white rounded-full p-2 shadow opacity-50 hover:opacity-100 hover:bg-gray-600 transition0 hover:opacity-500"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-
-                    </div>
-                    {/* ปุ่ม */}
-                    <div className="mt-4 flex gap-4">
-                      {/* ปุ่ม ไม่ซื้อ */}
-                      <button 
-                        onClick={() => handleNotBuy(seller.farm_id)} 
-                        className={`w-1/2 py-2 rounded-md text-center ${slipPreviews[seller.farm_id] ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-red-500 text-white"}`}
-                        disabled={!!slipPreviews[seller.farm_id]}
-                      >
-                        ไม่ซื้อ
-                      </button>
-
-                      {/* ปุ่ม รับซื้อ */}
-                      <button 
-                        onClick={() => handleBuy(seller.farm_id)} 
-                        className="w-1/2 bg-green-500 text-white py-2 rounded-md text-center"
-                      >
-                        รับซื้อ
-                      </button>
-                    </div>
-
+                {offers.map((offer) => (
+                  <div key={offer.offer_id} className="bg-white p-4 shadow-md rounded-lg border border-gray-200 relative">
+                    <h3 className="text-lg font-semibold">{offer.farm?.farm_name || "ไม่มีชื่อฟาร์ม"}</h3>
+                    <p>ราคา: {offer.price_per_unit} บาท ต่อ {offer.unit}</p>
+                    <p>ปริมาณที่เสนอ: {offer.quantity} {offer.unit}</p>
+                    <p>สถานะ: {offer.status}</p>
+                    <button className="bg-green-500 text-white py-2 px-4 rounded mt-2">รับซื้อ</button>
                   </div>
                 ))}
               </div>

@@ -23,41 +23,56 @@ interface BuyPost {
 }
 
 const ShopHomePost = () => {
-  const [buyPosts, setBuyPosts] = useState<BuyPost[]>([]);
-  const [selectedBuyPost, setSelectedBuyPost] = useState<BuyPost | null>(null);
+  const [buyPosts, setBuyPosts] = useState([]);
+  const [selectedBuyPost, setSelectedBuyPost] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [total_price, setTotal_price] = useState<number>(0);
+  const [total_price, setTotal_price] = useState(0);
   const [csrfToken, setCsrfToken] = useState("");
   const router = useRouter();
-
+  const authToken = localStorage.getItem('token');
+  
+  // ตรวจสอบว่า authToken มีค่าไหม
+  if (!authToken) {
+    console.error('Authorization token not found');
+  }
+  
+  // useEffect สำหรับดึง CSRF Token
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/show-buyposts`, { withCredentials: true })
+    if (!authToken) return;
+    axios.get('http://localhost:8000/csrf-token', { withCredentials: true })
       .then(response => {
-
-        const updatedBuyPosts = response.data.buy_posts.map((post: BuyPost) => ({
-          ...post,
-          price_per_unit: Number(post.price_per_unit), // แปลงเป็น number
-          amount: Number(post.amount), // แปลงเป็น number
-          sold_amount: Number(post.sold_amount), // แปลงเป็น number
-        }));
-        // ✅ ดึงเฉพาะ buy_posts มาจาก response
-        setBuyPosts(updatedBuyPosts);
-        console.log(updatedBuyPosts);
+        setCsrfToken(response.data.csrf_token);
       })
       .catch(error => {
-        console.error("Error fetching buy posts:", error);
+        console.error("Error fetching CSRF Token:", error);
       });
-
-    // axios.get(`http://localhost:8000/csrf-token`, { withCredentials: true })
-    //   .then(response => {
-    //     setCsrfToken(response.data.csrf_token);
-    //   })
-    //   .catch(error => {
-    //     console.error("Error fetching CSRF token:", error);
-    //   });
+  }, [authToken]); // useEffect นี้ไม่ต้องการการเช็ค authToken
+  
+  useEffect(() => {
+    // ดึงข้อมูลโพสต์ซื้อ
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/show-buyposts`, { 
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      withCredentials: true // ตรวจสอบคุกกี้ CSRF
+    })
+    .then(response => {
+      const updatedBuyPosts = response.data.buy_posts.map((post: any) => ({
+        ...post,
+        price_per_unit: Number(post.price_per_unit), // แปลงเป็น number
+        amount: Number(post.amount), // แปลงเป็น number
+        sold_amount: Number(post.sold_amount), // แปลงเป็น number
+      }));
+      setBuyPosts(updatedBuyPosts);
+      console.log(updatedBuyPosts);
+    })
+    .catch(error => {
+      console.error("Error fetching buy posts:", error);
+    });
   }, []);
+  
 
-  const handleOrderCustomize = (post: BuyPost) => {
+  const handleOrderCustomize = (post: any) => {
     setSelectedBuyPost(post);
     setQuantity(1);
     setTotal_price(post.price_per_unit); // ตั้งค่าเริ่มต้น
@@ -75,11 +90,32 @@ const ShopHomePost = () => {
         quantity: quantity,
         total_price: total_price,
       };
-      console.log("Order Confirmed:", orderData);
-      router.push(`/farm/to-ship`);
+  
+      const token = localStorage.getItem("token"); // หรือใช้จาก context / state
+  
+      axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/buy-offers/${selectedBuyPost?.post_id}`,
+        orderData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-CSRF-TOKEN': csrfToken, // CSRF token ต้องส่งไปใน header
+            'Content-Type': 'application/json', // ตั้งค่า Content-Type เป็น JSON
+          },
+          withCredentials: true, // ส่งคุกกี้ CSRF
+        }
+      )
+      .then((response) => {
+        console.log("Offer submitted:", response.data);
+        router.push(`/farm/to-ship`);
+      })
+      .catch((error) => {
+        console.error("Error submitting offer:", error);
+      });
     }
   };
-
+ 
+  
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
