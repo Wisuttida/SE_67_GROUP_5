@@ -21,15 +21,15 @@ export default function ProfileUser() {
   const [tempIsChecked, setTempIsChecked] = useState(isChecked);
 
   const menuItems = [
-    { name: "โปรไฟล์ผู้ใช้", icon: <User size={32} />, path: "/ProfileUser" },
-    { name: "ร้านของฉัน", icon: <Store size={32} />, path: "/profileShop" },
-    { name: "คลังสินค้า", icon: < Boxes size={32} />, path: "/myProductShop" },
-    { name: "คำสั่งซื้อ", icon: <ClipboardList size={32} />, path: "/shopOrder" },
-    { name: "เพิ่มสินค้า", icon: <Plus size={32} />, path: "/addProduct" },
-    { name: "รับซื้อวัตถุดิบ", icon: <PackageOpen  size={32} />, path: "/shopPost" },
-    { name: "ซื้อวัตถุดิบ", icon: <UserRoundSearch  size={32} />, path: "/shopHomePost" },
-    { name: "การขนส่ง", icon: <Truck size={32} />, path: "/shopToShip" },
-    { name: "ที่ต้องได้รับ", icon: <Inbox size={32} />, path: "/shopToRecieve" },
+    { name: "Profile", icon: <User size={32} />, path: "/ProfileUser" },
+    { name: "My Shop", icon: <Store size={32} />, path: "/profileShop" },
+    { name: "My Product", icon: < Boxes size={32} />, path: "/myProductShop" },
+    { name: "Order", icon: <ClipboardList size={32} />, path: "/shopOrder" },
+    { name: "Add Product", icon: <Plus size={32} />, path: "/addProduct" },
+    { name: "Post Ingredient", icon: <PackageOpen  size={32} />, path: "/shopPost" },
+    { name: "Buy Ingredient", icon: <UserRoundSearch  size={32} />, path: "/shopHomePost" },
+    { name: "To Ship", icon: <Truck size={32} />, path: "/shopToShip" },
+    { name: "To Recieve", icon: <Inbox size={32} />, path: "/shopToRecieve" },
   ];
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
