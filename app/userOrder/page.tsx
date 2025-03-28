@@ -119,6 +119,8 @@ export default function UserOrder() {
       setIsLoading(false);
     }
   };
+  const proofImage = "/path/to/your/default/proof-image.jpg"; // เปลี่ยนเป็นเส้นทางของรูปภาพที่ต้องการให้แสดง
+
 
   return (
     <div>
@@ -189,6 +191,7 @@ export default function UserOrder() {
 
                     {/* สินค้าและรายละเอียด */}
                     <div className="flex items-start gap-4">
+                      {/* ส่วนของรูปภาพสินค้า */}
                       <div className="w-28 h-36 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                         <Image
                           src={order.order_items[0].product.image_url || '/images/product.png'}
@@ -199,36 +202,56 @@ export default function UserOrder() {
                         />
                       </div>
 
+                      {/* ส่วนของรายละเอียดสินค้า */}
                       <div className="flex-1 flex flex-col justify-between">
-                        <div>
-                          <p className="font-semibold text-base">{order.order_items[0].product.name}</p>
-                          <p className="text-gray-600 text-sm mt-1">ราคา: ฿ {order.total_amount}</p>
-                          <p className="text-sm text-gray-500 mt-1">สถานะ: {order.status}</p>
-                          <p className="text-sm text-gray-500 mt-1">วันที่สั่งซื้อ: {new Date(order.created_at).toLocaleDateString()}</p>
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-4 self-start"
-                          onClick={() => handleToggleOrderItems(order.order_id)}
-                        >
-                          {expandedOrderId === order.order_id ? "ซ่อนสินค้า" : "แสดงสินค้าทั้งหมด"}
-                        </Button>
-
-                        {/* เพิ่มปุ่มยกเลิกการสั่งซื้อ */}
-                        {order.status !== 'canceled' && order.status !== 'confirmed' && (
-                          <Button
-                            variant="destructive"  // ใช้ variant destructive เพื่อให้ปุ่มดูเด่น
-                            size="sm"
-                            className="mt-2 self-start"
-                            onClick={() => handleCancelOrder(order.order_id)}
-                          >
-                            ยกเลิกการสั่งซื้อ
-                          </Button>
-                        )}
+                      <div>
+                        <p className="font-semibold text-base">{order.order_items[0].product.name}</p>
+                        <p className="text-gray-600 text-sm mt-1">ราคา: ฿ {order.total_amount}</p>
+                        <p className="text-sm text-gray-500 mt-1">สถานะ: {order.status}</p>
+                        <p className="text-sm text-gray-500 mt-1">วันที่สั่งซื้อ: {new Date(order.created_at).toLocaleDateString()}</p>
                       </div>
+
+                      {/* การแสดงหลักฐานการโอน */}
+                      {proofImage && (
+                        <div className="mt-4">
+                          <h3 className="text-lg font-semibold text-center">หลักฐานการโอน:</h3>
+                          <div className="flex justify-center mt-2">
+                            <Image
+                              src={proofImage}
+                              alt="Proof of Payment"
+                              width={200}
+                              height={200}
+                              className="object-contain"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ปุ่มแสดง/ซ่อนสินค้า */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-4 self-start"
+                        onClick={() => handleToggleOrderItems(order.order_id)}
+                      >
+                        {expandedOrderId === order.order_id ? "ซ่อนสินค้า" : "แสดงสินค้าทั้งหมด"}
+                      </Button>
+
+                      {/* ปุ่มยกเลิกการสั่งซื้อ */}
+                      {order.status !== 'canceled' && order.status !== 'confirmed' && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="mt-2 self-start"
+                          onClick={() => handleCancelOrder(order.order_id)}
+                        >
+                          ยกเลิกการสั่งซื้อ
+                        </Button>
+                      )}
                     </div>
+
+                    </div>
+
 
                     {/* รายการสินค้าทั้งหมด */}
                     {expandedOrderId === order.order_id && (
