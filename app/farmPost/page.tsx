@@ -29,14 +29,67 @@ interface SalePost {
     name: string;
   };
 }
+interface Buyer {
+  id: string;
+  name: string;
+  profileImage: string;
+  productName: string;
+  price_per_unit: number;
+  unit: string;
+  amount: number;
+  description: string;
+  bankName: string;  // Name of the bank
+  bankAccountNumber: string;  // Account number of the seller
+  bankAccountName: string;  // Account holder's name
+}
 
+
+const handleSell = () => {
+  alert("ยืนยันการขาย");
+};
+
+const handleNotSell = () => {
+  alert("ปฏิเสธ เพราะ หลักฐานการโอนไม่ถูกต้อง");
+};
 const FarmPost = () => {
   const [salePosts, setSalePosts] = useState<SalePost[]>([]);
   const [activeTab, setActiveTab] = useState("MyPost");
   const [showPopup, setShowPopup] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [buyers, setBuyers] = useState<Buyer[]>([]);
 
+  useEffect(() => {
+  // ตัวอย่างข้อมูลผู้ขาย (อาจดึงจาก API)
+  setBuyers([
+    {
+      id: "1",
+      name: "สมชาย ขายดี",
+      profileImage: "https://via.placeholder.com/50", // ใส่ URL รูปจริง
+      productName: "มะนาว",
+      price_per_unit: 20,
+      unit: "กิโลกรัม",
+      amount: 50,
+      description: "มะนาวสดจากสวน ปลูกแบบออร์แกนิค",
+      bankName : "ไทยพาณิชย์",
+      bankAccountNumber: "123456789",
+      bankAccountName: "สมชาย ขายดี",
+    },
+    {
+      id: "2",
+      name: "แม่ส้ม แม่ค้าใจดี",
+      profileImage: "https://via.placeholder.com/50",
+      productName: "พริกแดง",
+      price_per_unit: 150,
+      unit: "กิโลกรัม",
+      amount: 20,
+      description: "พริกแดงแห้งคุณภาพดี เผ็ดสะใจ",
+      bankName : "ไทยพาณิชย์",
+      bankAccountNumber: "123456789",
+      bankAccountName: "สมชาย ขายดี",
+    },
+  ]);
+  }, []);
 // Fetch ingredients from the API
 useEffect(() => {
   // ดึง CSRF Token จาก server ก่อน
@@ -328,6 +381,9 @@ useEffect(() => {
               <button className={`p-2 flex-1 ${activeTab === "MyPost" ? "border-b-2 border-black" : ""}`} onClick={() => setActiveTab("MyPost")}>
                 โพสต์ของฉัน
               </button>
+              <button className={`p-2 flex-1 ${activeTab === "Sell" ? "border-b-2 border-black" : ""}`} onClick={() => setActiveTab("Sell")}>
+                ขาย
+              </button>
             </div>
             {activeTab === "MyPost" && (
               <div className="grid grid-cols-2 gap-4 mt-4">
@@ -344,6 +400,58 @@ useEffect(() => {
                     <p>{post.description}</p>
                     <p className="mt-2">ราคา: {post.price_per_unit} บาท/{post.unit}</p>
                     <p>จำนวน: {post.amount} {post.unit}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+             {activeTab === "Sell" && (
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                {buyers.map((buyer) => (
+                  <div key={buyer.id} className="bg-white p-4 shadow-md rounded-lg border border-gray-200 relative">
+                    {/* รูปโปรไฟล์ + ชื่อผู้ซื้อ */}
+                    <div className="flex items-center gap-3">
+                      <img src={buyer.profileImage} alt="profile" className="w-12 h-12 rounded-full object-cover border" />
+                      <div>
+                        <h3 className="text-lg font-semibold">{buyer.name}</h3>
+                      </div>
+                    </div>
+                    {/* รายละเอียดสินค้า */}
+                    <div className="mt-3">
+                      <p className="text-gray-700"><span className="font-medium">วัตถุดิบ:</span> {buyer.productName}</p>
+                      <p className="text-gray-700"><span className="font-medium">ปริมาณที่ซื้อ:</span> {buyer.amount} {buyer.unit}</p>
+                      <p className="text-gray-700"><span className="font-medium">ราคา:</span> {buyer.price_per_unit} บาท ต่อ {buyer.unit}</p>
+                      <p className="text-gray-700"><span className="font-medium">ราคารวม:</span> {buyer.price_per_unit*buyer.amount} บาท</p>
+
+                      {/* เปลี่ยนเป็นดูสลิปโอนเงินอย่างเดียว ไม่ต้องรับ input */}
+                        <div className="mt-4">
+                        <label className="block text-gray-1000 font-medium mb-2">สลิปโอนเงิน</label>
+                        <img 
+                            src="image" 
+                            alt="Slip Preview" 
+                            className="w-full h-auto rounded-lg shadow-md border mt-2"
+                        />
+                        </div>
+                    </div>
+
+                    {/* ปุ่ม */}
+                    <div className="mt-4 flex gap-4">
+                      {/* ยืนบัน */}
+                      <button 
+                        onClick={() => handleNotSell()} 
+                        className="w-1/2 bg-red-500 text-white py-2 rounded-md text-center hover:bg-red-600"
+                      >
+                        ยกเลิก
+                      </button>
+
+                      {/* ยืนบัน */}
+                      <button 
+                        onClick={() => handleSell()} 
+                        className="w-1/2 bg-green-500 text-white py-2 rounded-md text-center"
+                      >
+                        ยืนบัน
+                      </button>
+                    </div>
+
                   </div>
                 ))}
               </div>
