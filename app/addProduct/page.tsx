@@ -11,30 +11,30 @@ import { ImageKitProvider, IKImage, IKUpload } from "imagekitio-next";
 const publicKey = process.env.NEXT_PUBLIC_PUBLIC_KEY;
 const urlEndpoint = process.env.NEXT_PUBLIC_URL_ENDPOINT;
 const authenticator = async () => {
-  try {
-    const response = await fetch("http://localhost:3000/api/auth");
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Request failed with status ${response.status}: ${errorText}`);
+    try {
+        const response = await fetch("http://localhost:3000/api/auth");
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Request failed with status ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+        const { signature, expire, token } = data;
+        return { signature, expire, token };
+    } catch (error) {
+        throw new Error(`Authentication request failed: ${error.message}`);
     }
-    
-    const data = await response.json();
-    const { signature, expire, token } = data;
-    return { signature, expire, token };
-  } catch (error) {
-    throw new Error(`Authentication request failed: ${error.message}`);
-  }
 };
 const fragranceTones = [
-  { id: 1, name: "Floral" },
-  { id: 2, name: "Fruity" },
-  { id: 3, name: "Spicy" },
-  { id: 4, name: "Woody" },
-  { id: 5, name: "Fresh" },
-  { id: 6, name: "Oriental" },
-  { id: 7, name: "Herbal" },
-  { id: 8, name: "Gourmand" },
+    { id: 1, name: "Floral" },
+    { id: 2, name: "Fruity" },
+    { id: 3, name: "Spicy" },
+    { id: 4, name: "Woody" },
+    { id: 5, name: "Fresh" },
+    { id: 6, name: "Oriental" },
+    { id: 7, name: "Herbal" },
+    { id: 8, name: "Gourmand" },
 ];
 interface Product {
     name: string;
@@ -60,7 +60,7 @@ const AddProduct = () => {
     const [temp_image_url, setTempImageUrl] = useState<string>('');
     const onError = (err) => {
         console.log("Error", err);
-      };
+    };
     const onSuccess = (res) => {
         console.log("Success", res);
         setImageUrl(res.url);
@@ -120,11 +120,17 @@ const AddProduct = () => {
         setIsLoading(true);
         setErrorMessage("");
 
+        // ตรวจสอบว่าฟิลด์ที่จำเป็นไม่เป็น 0 หรือว่างเปล่า
+        if (product.price <= 0 || product.stock_quantity <= 0 || product.volume <= 0) {
+            setErrorMessage("กรุณากรอกข้อมูล ราคา, จำนวนในคลัง และปริมาณให้ถูกต้อง");
+            setIsLoading(false);
+            return;
+        }
+
         try {
-            // Format the payload to match backend requirements
             const formData = {
                 ...product,
-                ...{ image_url: image_url }, // Include image_url only if it's valid
+                image_url: image_url, // Include image_url only if it's valid
             };
 
             console.log("Payload being sent:", formData);
@@ -170,11 +176,13 @@ const AddProduct = () => {
             setIsLoading(false);
         }
     };
+
     useEffect(() => {
         if (image_url) {
             return; // Set loading to false when addressInfo is available
         }
     }, [image_url]);
+
     return (
         <div className="min-h-screen bg-gray-100">
             <Navbar />
@@ -182,25 +190,25 @@ const AddProduct = () => {
                 <SideBarShop />
                 <div className="flex-1 p-5 bg-gray-100">
                     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
-                            <div className="mb-4">
-                                <label htmlFor="image" className="block mb-1 text-sm font-medium text-gray-700">อัปโหลดรูปภาพ</label>
-                                {temp_image_url.length > 0 && 
-                                    <div className="border rounded-lg overflow-hidden bg-gray-200 mb-4" style={{ width: '300px', height: '300px' }}>
-                                        <img 
-                                            src={temp_image_url} 
-                                            alt="Product Image" 
-                                            className="object-cover"
-                                            style={{ width: '300px', height: '300px' }}
-                                        />
-                                    </div>
-                                }
-                                <ImageKitProvider publicKey={publicKey} urlEndpoint={urlEndpoint} authenticator={authenticator}>
-                                    <div>
-                                        <h2>File upload</h2>
-                                            <IKUpload fileName="test-upload.png" onError={onError} onSuccess={onSuccess} onChange={handleImageChange} className="file:py-2 file:px-4 file:border file:border-blue-600 file:rounded-md p-2 border rounded-lg w-full"/>
-                                    </div>
-                                </ImageKitProvider>
-                            </div>
+                        <div className="mb-4">
+                            <label htmlFor="image" className="block mb-1 text-sm font-medium text-gray-700">อัปโหลดรูปภาพ</label>
+                            {temp_image_url.length > 0 &&
+                                <div className="border rounded-lg overflow-hidden bg-gray-200 mb-4" style={{ width: '300px', height: '300px' }}>
+                                    <img
+                                        src={temp_image_url}
+                                        alt="Product Image"
+                                        className="object-cover"
+                                        style={{ width: '300px', height: '300px' }}
+                                    />
+                                </div>
+                            }
+                            <ImageKitProvider publicKey={publicKey} urlEndpoint={urlEndpoint} authenticator={authenticator}>
+                                <div>
+                                    <h2>File upload</h2>
+                                    <IKUpload fileName="test-upload.png" onError={onError} onSuccess={onSuccess} onChange={handleImageChange} className="file:py-2 file:px-4 file:border file:border-blue-600 file:rounded-md p-2 border rounded-lg w-full" />
+                                </div>
+                            </ImageKitProvider>
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="name" className="block mb-1 text-sm font-medium text-gray-700">ชื่อสินค้า</label>
