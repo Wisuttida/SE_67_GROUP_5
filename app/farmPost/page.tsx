@@ -42,6 +42,61 @@ interface Buyer {
   bankAccountNumber: string;  // Account number of the seller
   bankAccountName: string;  // Account holder's name
 }
+interface Payment {
+  payment_id: number;
+  amount: string;
+  payment_proof_url: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  paymentable_id: number;
+  paymentable_type: string;
+}
+
+interface IngredientOrder {
+  ingredient_orders_id: number;
+  total: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  farms_farm_id: number;
+  shops_shop_id: number;
+  addresses_address_id: number;
+  sales_offers_sales_offers_id: number;
+  buy_offers_buy_offers_id: number | null;
+}
+
+interface SalePost {
+  post_id: number;
+  description: string;
+  status: string;
+  price_per_unit: string;
+  amount: string;
+  sold_amount: string;
+  unit: string;
+  created_at: string;
+  updated_at: string;
+  farms_farm_id: number;
+  ingredients_ingredient_id: number;
+}
+
+interface SalesOffer {
+  sales_offers_id: number;
+  quantity: string;
+  price_per_unit: string;
+  status: 'submit' | 'confirmed' | 'rejected';
+  created_at: string;
+  updated_at: string;
+  sales_post_post_id: number;
+  shops_shop_id: number;
+  sale_post: SalePost;
+  payments: Payment[];
+  ingredient_orders: IngredientOrder[];
+}
+
+interface SalesOfferResponse {
+  offers: SalesOffer[];
+}
 
 
 const handleSell = () => {
@@ -58,7 +113,7 @@ const FarmPost = () => {
   const [csrfToken, setCsrfToken] = useState("");
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [buyers, setBuyers] = useState<Buyer[]>([]);
-
+  const [salesOffers, setSalesOffers] = useState<SalesOffer[] | null>(null);
   useEffect(() => {
   // ตัวอย่างข้อมูลผู้ขาย (อาจดึงจาก API)
   setBuyers([
