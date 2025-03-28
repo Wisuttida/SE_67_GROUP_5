@@ -22,6 +22,9 @@ interface Product {
 }
 
 export default function MyProductShop() {
+  const csrf = localStorage.getItem('csrfToken');
+  const token = localStorage.getItem('token');
+
   const [products, setProducts] = useState<Product[]>([]);
   const [shopId, setShopId] = useState();
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -68,10 +71,30 @@ export default function MyProductShop() {
     setEditingId(null); // เมื่อบันทึกให้กลับไปโหมดแสดงข้อมูล
   };
 
-  const handleRemove = (id: number) => {
+  const handleRemove = async (id: number) => {
     const confirmRemove = window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?");
-    if (confirmRemove) {
-      setProducts((prev) => prev.filter((product) => product.product_id !== id));
+    if (!confirmRemove) return;
+
+    try {
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`
+        ,{headers:{
+
+        'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-CSRF-TOKEN': csrf,
+      },
+        withCredentials: true});
+      if (response.status === 200) {
+        // ลบสินค้าที่ถูกลบออกจาก state
+        setProducts((prev) => prev.filter((product) => product.product_id !== id));
+        alert("ลบสินค้าสำเร็จ");
+      } else {
+        console.error("Unexpected response:", response.data);
+        alert("เกิดข้อผิดพลาดในการลบสินค้า");
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      alert("ไม่สามารถลบสินค้าได้");
     }
   };
 

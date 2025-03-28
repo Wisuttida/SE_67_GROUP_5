@@ -28,10 +28,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ productEach }) => {
           className="w-full h-48 object-cover rounded-lg mb-4"
         />
 
-        <h2 className="text-xl font-semibold text-gray-900">
-          {productEach.name.length > 10
-            ? `${productEach.name.slice(0, 10)}...`
-            : productEach.name}
+        <h2
+          className="text-xl font-semibold text-gray-900 truncate"
+          title={productEach.name} // แสดงชื่อเต็มเมื่อ hover
+        >
+          {productEach.name}
         </h2>
         <p className="text-gray-700 mt-2">฿{parseFloat(productEach.price).toFixed(2)}</p>
       </Link>
