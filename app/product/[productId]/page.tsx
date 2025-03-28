@@ -167,9 +167,9 @@ function ProductDetailPage({ params }: Params) {
                     <span className="font-semibold">Fragrance Tone: </span>
                     {product?.fragrance_tones.map((tone) => tone.fragrance_tone_name).join(', ')}
                   </li>
-                  <li className="text-lg text-gray-700">
+                  {/* <li className="text-lg text-gray-700">
                     <span className="font-semibold">Status:</span> {product?.status}
-                  </li>
+                  </li> */}
                 </ul>
               </div>
 

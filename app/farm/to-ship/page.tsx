@@ -115,9 +115,9 @@ const ShippingDashboard = () => {
 
   const updateOrderStatus = async (order_id: string) => {
     try {
-      // 1. เรียก CSRF cookie ก่อน
-      await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
-        withCredentials: true, // ให้แน่ใจว่าเรียกใช้ cookies
+      // 1. เรียก CSRF cookie ก่อนที่จะส่งคำขอ PUT
+      await axios.get("http://localhost:8000/csrf-token", {
+        withCredentials: true, // แน่ใจว่าใช้คุกกี้
       });
   
       const token = localStorage.getItem("token"); // Token จาก localStorage หรือที่อื่นๆ
@@ -128,12 +128,13 @@ const ShippingDashboard = () => {
         {},
         {
           headers: {
-            Authorization: `Bearer ${token}`, // ส่ง Token ในหัวข้อ Authorization
+            'Authorization': `Bearer ${token}`, // ส่ง Token ในหัวข้อ Authorization
+            //'X-CSRF-TOKEN': csrfToken, // CSRF token ต้องส่งไปใน header
+            'Content-Type': 'application/json', // ตั้งค่า Content-Type เป็น JSON
           },
           withCredentials: true, // ให้แน่ใจว่า CSRF cookie ถูกส่ง
         }
       );
-  
       // 3. อัปเดตสถานะใน local state เมื่อได้รับการตอบกลับจาก API
       if (response.data.message === 'อัปเดตสถานะคำสั่งซื้อเป็น "shipped" สำเร็จ') {
         setOrders((prevOrders) =>
@@ -148,8 +149,6 @@ const ShippingDashboard = () => {
       console.error("Error updating order status:", error);
     }
   };
-  
-
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
