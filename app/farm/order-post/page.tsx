@@ -65,7 +65,7 @@ const OrderCard = ({
           </>
         ) : order.status === "รับซื้อแล้ว" ? (
           <>
-            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.name}</p>
+            <p className="font-semibold text-gray-700">ชื่อวัตถุดิบ: {order.name}</p>
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
             <p className="text-gray-600">จำนวน: {order.quantity} {order.unit}</p>
             <p className="text-gray-600">ราคา: {order.total_price} บาท</p>
@@ -79,7 +79,7 @@ const OrderCard = ({
           </>
         ) : (
           <>
-            <p className="font-semibold text-gray-700">ชื่อน้ำหอม: {order.name}</p>
+            <p className="font-semibold text-gray-700">ชื่อวัตถุดิบ: {order.name}</p>
             <p className="text-gray-600">รายละเอียด: {order.description}</p>
             <p className="text-gray-600">จำนวน: {order.quantity} {order.unit}</p>
             <p className="text-gray-600">ราคา: {order.total_price} บาท</p>
