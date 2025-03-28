@@ -21,7 +21,7 @@ interface Product {
   shop_image: string;
   volume: number;
   description: string;
-  shops_shop_id: number; // ตรวจสอบว่า `shops_shop_id` ตรงกับ `shopId`
+  shops_shop_id: number;
   fragrance_tones: { fragrance_tone_name: string };
 }
 
@@ -34,7 +34,11 @@ const ShopPage = () => {
   }
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [shopDetails, setShopDetails] = useState<Product[]>([]);
+  const [shopDetails, setShopDetails] = useState({
+    shop_name: "Shop Name",
+    shop_image: "/placeholder-profile.jpg",
+    description: "No description available.",
+  });
 
   // Filter state
   const [minPrice, setMinPrice] = useState<string>("");
@@ -45,30 +49,34 @@ const ShopPage = () => {
   const [selectedTones, setSelectedTones] = useState<string[]>([]);
 
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`)
-      .then(response => {
-        if (Array.isArray(response.data)) {
-          const filteredProducts = response.data.filter((product: Product) => product.shops_shop_id.toString() === shopId);
-          setProducts(filteredProducts);
-        } else {
-          console.error("ข้อมูลที่ได้รับไม่ใช่ Array:", response.data);
-        }
-      })
-      .catch(error => {
-        console.error("Error fetching products:", error.response ? error.response.data : error.message);
-      });
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/products`);
+        console.log("Response data:", response.data);
 
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/shops/${shopId}`)
-      .then(response => {
-        setShopDetails({
-          shopName: response.data.shop_name,
-          shopImage: response.data.shop_image || "/placeholder-profile.jpg",
-          description: response.data.description || "No description available.",
-        });
-      })
-      .catch(error => {
-        console.error("Error fetching shop details:", error.response ? error.response.data : error.message);
-      });
+        if (Array.isArray(response.data)) {
+          const filteredProducts = response.data.filter(
+            (product: Product) => product.shops_shop_id.toString() === shopId
+          );
+
+          setProducts(filteredProducts);
+
+          if (filteredProducts.length > 0) {
+            setShopDetails({
+              shop_name: filteredProducts[0].shop_name || "Shop Name",
+              shop_image: filteredProducts[0].shop_image || "/placeholder-profile.jpg",
+              description: filteredProducts[0].shop_description || "No description available.",
+            });
+          }
+        } else {
+          console.error("Data received is not an array:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error.response ? error.response.data : error.message);
+      }
+    };
+
+    fetchProducts();
   }, [shopId]);
 
   // Filter products based on the selected filters
@@ -96,7 +104,7 @@ const ShopPage = () => {
     }
 
     if (selectedTones.length > 0 && !selectedTones.includes(product.fragrance_tones.fragrance_tone_name.toLowerCase())) {
-        return false;
+      return false;
     }
 
     return true;
@@ -105,7 +113,7 @@ const ShopPage = () => {
   // Handle gender and strength checkbox changes
   const handleGenderChange = (gender: string) => {
     if (selectedGenders.includes(gender)) {
-      setSelectedGenders(selectedGenders.filter(g => g !== gender));
+      setSelectedGenders(selectedGenders.filter((g) => g !== gender));
     } else {
       setSelectedGenders([...selectedGenders, gender]);
     }
@@ -113,7 +121,7 @@ const ShopPage = () => {
 
   const handleStrengthChange = (strength: string) => {
     if (selectedStrengths.includes(strength)) {
-      setSelectedStrengths(selectedStrengths.filter(s => s !== strength));
+      setSelectedStrengths(selectedStrengths.filter((s) => s !== strength));
     } else {
       setSelectedStrengths([...selectedStrengths, strength]);
     }
@@ -121,7 +129,7 @@ const ShopPage = () => {
 
   const handleToneChange = (tone: string) => {
     if (selectedTones.includes(tone)) {
-      setSelectedStrengths(selectedTones.filter(t => t !== tone));
+      setSelectedTones(selectedTones.filter((t) => t !== tone));
     } else {
       setSelectedTones([...selectedTones, tone]);
     }
@@ -132,15 +140,15 @@ const ShopPage = () => {
       <Navbar />
       <div className="container mx-auto p-6">
         <div className="flex items-center mb-8">
-          <img
-            src={shopDetails.shop_image || "/path/to/default-image.jpg"}
-            alt={shopDetails.shopName}
+          <Image
+            src={shopDetails.shop_image || "/placeholder-profile.jpg"}
+            alt={shopDetails.shop_name}
             width={100}
             height={100}
             className="rounded-full mr-4"
           />
           <div>
-            <h1 className="text-3xl font-bold">{shopDetails.shopName}</h1>
+            <h1 className="text-3xl font-bold">{shopDetails.shop_name}</h1>
             <p className="text-gray-600 mt-2">{shopDetails.description}</p>
           </div>
         </div>
@@ -164,11 +172,13 @@ const ShopPage = () => {
 
           {/* Product display */}
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-3/4">
-            {
+            {filteredProducts.length > 0 ? (
               filteredProducts.map((product) => (
                 <Productcard key={product.product_id} productEach={product} />
               ))
-            }
+            ) : (
+              <p className="text-gray-500">ไม่พบสินค้าที่ตรงกับการค้นหา</p>
+            )}
           </section>
         </div>
       </div>

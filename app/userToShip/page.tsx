@@ -89,7 +89,7 @@ export default function UserPage() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
             'X-CSRF-TOKEN': csrf,
-          },
+          },withCredentials: true,
         })
         .then(response => {
           console.log("Data", response.data);
