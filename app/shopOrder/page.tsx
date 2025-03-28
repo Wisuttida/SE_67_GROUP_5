@@ -59,10 +59,10 @@ interface Order {
 }
 
 const TABS = [
-  // {Value: "custom", Label: "Custom"},
-  // {Value: "custompending", Label: "รอยืนยัน Custom"},
-  // {Value: "cutomconfirmed", Label: "Custom ยืนยันแล้ว"},
-  // {Value: "customcanceled", Label: "ยกเลิก Custom"},
+  {Value: "custom", Label: "Custom"},
+  {Value: "custompending", Label: "รอยืนยัน Custom"},
+  {Value: "cutomconfirmed", Label: "Custom ยืนยันแล้ว"},
+  {Value: "customcanceled", Label: "ยกเลิก Custom"},
   { Value: "pending", Label: "รอยืนยัน" },
   { Value: "confirmed", Label: "ยืนยันแล้ว" },
   { Value: "canceled", Label: "ยกเลิกแล้ว" },
@@ -78,7 +78,7 @@ const OrderCard = ({
   onAction: (action: string, order: Order) => void;
 }) => {
   const [total_amount, setTotal_amount] = useState(order.total_amount || 0);
-
+  const paymentProofUrl = 'https://via.placeholder.com/200';
   return (
     <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-md mx-auto">
       <div className="flex items-center justify-between">
@@ -110,21 +110,32 @@ const OrderCard = ({
           {order.addresses.building} {order.addresses.district} {order.addresses.subDistrict}
           {order.addresses.province} {order.addresses.zipcode}
         </p>
-        {/* {order.payments.payment_proof_url && (
-          <div className="mt-4">
-            <p className="font-semibold text-gray-700">หลักฐานการโอน:</p>
-            <img
-              src={order.payments.payment_proof_url}
-              alt="Slip"
-              className="mt-2 w-full rounded-lg"
-            />
-          </div>
-        )} */}
+        <div
+          style={{
+            width: 200,
+            height: 200,
+            border: '2px dashed #ccc',
+            borderRadius: 8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#f9f9f9',
+            overflow: 'hidden', // ถ้ารูปใหญ่เกินกรอบ
+          }}
+        >
+        {paymentProofUrl ? (
+          <img
+            src={paymentProofUrl}
+            alt="หลักฐานการโอน"
+            style={{ maxWidth: '100%', maxHeight: '100%' }}
+          />
+        ) : (
+          <span style={{ color: '#aaa', fontSize: 14 }}>ยังไม่มีรูป</span>
+        )}
       </div>
-
       {/* ปุ่มสำหรับการจัดการคำสั่งซื้อ */}
       <div className="mt-4 flex space-x-2">
-        {order.status === "Custom" && (
+        {order.status === "custom" && (
           <>
             <Button
               className="w-1/2 bg-red-500 text-white hover:bg-red-600"
@@ -142,8 +153,8 @@ const OrderCard = ({
             </Button>
           </>
         )}
-        {(order.status === "รอยืนยัน" ||
-          order.status === "รอยืนยัน Custom") && (
+        {(order.status === "pending" ||
+          order.status === "custompending") && (
             <>
               <Button
                 className="w-1/2 bg-red-500 text-white hover:bg-red-600"
@@ -160,6 +171,9 @@ const OrderCard = ({
             </>
           )}
       </div>
+    </div>
+
+      
     </div>
   );
 };
