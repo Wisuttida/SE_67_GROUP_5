@@ -34,21 +34,28 @@ export default function UserToReceive() {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';  // CSRF Token from meta tag
         const token = localStorage.getItem('token'); // Bearer token from localStorage
         
-        const response = await fetch('http://localhost:8000/api/orders/shipped', {
-          method: 'GET',
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/orders/shipped`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken,  // Include CSRF token in headers
-          },
+          },withCredentials: true,
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          setOrders(data);
+        console.log("Response:", response.data);
+
+        if (Array.isArray(response.data)) {
+          setOrders(response.data);
         } else {
-          toast("ไม่สามารถดึงข้อมูลคำสั่งซื้อได้");
+          console.error("Data received is not an array:", response.data);
         }
+
+        // if (response.ok) {
+        //   const data = await response.json();
+        //   setOrders(data);
+        // } else {
+        //   toast("ไม่สามารถดึงข้อมูลคำสั่งซื้อได้");
+        // }
       } catch (error) {
         toast("เกิดข้อผิดพลาดในการดึงข้อมูล");
       } finally {
@@ -71,32 +78,38 @@ export default function UserToReceive() {
   const handleMarkAsReceived = async (orderId: string) => {
     setIsLoading(true);
     try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';  // Get CSRF token from meta tag
-      const token = localStorage.getItem('token'); // Get Bearer token from localStorage
+      // ดึง CSRF Token ก่อน
+      await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/sanctum/csrf-cookie`, {
+        withCredentials: true,
+      });
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const token = localStorage.getItem('token');
 
       if (!token || !csrfToken) {
         throw new Error("Missing authentication or CSRF token");
       }
 
-      // Construct the URL dynamically
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/orders/${orderId}/mark-delivered`;
-
-      // Making a PUT request using axios
-      const response = await axios.put(url, {}, {
-        headers: {
-          'Authorization': `Bearer ${token}`,  // Pass Bearer token
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,  // Add CSRF token in the header
+      const response = await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/mark-delivered`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+          },
+          withCredentials: true,
         }
-      });
-      
+      );
 
-      // Handle the response from the API
       if (response.status === 200) {
         toast("ยืนยันการรับสินค้าเรียบร้อยแล้ว");
-        setOrders(prev => prev.map(order =>
-          order.order_id === orderId ? { ...order, status: 'received' } : order
-        ));
+        setOrders((prev) =>
+          prev.map((order) =>
+            order.order_id === orderId ? { ...order, status: 'received' } : order
+          )
+        );
       } else {
         toast(response.data.error || "เกิดข้อผิดพลาดในการยืนยันการรับสินค้า");
       }
