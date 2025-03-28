@@ -201,9 +201,6 @@ const OrderConfirmation = () => {
       console.log(error);
     }
 
-
-
-
     // กรองคำสั่งซื้อที่ซ้ำกัน
     // const uniqueOrders = fetchedOrders.filter(
     //   (order, index, self) =>
